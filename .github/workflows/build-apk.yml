@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,3 +24,12 @@ jobs:
         with:
           name: jogo-do-dino-apk
           path: app/build/outputs/apk/release/*.apk
+      - name: Salvar APK no repositório
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/jogo-do-dino.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/jogo-do-dino.apk
+          git commit -m "Atualiza APK [skip ci]" || exit 0
+          git push
