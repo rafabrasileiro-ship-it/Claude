@@ -36,6 +36,12 @@ public class MainActivity extends Activity {
         gameView.resume();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        gameView.destroy();
+    }
+
     @SuppressWarnings("deprecation")
     private void hideSystemBars() {
         getWindow().getDecorView().setSystemUiVisibility(

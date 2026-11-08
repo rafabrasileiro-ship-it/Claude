@@ -7,6 +7,7 @@ Jogo simples para Android inspirado no jogo do dinossauro que aparece no navegad
 - **Segure na parte de baixo** da tela para abaixar e desviar dos pássaros (no ar, isso faz o dino descer mais rápido).
 - Desvie dos cactos e dos pássaros. A velocidade aumenta com o tempo.
 - A cada 700 pontos o cenário alterna entre dia e noite.
+- Tem som de pulo e de fim de jogo.
 - O recorde fica salvo no aparelho.
 
 ## Como instalar

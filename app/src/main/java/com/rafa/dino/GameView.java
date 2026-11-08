@@ -44,6 +44,7 @@ public class GameView extends View {
     private final RectF r = new RectF();
     private final Random rnd = new Random();
     private final SharedPreferences prefs;
+    private final SoundFx sfx = new SoundFx();
 
     private State state = State.READY;
     private float scale = 1f;
@@ -96,6 +97,10 @@ public class GameView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         scale = h / WORLD_H;
         worldW = w / scale;
+    }
+
+    public void destroy() {
+        sfx.release();
     }
 
     public void pause() {
@@ -166,6 +171,7 @@ public class GameView extends View {
     private void jump() {
         if (onGround) {
             dinoVy = JUMP_V;
+            sfx.playJump();
             onGround = false;
             ducking = false;
             holdingJump = true;
@@ -273,6 +279,7 @@ public class GameView extends View {
     private void gameOver() {
         state = State.GAME_OVER;
         flashTimer = 0.5f; // evita reiniciar sem querer
+        sfx.playDie();
         int s = score();
         if (s > highScore) {
             highScore = s;
