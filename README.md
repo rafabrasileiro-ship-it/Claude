@@ -5,8 +5,9 @@ Jogo simples para Android inspirado no jogo do dinossauro que aparece no navegad
 ## Como jogar
 - **Toque** na tela para começar e para pular (segure para pular mais alto).
 - **Segure na parte de baixo** da tela para abaixar e desviar dos pássaros (no ar, isso faz o dino descer mais rápido).
-- Desvie dos cactos e dos pássaros. A velocidade aumenta com o tempo.
+- Desvie dos prédios e das bolas de fogo. A velocidade aumenta com o tempo.
 - A cada 700 pontos o cenário alterna entre dia e noite.
+- Na tela inicial (e no fim de jogo) toque nas setas ◀ ▶ para trocar de personagem: Dino, Godzilla, Predador, Alien, Cabra e Salsicha. A escolha fica salva.
 - Tem som de pulo e de fim de jogo.
 - O recorde fica salvo no aparelho.
 
