@@ -27,9 +27,10 @@ jobs:
       - name: Salvar APK no repositório
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/*.apk dist/jogo-do-dino.apk
+          git rm -q --ignore-unmatch dist/*.apk
+          cp app/build/outputs/apk/release/*.apk dist/jogo-do-dino-v${{ github.run_number }}.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f dist/jogo-do-dino.apk
-          git commit -m "Atualiza APK [skip ci]" || exit 0
+          git add -f dist/
+          git commit -m "Atualiza APK v${{ github.run_number }} [skip ci]" || exit 0
           git push

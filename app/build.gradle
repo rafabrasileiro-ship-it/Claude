@@ -2,16 +2,20 @@ plugins {
     id 'com.android.application'
 }
 
+// Número da versão: sobe sozinho a cada build no GitHub (run number); local usa 1.
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
 android {
     namespace 'com.rafa.dino'
     compileSdk 34
+
 
     defaultConfig {
         applicationId 'com.rafa.dino'
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName '1.0'
+        versionCode buildNumber
+        versionName "1.0.${buildNumber}"
     }
 
     buildTypes {

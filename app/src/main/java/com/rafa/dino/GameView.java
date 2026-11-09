@@ -46,6 +46,7 @@ public class GameView extends View {
     private float scale = 1f;
     private float worldW = 600f;
 
+    private String versionName = "";
     private int character;
     private float dinoY;
     private float dinoVy;
@@ -83,6 +84,11 @@ public class GameView extends View {
         prefs = context.getSharedPreferences("dino", Context.MODE_PRIVATE);
         highScore = prefs.getInt("high", 0);
         character = Math.max(0, Math.min(Sprites.COUNT - 1, prefs.getInt("char", 0)));
+        try {
+            versionName = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName;
+        } catch (Exception ignored) {
+        }
         text.setTypeface(android.graphics.Typeface.MONOSPACE);
         text.setFakeBoldText(true);
         for (int i = 0; i < 5; i++) {
@@ -421,6 +427,8 @@ public class GameView extends View {
         text.setTextSize(10);
         text.setFakeBoldText(false);
         c.drawText((character + 1) + "/" + Sprites.COUNT + "  trocar personagem", cx, ay + 24, text);
+        text.setTextAlign(Paint.Align.LEFT);
+        c.drawText("v" + versionName, 8, Sprites.WORLD_H - 6, text);
         text.setFakeBoldText(true);
     }
 
