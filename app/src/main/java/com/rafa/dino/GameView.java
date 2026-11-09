@@ -28,7 +28,7 @@ public class GameView extends View {
     private static final float GRAVITY = 2600f;
     private static final float JUMP_V = -700f;
     private static final float START_SPEED = 330f;
-    private static final float MAX_SPEED = 900f;
+    private static final float MAX_SPEED = 950f;
     private static final float ACCEL = 9f;
     private static final float DINO_X = 50f;
     private static final float HIT_W = 44f;
@@ -246,7 +246,7 @@ public class GameView extends View {
         Iterator<Obstacle> it = obstacles.iterator();
         while (it.hasNext()) {
             Obstacle o = it.next();
-            o.x -= (o.fire ? speed * 1.08f : speed) * dt;
+            o.x -= (o.fire ? speed * (1.08f + 0.12f * level()) : speed) * dt;
             if (o.x + o.w < -20) it.remove();
         }
 
@@ -270,26 +270,43 @@ public class GameView extends View {
         nightAmount += (target - nightAmount) * Math.min(1f, dt * 1.5f);
     }
 
+    /** Dificuldade de 0 (começo) a 1 (depois de ~2000 pontos). Cresce aos poucos. */
+    private float level() {
+        return Math.min(1f, score() / 2000f);
+    }
+
+    private void spawnFireball(float x, float[] heights) {
+        Obstacle o = new Obstacle();
+        o.fire = true;
+        o.w = 40;
+        o.h = 26;
+        o.y = heights[rnd.nextInt(heights.length)];
+        o.x = x;
+        obstacles.add(o);
+    }
+
     private void spawnObstacle() {
-        boolean canFire = score() > 300;
+        int s = score();
+        float lv = level();
         float startX = worldW + 20;
-        if (canFire && rnd.nextFloat() < 0.25f) {
-            Obstacle o = new Obstacle();
-            o.fire = true;
-            o.w = 40;
-            o.h = 26;
-            float[] heights = {GROUND_Y - 30, GROUND_Y - 58, GROUND_Y - 90};
-            o.y = heights[rnd.nextInt(3)];
-            o.x = startX;
-            obstacles.add(o);
+        float[] heights = {GROUND_Y - 30, GROUND_Y - 58, GROUND_Y - 90};
+        // Bolas de fogo aparecem depois de 300 pontos e ficam mais comuns
+        float fireChance = s > 300 ? 0.2f + 0.3f * lv : 0f;
+        if (rnd.nextFloat() < fireChance) {
+            spawnFireball(startX, heights);
+            // Depois de 900 pontos às vezes vem uma segunda bola logo atrás
+            if (s > 900 && rnd.nextFloat() < 0.15f + 0.3f * lv) {
+                spawnFireball(startX + speed * (0.5f + rnd.nextFloat() * 0.3f), heights);
+            }
         } else {
-            int maxCount = score() > 150 ? 3 : 2;
+            // Grupos de prédios maiores com o tempo (1 a 4)
+            int maxCount = 2 + (s > 150 ? 1 : 0) + (s > 900 ? 1 : 0);
             int count = 1 + rnd.nextInt(maxCount);
             float x = startX;
             for (int i = 0; i < count; i++) {
                 Obstacle o = new Obstacle();
                 o.w = 24 + rnd.nextInt(14);
-                o.h = 38 + rnd.nextInt(29);
+                o.h = 36 + rnd.nextInt((int) (22 + 14 * lv)) + (int) (8 * lv);
                 o.y = GROUND_Y - o.h;
                 o.x = x;
                 o.seed = rnd.nextInt(100000);
@@ -297,9 +314,10 @@ public class GameView extends View {
                 obstacles.add(o);
             }
         }
-        // Intervalo mínimo depende da velocidade (precisa dar tempo de pular)
-        float minGap = 0.55f + 120f / speed;
-        nextSpawn = minGap + rnd.nextFloat() * 1.1f;
+        // Intervalo entre obstáculos encurta aos poucos (sempre com tempo de reagir)
+        float minGap = 0.5f + 120f / speed;
+        float spread = 1.2f - 0.55f * lv;
+        nextSpawn = minGap + rnd.nextFloat() * spread;
     }
 
     private void gameOver() {
