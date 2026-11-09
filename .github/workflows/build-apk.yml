@@ -26,8 +26,8 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
       - name: Salvar APK no repositório
         run: |
-          mkdir -p dist
           git rm -q --ignore-unmatch dist/*.apk
+          mkdir -p dist
           cp app/build/outputs/apk/release/*.apk dist/jogo-do-dino-v${{ github.run_number }}.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
