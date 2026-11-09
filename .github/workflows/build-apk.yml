@@ -10,12 +10,28 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DINO_KEYSTORE: ${{ github.workspace }}/dino-release.keystore
+      DINO_STORE_PASS: dino-ci-chave
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restaurar chave de assinatura
+        uses: actions/cache@v4
+        with:
+          path: dino-release.keystore
+          key: dino-keystore-v1
+      - name: Criar chave de assinatura (só na primeira vez)
+        run: |
+          if [ ! -f dino-release.keystore ]; then
+            keytool -genkeypair -keystore dino-release.keystore -alias dino \
+              -keyalg RSA -keysize 2048 -validity 36500 \
+              -storepass "$DINO_STORE_PASS" -keypass "$DINO_STORE_PASS" \
+              -dname "CN=Jogo do Dino"
+          fi
       - name: Compilar APK
         run: |
           chmod +x gradlew
