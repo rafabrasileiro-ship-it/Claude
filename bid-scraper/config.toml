@@ -1,0 +1,32 @@
+# Configuração do BID Scraper. Edite aqui, sem mexer no código.
+# ATENÇÃO: os valores de [site] são pontos de partida e PRECISAM ser conferidos
+# com o comando:  bidscraper sondar   (veja o README).
+
+[geral]
+db_path = "data/bid.sqlite"
+log_path = "data/bid.log"
+exports_dir = "exports"
+dias_historico = 730          # janela do backfill (2 anos)
+janela_diaria = 3             # no modo diário, reprocessa os últimos N dias (publicações atrasadas)
+historico_max_idade_dias = 30 # reatualiza o histórico de um atleta após N dias
+
+[http]
+user_agent = "BIDScraper/1.0 (pesquisa; contato: SEU-EMAIL-AQUI)"
+atraso_segundos = 2.0         # pausa entre requisições (seja gentil com o servidor)
+timeout = 30
+tentativas = 5
+respeitar_robots = true
+salvar_bruto = true           # guarda HTML/JSON original em data/raw (auditoria)
+modo = "requests"             # "requests" ou "browser" (Playwright, para sites com JavaScript)
+
+[site]
+base_url = "https://bid.cbf.com.br/"
+# Modelos de URL. Use {data} (formato abaixo), {pagina} e {id}.
+url_dia = "https://bid.cbf.com.br/?data={data}&pagina={pagina}"
+url_atleta = "https://bid.cbf.com.br/atleta/{id}"
+formato_data_url = "%d/%m/%Y"
+# Regex que extrai o ID do atleta de um link da tabela (1º grupo).
+regex_id_atleta = "(?:atleta|atletas|id)[=/](\\d+)"
+max_paginas = 200
+# Texto/parte do HTML que indica "sem resultados" (opcional)
+marcador_sem_resultados = "nenhum registro"

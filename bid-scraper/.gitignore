@@ -1,0 +1,8 @@
+data/
+exports/
+.venv/
+dist/
+build/
+*.spec
+__pycache__/
+bidscraper.exe
