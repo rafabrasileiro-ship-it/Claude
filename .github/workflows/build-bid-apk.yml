@@ -5,6 +5,9 @@ on:
     paths: ["bid/**", "settings.gradle", ".github/workflows/build-bid-apk.yml"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,3 +46,14 @@ jobs:
         with:
           name: bid-scraper-android-apk
           path: bid/build/outputs/apk/release/*.apk
+      - name: Salvar APK no repositório
+        run: |
+          git rm -q --ignore-unmatch dist-bid/*.apk
+          mkdir -p dist-bid
+          cp bid/build/outputs/apk/release/*.apk dist-bid/bid-scraper-v${{ github.run_number }}.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist-bid/
+          git commit -m "Atualiza APK do BID v${{ github.run_number }} [skip ci]" || exit 0
+          git pull --rebase origin "${{ github.ref_name }}" || true
+          git push
