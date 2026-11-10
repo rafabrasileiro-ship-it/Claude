@@ -1,0 +1,19 @@
+name: BID Scraper (Windows .exe)
+on:
+  workflow_dispatch:
+  push:
+    paths: ["bid-scraper/**"]
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults: { run: { working-directory: bid-scraper } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt pyinstaller
+      - run: python -m unittest discover -s tests -t .
+      - run: pyinstaller --onefile --name bidscraper --collect-submodules bidscraper bidscraper/__main__.py
+      - run: copy config.toml dist\
+      - uses: actions/upload-artifact@v4
+        with: { name: bidscraper-windows, path: bid-scraper/dist/ }
