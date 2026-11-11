@@ -7,7 +7,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from . import __version__, creditos, export
+from . import __version__, apuracao, creditos, export, fontes
 from .config import load_config
 from .db import connect
 from .http import Fetcher
@@ -83,6 +83,44 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--incluir-vendedor", action="store_true")
     s.add_argument("--saida")
 
+    s = sub.add_parser("importar-tm", help="Importa transferências da base aberta transfermarkt-datasets")
+    s.add_argument("--origem", help="pasta com os CSV ou .zip do Kaggle (padrão: baixa da fonte pública)")
+
+    s = sub.add_parser("importar-csv", help="Importa transferências de um CSV de outra fonte")
+    s.add_argument("arquivo")
+    s.add_argument("--fonte", required=True, help="nome da fonte (ex.: ogol, apifutebol, planilha)")
+
+    s = sub.add_parser("vincular", help="Liga atletas do BID aos da fonte externa (nome + nascimento)")
+    s.add_argument("--fonte", default="tm")
+    s.add_argument("--atleta-id", help="vínculo manual: ID do atleta no BID")
+    s.add_argument("--id-fonte", help="vínculo manual: ID do atleta na fonte")
+
+    s = sub.add_parser("carreira", help="Carreira consolidada (BID + fonte externa nas lacunas)")
+    s.add_argument("--atleta-id", help="ID do atleta no BID")
+    s.add_argument("--id-fonte", help="ID do atleta na fonte externa")
+    s.add_argument("--fonte", default="tm")
+    s.add_argument("--buscar", help="lista atletas da fonte cujo nome contém este texto")
+    s.add_argument("--presumir-inicio", action="store_true")
+    s.add_argument("--saida")
+
+    s = sub.add_parser("apurar", help="Clubes credores e devedores (solidariedade e compensação) com valores")
+    s.add_argument("--de", type=_date, help="data mínima da transferência")
+    s.add_argument("--ate", type=_date)
+    s.add_argument("--credor", help="clube formador/credor (parte do nome)")
+    s.add_argument("--devedor", help="clube de destino/devedor (parte do nome)")
+    s.add_argument("--atleta")
+    s.add_argument("--valor-min", type=float, default=0.0, help="valor mínimo da transferência (EUR)")
+    s.add_argument("--ambito", choices=("internacional", "nacional", "indefinido"))
+    s.add_argument("--tipo", choices=("solidariedade", "compensacao_treinamento"))
+    s.add_argument("--incluir-vendedor", action="store_true")
+    s.add_argument("--presumir-inicio", action="store_true",
+                   help="conta o 1º clube conhecido desde os 12 anos (hipótese a confirmar)")
+    s.add_argument("--custo-anual", type=float, help="custo anual de treinamento (categoria do devedor), 16–21")
+    s.add_argument("--custo-anual-12-15", type=float, help="custo anual para os anos 12–15 (categoria 4)")
+    s.add_argument("--so-no-prazo", action="store_true", help="só casos dentro do prazo de 2 anos")
+    s.add_argument("--resumo", action="store_true", help="totais por credor × devedor")
+    s.add_argument("--saida")
+
     s = sub.add_parser("status", help="Resumo da base")
     return p
 
@@ -136,6 +174,10 @@ def cmd_status(conn) -> int:
     print("Período coletado:", q("SELECT MIN(data) FROM dias WHERE status!='erro'"), "a",
           q("SELECT MAX(data) FROM dias WHERE status!='erro'"))
     print("Dias com erro:", q("SELECT COUNT(*) FROM dias WHERE status='erro'"))
+    fontes.garantir_schema(conn)
+    print("Transferências externas:", q("SELECT COUNT(*) FROM transferencias"),
+          "| atletas nas fontes:", q("SELECT COUNT(*) FROM fonte_atletas"),
+          "| vinculados ao BID:", q("SELECT COUNT(*) FROM atleta_fontes"))
     return 0
 
 
@@ -190,6 +232,48 @@ def main(argv: list[str] | None = None) -> int:
         rows = creditos.to_rows(creditos.analisar(
             conn, _iso(args.de), _iso(args.ate), args.clube_formador, args.clube_destino,
             args.atleta, pct_min=args.pct_min, incluir_vendedor=args.incluir_vendedor))
+    elif args.cmd == "importar-tm":
+        try:
+            print(fontes.importar_transfermarkt(conn, args.origem))
+        except OSError as e:  # rede ou arquivo
+            print(f"Falha ao obter a base: {e}\nBaixe o .zip em "
+                  "https://www.kaggle.com/datasets/davidcariboo/player-scores e rode:\n"
+                  "  bidscraper importar-tm --origem caminho\\do\\arquivo.zip", file=sys.stderr)
+            return 1
+        print("Vínculo com o BID:", fontes.vincular(conn, "tm"))
+        return 0
+    elif args.cmd == "importar-csv":
+        print(fontes.importar_csv(conn, args.arquivo, args.fonte))
+        print("Vínculo com o BID:", fontes.vincular(conn, args.fonte))
+        return 0
+    elif args.cmd == "vincular":
+        if args.atleta_id and args.id_fonte:
+            fontes.vincular_manual(conn, args.atleta_id, args.id_fonte, args.fonte)
+            print("Vinculado.")
+        else:
+            print(fontes.vincular(conn, args.fonte))
+        return 0
+    elif args.cmd == "carreira":
+        fontes.garantir_schema(conn)
+        if args.buscar:
+            rows = [dict(r) for r in conn.execute(
+                "SELECT fonte,id_fonte,nome,nascimento,nacionalidade,clube_atual FROM fonte_atletas "
+                "WHERE fonte=? AND nome_key LIKE ? ORDER BY nome LIMIT 200",
+                (args.fonte, f"%{fontes.nome_key(args.buscar)}%"))]
+        elif args.atleta_id or args.id_fonte:
+            rows = fontes.carreira(conn, args.atleta_id, args.fonte, args.id_fonte, args.presumir_inicio)
+        else:
+            print("informe --atleta-id, --id-fonte ou --buscar", file=sys.stderr)
+            return 2
+    elif args.cmd == "apurar":
+        itens = apuracao.apurar(
+            conn, _iso(args.de), _iso(args.ate), args.credor, args.devedor, args.atleta,
+            args.valor_min, args.ambito, args.incluir_vendedor, args.presumir_inicio,
+            args.custo_anual, args.custo_anual_12_15,
+            (args.tipo,) if args.tipo else ("solidariedade", "compensacao_treinamento"))
+        if args.so_no_prazo:
+            itens = [i for i in itens if i.situacao_prazo == "dentro do prazo"]
+        rows = apuracao.resumo(itens) if args.resumo else apuracao.to_rows(itens)
     else:  # pragma: no cover
         return 2
     if args.saida:

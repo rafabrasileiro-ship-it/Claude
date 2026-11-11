@@ -64,12 +64,48 @@ transferência. O clube vendedor é excluído por padrão (`--incluir-vendedor` 
 - Regras FIFA (RSTP Anexos 4/5) e a regulamentação nacional (Lei Pelé/RNRT-CBF) mudam; confirme a
   versão vigente na data de cada fato.
 
-## 4. Boas práticas e legalidade
+## 4. Transferências com valor: credores e devedores
+O BID não informa valores nem a carreira fora do Brasil. Para completar as lacunas, o programa
+importa a base aberta **transfermarkt-datasets** (a mesma do Kaggle `davidcariboo/player-scores`):
+```
+bid.bat importar-tm                                  # baixa players, clubs e transfers
+bid.bat importar-tm --origem C:\Downloads\archive.zip # ou usa o .zip baixado do Kaggle
+bid.bat importar-csv planilha.csv --fonte ogol       # qualquer outra fonte, em CSV
+bid.bat vincular                                     # liga atletas do BID aos da fonte
+bid.bat carreira --buscar "vinicius"                 # acha o ID do atleta na fonte
+bid.bat carreira --id-fonte 371998                   # carreira consolidada
+bid.bat apurar --de 2024-11-01 --tipo solidariedade --valor-min 500000 --saida creditos.xlsx
+bid.bat apurar --credor "Flamengo" --so-no-prazo --resumo --saida carteira.xlsx
+```
+- **Carreira consolidada:** o BID tem prioridade; a fonte externa só preenche períodos sem registro
+  no BID. Base (U17/U20/Sub-20) e time B contam para o clube principal.
+- **`apurar`** gera uma linha por transferência × clube credor: devedor (clube de destino), vendedor,
+  idades e anos no credor (rateio proporcional aos dias), % do valor, **valor estimado do crédito em
+  EUR**, âmbito (internacional/nacional), data-limite de 2 anos e situação do prazo.
+  `--resumo` soma por credor × devedor.
+- **Solidariedade:** só transferências com valor > 0. **Compensação por treinamento:** transferências
+  até os 23 anos; informe `--custo-anual` e `--custo-anual-12-15` (tabela da circular FIFA para a
+  categoria do clube devedor) para estimar o valor.
+- `--presumir-inicio` conta o primeiro clube conhecido desde os 12 anos. É uma hipótese: a fonte
+  não diz quando o atleta chegou lá.
+- CSV de outra fonte: colunas `atleta, nascimento, data, origem, destino, valor` (EUR), `;` ou `,`.
+
+**Limites desta apuração**
+- A base aberta cobre cerca de 50 mil atletas das principais ligas (inclui a Série A) e está
+  **parada em 6/7/2026**; atletas de divisões menores entram pelo BID ou por CSV.
+- Valores são estimativas públicas, não os do contrato. Empréstimos vêm com valor 0.
+- País do clube só é conhecido para clubes das ligas cobertas; nos demais o âmbito sai "indefinido".
+- O ano de idade é contado de aniversário a aniversário; o RSTP usa temporadas. Categoria do clube,
+  renúncias, prazo e regulamento vigente na data do fato precisam de conferência caso a caso.
+- O site do Transfermarkt bloqueia acesso automatizado e não é raspado; ogol, API Futebol e Base
+  dos Dados não têm importador próprio (use `importar-csv`).
+
+## 5. Boas práticas e legalidade
 - Rate limit padrão de 2 s entre requisições, retentativas com backoff e **respeito ao robots.txt**.
   Não reduza o intervalo sem necessidade; confira os Termos de Uso do BID.
 - Contém dados pessoais (inclusive de menores no histórico de base): LGPD se aplica — use com base
   legal definida (ex.: exercício regular de direitos), minimize e proteja a base `data/bid.sqlite`.
 - HTML/JSON brutos ficam em `data/raw/` (gzip) para auditoria.
 
-## 5. Estrutura
-`bidscraper/` http · parsers · scraper · db · creditos · export · cli — `tests/` (`python -m unittest discover -s tests -t .`).
+## 6. Estrutura
+`bidscraper/` http · parsers · scraper · db · creditos · fontes · apuracao · export · cli — `tests/` (`python -m unittest discover -s tests -t .`).
