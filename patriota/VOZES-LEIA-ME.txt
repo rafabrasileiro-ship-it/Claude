@@ -25,3 +25,4 @@ voz_lula_bora_pra_rua  -> fase 1 (manifestação)
 voz_lula_fome          -> fases 1 e 3
 voz_lula_game          -> fases 1 e 5
 voz_lula_brasil_acabou -> fase 5 (e quando o Mula entra/discursa)
+voz_lula_grito_1/2, voz_lula_maior_presidente_1/2, voz_lula_e_lula, voz_lula_agora_e_lula -> de fundo, fases 1 e 3
