@@ -13,6 +13,8 @@ final class Game {
     interface Listener {
         void sfx(int id);
         void voice(String line);
+        /** true se existe gravação (mp3) para esta fala; sem gravação a fala não é exibida nem tocada. */
+        boolean hasClip(String line);
         void vibrate(int ms);
     }
 
@@ -341,6 +343,7 @@ final class Game {
 
     /** Fala de chefe: balão sobre ele + áudio (arquivo em res/raw ou voz sintetizada). */
     private void bossSay(Ent e, String s) {
+        if (!L.hasClip(s)) return;
         pop("\u201C" + s + "\u201D", e.x, e.y - 160, 2.2f, 0xFFFFE082);
         if (time - bossVoiceCd > 6f || bossVoiceCd == 0) { bossVoiceCd = time; L.voice(s); }
     }
@@ -360,6 +363,7 @@ final class Game {
     }
 
     private void voice(String s, boolean force) {
+        if (!L.hasClip(s)) return;
         pop(s, p.x, p.y - 110, 1.8f, 0xFFFFFFFF);
         if (force || voiceCd <= 0) { L.voice(s); voiceCd = 3.2f; }
     }

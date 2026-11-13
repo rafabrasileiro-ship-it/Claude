@@ -39,9 +39,9 @@ Feito em Java nativo com Canvas (sem imagens nem bibliotecas), então o APK é m
 - Missão 5: Velociraptor com a bandeira de batalha (combo de bandeirada, varredura aérea, investida com lança, rugido).
 - Gráficos Leve/Normal/Alta (sombras suaves, texturas, gradientes, perspectiva e vinheta) nas Opções.
 - Itens, armas temporárias, menus (splash, menu, seleção, opções, créditos), briefing, pausa, game over e vitória.
-- Vozes por síntese de fala do Android (pt-BR) quando disponível; efeitos e música gerados por código.
+- Falas só tocam (e só aparecem) se houver gravação em `res/raw`; efeitos e música gerados por código.
 
 APK pronto: pasta `dist/` (`operacao-patriota-vN.apk`), gerado pelo workflow **Gerar APK**.
 Compilar local: `./gradlew :patriota:assembleRelease` → `patriota/build/outputs/apk/release/`.
 
-**Vozes reais:** coloque as gravações em `patriota/src/main/res/raw/` com os nomes listados em `patriota/VOZES-LEIA-ME.txt` (ex.: `voz_mula_brasil.ogg`). Sem o arquivo, o jogo usa a voz sintetizada do Android.
+**Vozes reais:** coloque as gravações em `patriota/src/main/res/raw/` com os nomes listados em `patriota/VOZES-LEIA-ME.txt` (ex.: `voz_mula_brasil.ogg`). Sem o arquivo, a fala não aparece nem toca.

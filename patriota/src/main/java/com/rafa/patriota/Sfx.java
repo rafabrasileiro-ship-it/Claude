@@ -5,8 +5,6 @@ import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.media.MediaPlayer;
-import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 
 import java.util.Locale;
 import java.util.Random;
@@ -17,7 +15,6 @@ final class Sfx implements Game.Listener {
     private final AudioTrack[] fx = new AudioTrack[11];
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
-    private TextToSpeech tts;
     private Context ctx;
     private MediaPlayer mp;
     /** frase -> nome do arquivo em res/raw (sem extensão). Se o arquivo existir, toca a gravação. */
@@ -39,7 +36,6 @@ final class Sfx implements Game.Listener {
         CLIPS.put("São vagabundos!", "voz_sao_vagabundos");
         CLIPS.put("Vai pra puta que o pariu, porra!", "voz_vai_pra_puta");
     }
-    private boolean ttsReady;
     float sfxVol = 1f, voiceVol = 1f, musicVol = 0.6f;
     private final Random rnd = new Random(7);
     private android.os.Vibrator vib;
@@ -65,18 +61,6 @@ final class Sfx implements Game.Listener {
             musicBattle = loop(song(true));
             musicTriumph = loop(song(false));
         } catch (Throwable ignored) { }
-        try {
-            tts = new TextToSpeech(ctx.getApplicationContext(), status -> {
-                if (status == TextToSpeech.SUCCESS) {
-                    try {
-                        int r = tts.setLanguage(new Locale("pt", "BR"));
-                        ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED;
-                        tts.setPitch(0.7f);
-                        tts.setSpeechRate(0.95f);
-                    } catch (Exception ignored) { }
-                }
-            });
-        } catch (Throwable ignored) { }
     }
 
     // ---------------------------------------------------------------- API
@@ -93,13 +77,16 @@ final class Sfx implements Game.Listener {
 
     @Override public void voice(String line) {
         if (voiceVol <= 0) return;
-        if (playClip(line)) return;
-        if (tts == null || !ttsReady) return;
+        playClip(line);
+    }
+
+    @Override public boolean hasClip(String line) {
+        String name = CLIPS.get(line);
+        if (name == null) return false;
         try {
-            Bundle b = new Bundle();
-            b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, voiceVol);
-            tts.speak(line, TextToSpeech.QUEUE_FLUSH, b, "v");
-        } catch (Throwable ignored) { }
+            for (String n : name.split(",")) if (ctx.getResources().getIdentifier(n, "raw", ctx.getPackageName()) == 0) return false;
+            return true;
+        } catch (Throwable t) { return false; }
     }
 
     private boolean playClip(String line) {
@@ -140,7 +127,6 @@ final class Sfx implements Game.Listener {
 
     void pauseAll() {
         try { if (currentMusic != null) currentMusic.pause(); } catch (Throwable ignored) { }
-        try { if (tts != null) tts.stop(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.pause(); } catch (Throwable ignored) { }
     }
 
@@ -158,7 +144,6 @@ final class Sfx implements Game.Listener {
     void release() {
         try { for (AudioTrack t : fx) if (t != null) t.release(); } catch (Throwable ignored) { }
         try { if (musicBattle != null) musicBattle.release(); if (musicTriumph != null) musicTriumph.release(); } catch (Throwable ignored) { }
-        try { if (tts != null) { tts.stop(); tts.shutdown(); } } catch (Throwable ignored) { }
         try { if (mp != null) mp.release(); } catch (Throwable ignored) { }
     }
 

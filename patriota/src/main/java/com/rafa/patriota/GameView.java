@@ -846,7 +846,7 @@ final class GameView extends View {
                         default: break;
                     }
                     applyAudio(); savePrefs();
-                    if (id - B_OPT == 1) sfx.voice("Acabou, porra!");
+                    if (id - B_OPT == 1) sfx.voice("Vagabundo!");
                 }
         }
     }
