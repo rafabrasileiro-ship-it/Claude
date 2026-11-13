@@ -50,3 +50,4 @@ Compilar local: `./gradlew :patriota:assembleRelease` → `patriota/build/output
 
 - Moto de Jair: Harley-Davidson clássica preta com a bandeira do Brasil hasteada atrás.
 - Heroína Michele Bonossauro (de branco; especial Poder da Oração: cura a dupla). Na fase final em 2 jogadores, a chefona Xanxa (de marrom e preto) entra junto com o Mula.
+- Herói Flávio Bonossauro, filho de Jair, um pouco mais musculoso (mais vida e dano; especial Motociata).

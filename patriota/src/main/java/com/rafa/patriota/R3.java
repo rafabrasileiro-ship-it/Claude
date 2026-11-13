@@ -352,6 +352,7 @@ final class R3 {
         if (lk.acc == Data.AC_MULA) { box(-7.4f * g, 44, -12, 7.4f * g, 72.2f, 12, 0xFFB71C1C); box(6, 44, -2.5f, 7.7f * g, 72, 2.5f, 0xFFEEEEEE); }
         if (lk.acc == Data.AC_DANCER) box(-7.3f, 58, -12, 7.3f, 66, 12, 0xFFFFFF00);
         if (lk.hero == 3) box(6, 50, -1.4f, 7.5f, 70, 1.4f, 0xFF2E7D32);
+        if (lk.hero == 5) { box(2, 67, -11.9f, 7.3f * g, 72.3f, 11.9f, 0xFFFFD400); box(2, 56, -12, 6, 61, -11.4f, 0xFF1B8F3A); }
         if (lk.hero == 4) { // cinto dourado e colar de pérolas
             box(-7.3f, 41, -11.9f, 7.3f, 44.5f, 11.9f, 0xFFD4AF37);
             for (int i = 0; i < 7; i++) box(7.4f, 66 - (float) Math.abs(i - 3) * 1.4f, -6 + i * 1.9f, 8.6f, 68 - (float) Math.abs(i - 3) * 1.4f, -4.4f + i * 1.9f, 0xFFFFFFF0);
@@ -394,9 +395,10 @@ final class R3 {
     private static void arm(float z, float sh, float el, int up, int fo, int skin, Look lk, int weapon, boolean near, int pose, boolean guard) {
         push();
         rot(sh, 0, 69);
-        box(-3.3f, 54, z - 3.3f, 3.3f, 71, z + 3.3f, up);
+        float ag = 1f + Math.min(0.35f, (lk.girth - 1f) * 1.3f);
+        box(-3.3f * ag, 54, z - 3.3f * ag, 3.3f * ag, 71, z + 3.3f * ag, up);
         rot(el, 0, 55);
-        box(-2.9f, 41, z - 2.9f, 2.9f, 56, z + 2.9f, fo);
+        box(-2.9f * ag, 41, z - 2.9f * ag, 2.9f * ag, 56, z + 2.9f * ag, fo);
         box(-3.1f, 35.5f, z - 3.1f, 3.1f, 41.5f, z + 3.1f, skin);
         if (near) {
             // o que está na mão (o antebraço aponta para -y local; "para a frente" do punho = +x local)

@@ -71,28 +71,30 @@ final class Data {
     }
 
     // ---- heróis
-    static final String[] HERO_NAME = {"Jair Bonossauro", "Patriota do Caminhão", "Tiozão do Zap", "Véio da Havan-a", "Michele Bonossauro"};
+    static final String[] HERO_NAME = {"Jair Bonossauro", "Patriota do Caminhão", "Tiozão do Zap", "Véio da Havan-a", "Michele Bonossauro", "Flávio Bonossauro"};
     static final String[] HERO_DESC = {
             "Herói de ação dos anos 80.\nEquilibrado. Especial: Motociata.",
             "Tanque lento, dano alto.\nEspecial: investida imparável.",
             "Ataca à distância com\nnotificações que confundem.",
             "Ágil, terno verde-limão.\nBate com a Estátua da Liberdade.",
-            "Elegante, de branco.\nEspecial: Poder da Oração\n(cura a dupla)."};
-    static final float[] HERO_HP = {100, 140, 90, 95, 105};
-    static final float[] HERO_SPD = {1f, 0.8f, 0.95f, 1.3f, 1.1f};
-    static final float[] HERO_DMG = {1f, 1.5f, 1f, 1.15f, 1.05f};
+            "Elegante, de branco.\nEspecial: Poder da Oração\n(cura a dupla).",
+            "Filho de Jair, mais forte.\nEspecial: Motociata."};
+    static final float[] HERO_HP = {100, 140, 90, 95, 105, 112};
+    static final float[] HERO_SPD = {1f, 0.8f, 0.95f, 1.3f, 1.1f, 1f};
+    static final float[] HERO_DMG = {1f, 1.5f, 1f, 1.15f, 1.05f, 1.2f};
     /** 0 moto, 1 caminhão, 2 rajada de notificações, 3 giro da estátua */
-    static final int[] HERO_SPEC = {0, 1, 2, 3, 6};
+    static final int[] HERO_SPEC = {0, 1, 2, 3, 6, 0};
     static final int[][] HERO_COL = { // pele, camisa, calça, cabelo
             {SK1, 0xFFFFD500, 0xFF2A4C8B, 0xFF4A2F1B},
             {SK3, 0xFF2E7D32, 0xFF5D4037, 0xFF222222},
             {SK4, 0xFFFFFFFF, 0xFF37474F, 0xFFCCCCCC},
             {SK4, 0xFF9AE600, 0xFF9AE600, 0xFFEEEEEE},
-            {SK4, 0xFFFFFFFF, 0xFFF3D2A8, 0xFF3E2723}};
+            {SK4, 0xFFFFFFFF, 0xFFF3D2A8, 0xFF3E2723},
+            {SK1, 0xFF1565C0, 0xFF263238, 0xFF2B1B10}};
 
-    static final String[] HERO_START = {"E daí? Lamento, quer que eu faça o quê?", "Bora pra cima, companheiro!", "Já mandei no grupo da família!", "Aqui é Brasil, meu amigo!", "Deus abençoe esta missão!"};
-    static final String[] HERO_FINISH = {"Tem que se fuder, porra!", "Toma essa!", "Vai ficar no vácuo!", "Pra cima deles!", "Em nome de Deus!"};
-    static final String[] HERO_SPECIAL = {"Imbroxável!", "Acabou, porra!", "Corrente do bem!", "Acabou, porra!", "Poder da oração!"};
+    static final String[] HERO_START = {"E daí? Lamento, quer que eu faça o quê?", "Bora pra cima, companheiro!", "Já mandei no grupo da família!", "Aqui é Brasil, meu amigo!", "Deus abençoe esta missão!", "Bora, pai!"};
+    static final String[] HERO_FINISH = {"Tem que se fuder, porra!", "Toma essa!", "Vai ficar no vácuo!", "Pra cima deles!", "Em nome de Deus!", "Toma, bandido!"};
+    static final String[] HERO_SPECIAL = {"Imbroxável!", "Acabou, porra!", "Corrente do bem!", "Acabou, porra!", "Poder da oração!", "Imbroxável!"};
 
     // ---- itens
     static final int IT_PAO = 0, IT_PASTEL = 1, IT_CAFE = 2, IT_PEN = 3, IT_CLORO = 4, IT_JBL = 5, IT_VUVU = 6, IT_GUARDA = 7, IT_FACA = 8;
