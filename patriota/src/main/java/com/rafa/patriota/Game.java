@@ -41,6 +41,20 @@ final class Game {
     final Listener L;
     final Random rnd = new Random();
     Ent p;
+    /** Estado individual de cada jogador (modo dupla). Os campos soltos abaixo guardam o jogador "ativo" (use(i)). */
+    static final class PS {
+        Ent p; int hero; float meter; boolean mounted; int weapon = -1, wUses;
+        float coffeeT, penT, blurT, slowT, rootT; boolean cloroImmune;
+        float jx, jy; boolean heldA, charged; float aHold; int spK; float spDur;
+        float bufA, bufB, bufC, bufD, pvx, pvy; int comboStep; boolean comboQueued; float comboT;
+        Ent grabbed; int grabHits; float grabT, spTick; boolean roared; float lastHurtT;
+    }
+    final PS[] ps = {new PS(), new PS()};
+    int np = 1, curP = 0, nextNid = 0, auraIdx, local = 0;
+    /** true no celular convidado: o jogo só espelha o que o anfitrião envia. */
+    boolean mirror;
+    float camTx;
+    ArrayList<Data.Sp> sps = new ArrayList<>();
     final ArrayList<Ent> ents = new ArrayList<>();
     final ArrayList<Pop> pops = new ArrayList<>();
     final ArrayList<Fx> fxs = new ArrayList<>();
@@ -110,6 +124,69 @@ final class Game {
 
     Game(Listener l) { L = l; }
 
+    private void save(PS q) {
+        q.p = p; q.hero = hero; q.meter = meter; q.mounted = mounted; q.weapon = weapon; q.wUses = wUses;
+        q.coffeeT = coffeeT; q.penT = penT; q.blurT = blurT; q.slowT = slowT; q.rootT = rootT; q.cloroImmune = cloroImmune;
+        q.jx = jx; q.jy = jy; q.heldA = heldA; q.charged = charged; q.aHold = aHold; q.spK = spK; q.spDur = spDur;
+        q.bufA = bufA; q.bufB = bufB; q.bufC = bufC; q.bufD = bufD; q.pvx = pvx; q.pvy = pvy;
+        q.comboStep = comboStep; q.comboQueued = comboQueued; q.comboT = comboT; q.grabbed = grabbed; q.grabHits = grabHits;
+        q.grabT = grabT; q.spTick = spTick; q.roared = roared; q.lastHurtT = lastHurtT;
+    }
+
+    private void load(PS q) {
+        p = q.p; hero = q.hero; meter = q.meter; mounted = q.mounted; weapon = q.weapon; wUses = q.wUses;
+        coffeeT = q.coffeeT; penT = q.penT; blurT = q.blurT; slowT = q.slowT; rootT = q.rootT; cloroImmune = q.cloroImmune;
+        jx = q.jx; jy = q.jy; heldA = q.heldA; charged = q.charged; aHold = q.aHold; spK = q.spK; spDur = q.spDur;
+        bufA = q.bufA; bufB = q.bufB; bufC = q.bufC; bufD = q.bufD; pvx = q.pvx; pvy = q.pvy;
+        comboStep = q.comboStep; comboQueued = q.comboQueued; comboT = q.comboT; grabbed = q.grabbed; grabHits = q.grabHits;
+        grabT = q.grabT; spTick = q.spTick; roared = q.roared; lastHurtT = q.lastHurtT;
+    }
+
+    /** Prepara o jogo-espelho do celular convidado (o estado chega por Bluetooth). */
+    void resetMirror() {
+        mirror = true; local = 1; np = 2; curP = 1; stage = null; stageIdx = -1; result = 0;
+        ents.clear(); pops.clear(); fxs.clear(); bossRef = null;
+        ps[0].p = null; ps[1].p = null; camX = 0; camTx = 0; time = 0; score = 0; combo = 0; radioT = 0; goT = 0; shake = 0; punch = 0;
+        p = new Ent(); p.x = 0;
+    }
+
+    /** Torna o jogador i o "ativo" (os campos p, hero, meter... passam a ser os dele). */
+    void use(int i) {
+        if (i == curP) return;
+        save(ps[curP]); curP = i; load(ps[i]);
+    }
+
+    /** Passa a usar o jogador i sem salvar o atual (após ler um snapshot). */
+    void adopt(int i) { curP = i; load(ps[i]); }
+
+    /** Grava o jogador ativo em ps[] (para serializar). */
+    void sync() { save(ps[curP]); }
+
+    static boolean isDown(Ent q) { return q.st == S_DEAD || q.dying; }
+
+    /** Jogador vivo mais próximo do ponto (o ativo, se só houver um). */
+    private int nearest(float x, float y) {
+        if (np == 1) return 0;
+        int best = 0; float bd = 1e9f;
+        for (int i = 0; i < np; i++) {
+            Ent q = ps[i].p;
+            if (isDown(q)) continue;
+            float d = Math.abs(q.x - x) + Math.abs(q.y - y) * 1.6f;
+            if (d < bd) { bd = d; best = i; }
+        }
+        return best;
+    }
+
+    private boolean allDead() {
+        for (int i = 0; i < np; i++) if (ps[i].p.st != S_DEAD) return false;
+        return true;
+    }
+
+    /** Entrada do jogador i (0 = anfitrião, 1 = convidado). */
+    void setMove(int i, float x, float y) { use(i); jx = x; jy = y; use(0); }
+    void press(int i, int b) { use(i); press(b); use(0); }
+    void release(int i, int b) { use(i); release(b); use(0); }
+
     // ---------------------------------------------------------------- entrada
     void setMove(float x, float y) { jx = x; jy = y; }
 
@@ -130,19 +207,33 @@ final class Game {
     }
 
     // ---------------------------------------------------------------- início
-    void start(int stageIndex, int heroIndex) {
-        stageIdx = stageIndex; hero = heroIndex; stage = Data.STAGES.get(stageIndex);
-        ents.clear(); pops.clear(); fxs.clear();
+    void start(int stageIndex, int heroIndex) { start(stageIndex, heroIndex, -1); }
+
+    private void initPlayer(int h, float x, float y) {
+        hero = h;
         p = new Ent();
-        p.type = Ent.PLAYER; p.x = 70; p.y = 350; p.face = 1;
-        p.maxHp = Data.HERO_HP[hero]; p.hp = p.maxHp; p.st = S_IDLE;
+        p.type = Ent.PLAYER; p.kind = h; p.x = x; p.y = y; p.face = 1;
+        p.maxHp = Data.HERO_HP[hero]; p.hp = p.maxHp; p.st = S_IDLE; p.inv = 1f;
         meter = 25; mounted = false; weapon = -1; wUses = 0;
         coffeeT = penT = blurT = slowT = rootT = 0; cloroImmune = false;
+        comboStep = 0; comboT = 0; comboQueued = false; grabbed = null; grabHits = 0; grabT = 0;
+        bufA = bufB = bufC = bufD = 0; pvx = pvy = 0; heldA = false; charged = false; aHold = 0;
+        jx = jy = 0; spK = 0; spDur = 0; spTick = 0; roared = false;
+    }
+
+    /** Inicia a fase. heroB >= 0 liga o modo dupla (inimigos em dobro, chefes com o dobro de vida). */
+    void start(int stageIndex, int heroIndex, int heroB) {
+        np = heroB >= 0 ? 2 : 1; curP = 0; nextNid = 0;
+        stageIdx = stageIndex; stage = Data.STAGES.get(stageIndex);
+        ents.clear(); pops.clear(); fxs.clear();
+        if (np == 2) {
+            initPlayer(heroB, 40, 392); save(ps[1]);
+        }
+        initPlayer(heroIndex, 70, 330); save(ps[0]);
         score = 0; result = 0; endT = 0; radio = ""; radioT = 0; bossRef = null; mountT = 0;
         segIdx = 0; segActive = false; cur = null; camX = 0; camMin = 0; camMax = LOCK0; shake = 0; time = 0;
-        comboStep = 0; comboT = 0; grabbed = null; bufA = bufB = bufC = bufD = 0; pvx = pvy = 0; hitStop = 0; camLead = 0; ambT = 5f; heldA = false; charged = false;
+        hitStop = 0; camLead = 0; ambT = 5f; sps = new ArrayList<>();
         voiceCd = 0; goT = 0; auraT = 0;
-        p.inv = 1f;
         voice(stageIdx == 2 && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
         introT = stageIdx == Data.STAGES.size() - 1 ? 1.4f : 0f;
         combo = 0; comboTimer = 0; slowT2 = 0; punch = 0; dustT = 0;
@@ -154,12 +245,16 @@ final class Game {
             Ent e = ents.get(i);
             if (e.type == Ent.ENEMY || e.type == Ent.PROJ || e.type == Ent.DESK) ents.remove(i);
         }
-        p.hp = p.maxHp; p.st = S_IDLE; p.t = 0; p.h = 0; p.vh = 0; p.inv = 2.5f; p.dying = false;
+        for (int i = 0; i < np; i++) {
+            use(i);
+            p.hp = p.maxHp; p.st = S_IDLE; p.t = 0; p.h = 0; p.vh = 0; p.inv = 2.5f; p.dying = false;
+            blurT = slowT = rootT = 0; weapon = -1; meter = Math.max(meter, 25);
+        }
+        use(0);
         result = 0; endT = 0; bossRef = null;
-        blurT = slowT = rootT = 0; weapon = -1; meter = Math.max(meter, 25);
         if (segActive) {
             camMin = camMax = lockX(segIdx);
-            segT = 0; spDone = new boolean[cur.sps.size()];
+            segT = 0; spDone = new boolean[sps.size()];
             if (cur.mount && !mounted) mountT = 2.5f;
         }
     }
@@ -194,25 +289,28 @@ final class Game {
         if (introT > 0) { introT -= dt; if (introT <= 0 && L.hasClip("Se prepare!")) { L.voice("Se prepare!"); pop("\u201CSe prepare!\u201D", camX + W / 2f, 150, 1.6f, 0xFFFFE082); ambT = Math.max(ambT, 7f); } }
         updateAmbient(dt);
 
-        updatePlayer(dt);
+        for (int i = 0; i < np; i++) { use(i); updatePlayer(dt); }
+        use(0);
         updateSeg(dt);
         auraNow = false;
         for (int i = 0; i < ents.size(); i++) {
             Ent e = ents.get(i);
             if (!e.alive) continue;
             switch (e.type) {
-                case Ent.ENEMY: updateEnemy(e, dt); break;
-                case Ent.PROJ: updateProj(e, dt); break;
-                case Ent.ITEM: updateItem(e, dt); break;
+                case Ent.ENEMY: use(nearest(e.x, e.y)); updateEnemy(e, dt); break;
+                case Ent.PROJ: use(e.friendly ? 0 : nearest(e.x, e.y)); updateProj(e, dt); break;
+                case Ent.ITEM: use(nearest(e.x, e.y)); updateItem(e, dt); break;
                 case Ent.CRATE: case Ent.DESK: if (e.flash > 0) e.flash -= dt; break;
                 default: break;
             }
         }
+        use(auraNow ? auraIdx : 0);
         if (auraNow) auraT += dt; else auraT = Math.max(0, auraT - dt * 2);
         if (auraT > 1.5f) {
             slowT = Math.max(slowT, 1.5f); auraT = 1.0f;
             pop("PALESTRINHA! (lento)", p.x, p.y - 90, 1.2f, 0xFFFFA000);
         }
+        use(0);
         for (int i = ents.size() - 1; i >= 0; i--) if (!ents.get(i).alive) ents.remove(i);
         if (bossRef != null && !bossRef.alive) bossRef = null;
 
@@ -227,8 +325,12 @@ final class Game {
     }
 
     private void updateCamera(float dt) {
-        camLead += (p.face * 45 - camLead) * Math.min(1f, 2.5f * dt);
-        float target = p.x - 350 + camLead;
+        float sx = 0, sf = 0; int n = 0;
+        for (int i = 0; i < np; i++) { Ent q = ps[i].p; if (isDown(q) && np > 1) continue; sx += q.x; sf += q.face; n++; }
+        if (n == 0) { sx = ps[0].p.x; sf = ps[0].p.face; n = 1; }
+        float mx = sx / n, mf = sf / n;
+        camLead += (mf * 45 - camLead) * Math.min(1f, 2.5f * dt);
+        float target = mx - 350 + camLead;
         camX += (target - camX) * Math.min(1f, 5f * dt);
         if (camX < camMin) camX = camMin;
         if (camX > camMax) camX = camMax;
@@ -246,9 +348,13 @@ final class Game {
         if (mountT > 0) {
             mountT -= dt;
             if (mountT <= 0) {
-                mounted = true; p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.5f);
-                fxs.add(new Fx(FX_RING, p.x, p.y, 0, 0.8f, 160, 0xFFFFD400));
-                pop("VELOCIRAPTOR!", p.x, p.y - 120, 1.6f, 0xFF76FF03);
+                for (int i = 0; i < np; i++) {
+                    use(i);
+                    mounted = true; p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.5f);
+                    fxs.add(new Fx(FX_RING, p.x, p.y, 0, 0.8f, 160, 0xFFFFD400));
+                    pop("VELOCIRAPTOR!", p.x, p.y - 120, 1.6f, 0xFF76FF03);
+                }
+                use(0);
                 L.sfx(SFX_ROAR); shake = 14;
             }
         }
@@ -256,11 +362,12 @@ final class Game {
         int alive = 0, living = 0;
         for (Ent e : ents) if (e.type == Ent.ENEMY && e.alive) { living++; if (!e.dying && !Data.KINDS[e.kind].boss) alive++; }
         boolean allSpawned = true;
-        for (int i = 0; i < cur.sps.size(); i++) {
+        int maxAlive = np == 2 ? 7 : 4;
+        for (int i = 0; i < sps.size(); i++) {
             if (spDone[i]) continue;
             allSpawned = false;
-            Data.Sp sp = cur.sps.get(i);
-            if (segT >= sp.delay && mountT <= 0 && (Data.KINDS[sp.kind].boss || alive < 4)) {
+            Data.Sp sp = sps.get(i);
+            if (segT >= sp.delay && mountT <= 0 && (Data.KINDS[sp.kind].boss || alive < maxAlive)) {
                 spDone[i] = true;
                 spawnEnemy(sp.kind, sp.side);
                 alive++;
@@ -271,7 +378,13 @@ final class Game {
 
     private void startSeg() {
         cur = stage.segs.get(segIdx);
-        segActive = true; segT = 0; spDone = new boolean[cur.sps.size()];
+        sps = new ArrayList<>();
+        for (Data.Sp q : cur.sps) {
+            sps.add(q);
+            // dupla: o dobro de inimigos comuns (chegando um pouco depois, do lado oposto)
+            if (np == 2 && !Data.KINDS[q.kind].boss) sps.add(new Data.Sp(q.kind, -q.side, q.delay + 0.7f));
+        }
+        segActive = true; segT = 0; spDone = new boolean[sps.size()];
         camMin = camMax = lockX(segIdx); camX = camMax;
         for (float[] c : cur.crates) spawnCrate(camX + c[0], Y0 + 10 + rnd.nextFloat() * (Y1 - Y0 - 20), (int) c[1]);
         if (cur.radio != null) { radio = cur.radio; radioT = 5f; }
@@ -286,15 +399,23 @@ final class Game {
         }
         camMax = lockX(segIdx);
         goT = 4f;
-        // recompensa leve entre blocos
-        p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.08f);
+        // recompensa leve entre blocos; na dupla, quem caiu levanta com metade da vida
+        for (int i = 0; i < np; i++) {
+            use(i);
+            if (isDown(p)) {
+                p.hp = p.maxHp * 0.5f; p.st = S_IDLE; p.t = 0; p.h = 0; p.vh = 0; p.vx = 0; p.dying = false; p.inv = 2.5f;
+                Ent o = ps[1 - i].p; p.x = o.x; p.y = o.y;
+                pop("DE VOLTA!", p.x, p.y - 100, 1.3f, 0xFF76FF03);
+            } else p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.08f);
+        }
+        use(0);
     }
 
     // ---------------------------------------------------------------- criação
     Ent spawnEnemy(int kind, int side) {
         Kind k = Data.KINDS[kind];
         Ent e = new Ent();
-        e.type = Ent.ENEMY; e.kind = kind; e.hp = e.maxHp = k.hp;
+        e.type = Ent.ENEMY; e.kind = kind; e.hp = e.maxHp = k.hp * (np == 2 && k.boss ? 2f : 1f);
         e.y = Y0 + 8 + rnd.nextFloat() * (Y1 - Y0 - 16);
         e.x = side > 0 ? camX + W + 40 : camX - 40;
         e.face = -side; e.st = S_IDLE; e.cd = 0.6f + rnd.nextFloat();
@@ -563,7 +684,7 @@ final class Game {
                 break;
             }
             case S_DEAD: {
-                if (o.t > 1.4f && result == 0) { result = 2; L.sfx(SFX_LOSE); }
+                if (o.t > 1.4f && result == 0 && allDead()) { result = 2; L.sfx(SFX_LOSE); }
                 break;
             }
             default: break;
@@ -1097,7 +1218,7 @@ final class Game {
         if (e.flash > 0) e.flash -= dt;
         if (e.shield > 0) { e.shieldT -= dt; if (e.shieldT <= 0) e.shield = 0; }
         if (e.type == Ent.ENEMY && (e.kind == Data.K_INFLU || e.kind == Data.K_EXBBB) && !e.dying && e.st != S_DOWN) {
-            if (Math.abs(p.x - e.x) < 110 && Math.abs(p.y - e.y) < 50) auraNow = true;
+            if (Math.abs(p.x - e.x) < 110 && Math.abs(p.y - e.y) < 50) { auraNow = true; auraIdx = curP; }
         }
         switch (e.st) {
             case S_DOWN: updateEnemyDown(e, dt); return;

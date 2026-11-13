@@ -21,4 +21,7 @@ final class Ent {
     int slot = 1;
     ArrayList<Ent> hit = new ArrayList<>();
     Ent holder;
+    /** id de rede (modo dupla) e posição-alvo para suavizar no celular convidado. */
+    int nid;
+    float tx, ty, th;
 }

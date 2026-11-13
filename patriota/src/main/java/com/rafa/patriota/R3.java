@@ -601,7 +601,8 @@ final class R3 {
         if (Draw.q >= 1) props(theme, g.camX);
         // sombras e entidades (as sombras são desenhadas direto no chão, antes dos blocos)
         for (int i = 0; i < g.ents.size(); i++) ent(c, g, g.ents.get(i), kindLooks);
-        player(c, g, heroLooks, heroTorn);
+        for (int i = 0; i < g.np; i++) { g.use(i); player(c, g, heroLooks, heroTorn); }
+        g.use(g.local);
         flush(c);
         // (o zoom permanece até o fim do quadro para os marcadores 2D)
     }

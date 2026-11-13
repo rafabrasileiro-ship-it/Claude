@@ -16,14 +16,16 @@ import java.util.Random;
 /** Telas (menus, briefing, jogo, HUD), entrada por toque e laço principal. */
 final class GameView extends View {
     static final int SC_SPLASH = 0, SC_MENU = 1, SC_SELECT = 2, SC_STAGES = 3, SC_OPTIONS = 4, SC_CREDITS = 5,
-            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10;
+            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12;
 
     // ids de botões de menu
     private static final int B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_NEXT = 6,
-            B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
+            B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
 
     private final Sfx sfx;
     private final Game game;
+    private final Snap.Relay relay;
+    private final Net net = new Net();
     private final SharedPreferences prefs;
     private final Random rnd = new Random();
 
@@ -61,6 +63,15 @@ final class GameView extends View {
 
     private final ArrayList<Ent> drawList = new ArrayList<>();
     private final Jet jet;
+    // ---- modo dupla (Bluetooth)
+    private boolean coop;            // sessão em dupla ativa
+    private int coopSub;             // 0 escolha, 1 criando sala, 2 lista de aparelhos, 3 conectando
+    private int partnerHero = -1;
+    private String netMsg = "";
+    private float netMsgT, snapT, moveT;
+    private float sentJx, sentJy, curJx, curJy;
+    private int pendingBt;           // ação à espera da permissão (1 criar, 2 entrar)
+    private ArrayList<android.bluetooth.BluetoothDevice> devices = new ArrayList<>();
     private boolean jetMode;
     private static final Comparator<Ent> BY_Y = (a, b) -> Float.compare(a.y, b.y);
 
@@ -68,7 +79,8 @@ final class GameView extends View {
         super(ctx);
         prefs = ctx.getSharedPreferences("patriota", Context.MODE_PRIVATE);
         sfx = new Sfx(ctx);
-        game = new Game(sfx);
+        relay = new Snap.Relay(sfx);
+        game = new Game(relay);
         jet = new Jet(sfx);
         java.util.Arrays.fill(role, -1);
         loadPrefs();
@@ -141,14 +153,17 @@ final class GameView extends View {
         postInvalidateOnAnimation();
     }
 
-    void release() { sfx.release(); }
+    void release() { net.close(); sfx.release(); }
 
     boolean onBack() {
         switch (screen) {
             case SC_PLAY: screen = SC_PAUSE; resetTouch(); return true;
             case SC_PAUSE: screen = SC_PLAY; last = System.nanoTime(); return true;
             case SC_MENU: case SC_SPLASH: return false;
-            case SC_BRIEF: case SC_OVER: case SC_WIN: goMenu(); return true;
+            case SC_COOP: if (coopSub != 0) { net.close(); coopSub = 0; } else goMenu(); return true;
+            case SC_WAIT: endCoop(""); return true;
+            case SC_SELECT: case SC_STAGES: case SC_BRIEF: if (coop) { onButton(B_BACK); return true; } goMenu(); return true;
+            case SC_OVER: case SC_WIN: if (coop) { endCoop(""); return true; } goMenu(); return true;
             default: goMenu(); return true;
         }
     }
@@ -173,7 +188,9 @@ final class GameView extends View {
         last = now;
         if (!running) return;
         screenT += dt;
+        if (netMsgT > 0) netMsgT -= dt;
         Draw.time += dt;
+        pollNet();
         c.drawColor(0xFF000000);
         btnN = 0;
 
@@ -188,6 +205,8 @@ final class GameView extends View {
             case SC_STAGES: drawStages(c); break;
             case SC_OPTIONS: drawOptions(c); break;
             case SC_CREDITS: drawCredits(c); break;
+            case SC_COOP: drawCoop(c); break;
+            case SC_WAIT: drawWait(c); break;
             case SC_BRIEF: drawBrief(c, dt); break;
             case SC_PLAY: case SC_PAUSE: case SC_OVER: case SC_WIN: drawPlay(c, dt); break;
             default: break;
@@ -244,6 +263,161 @@ final class GameView extends View {
         if (line.length() > 0) Draw.text(c, line.toString(), x, yy, size, color, al);
     }
 
+    // ---------------------------------------------------------------- modo dupla (Bluetooth)
+    private final Game.Listener noVoice = new Game.Listener() {
+        @Override public void sfx(int id) { sfx.sfx(id); }
+        @Override public void voice(String line) { /* as falas tocam no celular do anfitrião */ }
+        @Override public boolean hasClip(String line) { return sfx.hasClip(line); }
+        @Override public void vibrate(int ms) { sfx.vibrate(ms); }
+    };
+
+    private MainActivity act() { return getContext() instanceof MainActivity ? (MainActivity) getContext() : null; }
+
+    private int localIdx() { return coop && !net.host ? 1 : 0; }
+
+    private boolean guestMode() { return coop && !net.host; }
+
+    /** Próxima fase da campanha (na dupla pula o jet-ski, que é só solo); -1 se acabou. */
+    private int nextStage() {
+        int nx = stageSel + 1;
+        while (nx < Data.STAGES.size() && coop && Data.STAGES.get(nx).jet) nx++;
+        return nx < Data.STAGES.size() ? nx : -1;
+    }
+
+    private String dots() { return "...".substring(0, 1 + (int) (screenT * 2) % 3); }
+
+    private void coopMsg(String m) { netMsg = m; netMsgT = 5f; }
+
+    private boolean btReady() {
+        if (!Net.supported()) { coopMsg("Este aparelho não tem Bluetooth."); pendingBt = 0; return false; }
+        MainActivity a = act();
+        if (a != null && !a.hasBtPerm()) { a.askBtPerm(); return false; }
+        return true;
+    }
+
+    void onBtPermission(boolean ok) {
+        int a = pendingBt; pendingBt = 0;
+        if (!ok) { coopMsg("Sem a permissão de Bluetooth não dá para jogar em dupla."); return; }
+        if (a == 1) startHost(); else if (a == 2) openDevices();
+    }
+
+    private void startHost() {
+        if (!Net.enabled()) { coopMsg("Ligue o Bluetooth do celular e tente de novo."); return; }
+        net.listen(); coopSub = 1;
+    }
+
+    private void openDevices() {
+        if (!Net.enabled()) { coopMsg("Ligue o Bluetooth do celular e tente de novo."); return; }
+        devices = Net.paired(); coopSub = 2;
+    }
+
+    private void beginCoop() {
+        coop = true; partnerHero = -1; fromStageList = false; stageSel = 0;
+        screen = SC_SELECT; screenT = 0; coopSub = 0;
+        net.send(Snap.msg(Snap.M_HERO, hero, 0, 0));
+    }
+
+    private void endCoop(String msg) {
+        if (coop || net.state != Net.IDLE) net.bye();
+        coop = false; game.mirror = false; game.local = 0; game.np = 1; relay.rec = false; partnerHero = -1;
+        coopSub = 0;
+        goMenu();
+        if (!msg.isEmpty()) coopMsg(msg);
+    }
+
+    private void startGuest(int stage, int hostHero, int myHero) {
+        stageSel = stage; jetMode = false; hero = myHero;
+        game.resetMirror(); relay.rec = false;
+        screen = SC_PLAY; screenT = 0; resetTouch(); curJx = curJy = sentJx = sentJy = 0;
+        playStageMusic(stage);
+        last = System.nanoTime();
+    }
+
+    private void pollNet() {
+        if (screen == SC_COOP) {
+            int st = net.state;
+            if (st == Net.CONNECTED) beginCoop();
+            else if (st == Net.FAILED) { coopMsg(net.info); net.close(); coopSub = 0; }
+            return;
+        }
+        if (!coop) return;
+        if (net.state != Net.CONNECTED) { endCoop(net.info.isEmpty() ? "Conexão perdida." : net.info); return; }
+        byte[] m;
+        while ((m = net.poll()) != null) {
+            switch (m[0]) {
+                case Snap.M_HERO: if (m.length > 1) partnerHero = Math.max(0, Math.min(3, m[1])); break;
+                case Snap.M_START: if (guestMode() && m.length > 3) startGuest(m[1], m[2], m[3]); break;
+                case Snap.M_INPUT: if (!guestMode() && !game.mirror && game.np == 2) Snap.applyInput(game, m); break;
+                case Snap.M_BYE: endCoop("O amigo saiu da partida."); return;
+                default: break;
+            }
+        }
+    }
+
+    private void drawCoop(Canvas c) {
+        panelBg(c, Data.TH_PAULISTA);
+        title(c, "DUPLA — BLUETOOTH", 44);
+        if (coopSub == 0) {
+            String[] help = {"1) Nos dois celulares: ligue o Bluetooth e pareie um com o outro (botão roxo).",
+                    "2) Um jogador CRIA A SALA; o outro toca em ENTRAR e escolhe o aparelho do anfitrião.",
+                    "3) Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida.",
+                    "O anfitrião escolhe a fase. A fase do jet-ski é só no modo solo."};
+            for (int i = 0; i < help.length; i++) Draw.text(c, help[i], 400, 84 + i * 24, 14, 0xFFFFFFFF, Paint.Align.CENTER);
+            addBtn(c, B_HOST, 60, 200, 390, 256, "CRIAR SALA (esperar o amigo)", true, 0xFF1B8F3A);
+            addBtn(c, B_JOIN, 410, 200, 740, 256, "ENTRAR NA SALA DO AMIGO", true, 0xFF1D3E9A);
+            addBtn(c, B_BTSET, 60, 272, 740, 322, "PAREAR APARELHOS (abrir config. do Bluetooth)", true, 0xFF6A4C93);
+        } else if (coopSub == 1) {
+            String dots = dots();
+            Draw.text(c, "Sala criada! Aguardando o amigo" + dots, 400, 170, 24, 0xFFFFFFFF, Paint.Align.CENTER);
+            Draw.text(c, "No outro celular: DUPLA > ENTRAR NA SALA DO AMIGO > toque no nome deste aparelho.", 400, 210, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+        } else if (coopSub == 2) {
+            if (devices.isEmpty()) {
+                Draw.text(c, "Nenhum aparelho pareado.", 400, 150, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                Draw.text(c, "Volte e use PAREAR APARELHOS; depois entre de novo aqui.", 400, 180, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+            } else {
+                Draw.text(c, "Toque no aparelho do anfitrião (que já criou a sala):", 400, 80, 15, 0xFFFFFFFF, Paint.Align.CENTER);
+                for (int i = 0; i < Math.min(8, devices.size()); i++) {
+                    int col = i / 4, row = i % 4;
+                    float x0 = 40 + col * 370, y0 = 100 + row * 62;
+                    addBtn(c, B_DEV + i, x0, y0, x0 + 350, y0 + 52, Net.nameOf(devices.get(i)), true, 0xFF1D3E9A);
+                }
+            }
+        } else {
+            String dots = dots();
+            Draw.text(c, "Conectando a " + net.info + dots, 400, 190, 22, 0xFFFFFFFF, Paint.Align.CENTER);
+        }
+        if (netMsgT > 0) Draw.text(c, netMsg, 400, 360, 15, 0xFFFFAB91, Paint.Align.CENTER);
+        addBtn(c, B_BACK, 30, 392, 230, 440, coopSub == 0 ? "VOLTAR" : "CANCELAR", true, 0xFF7B1FA2);
+    }
+
+    private void drawWait(Canvas c) {
+        panelBg(c, Data.TH_CAMPUS);
+        title(c, "PRONTO!", 70);
+        R3.icon(c, heroLooks[hero], 400, 290, 1.6f, 0, Draw.P_WIND);
+        Draw.text(c, "Seu herói: " + Data.HERO_NAME[hero], 400, 305, 18, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, "Aguardando o anfitrião escolher a fase" + dots(), 400, 110, 18, 0xFFFFFFFF, Paint.Align.CENTER);
+        addBtn(c, B_BACK, 30, 392, 230, 440, "SAIR DA SALA", true, 0xFF7B1FA2);
+    }
+
+    /** Barra de vida do parceiro (modo dupla). */
+    private void drawPartnerHud(Canvas c, Game g) {
+        int oi = 1 - g.local;
+        Game.PS q = g.ps[oi];
+        if (q.p == null) return;
+        Draw.rect(c, 0x99000000, 560, 56, 792, 92);
+        c.save(); c.clipRect(562, 58, 592, 90);
+        Draw.noShadow = true;
+        R3.icon(c, heroLooks[q.hero], 577, 160, 0.8f, 0, Draw.P_IDLE);
+        Draw.noShadow = false;
+        c.restore();
+        Draw.text(c, (oi == 0 ? "1P " : "2P ") + Data.HERO_NAME[q.hero] + (Game.isDown(q.p) ? " (caído)" : ""), 598, 68, 11, oi == 0 ? 0xFF76FF03 : 0xFF40C4FF, Paint.Align.LEFT);
+        float f = Math.max(0f, q.p.hp / q.p.maxHp);
+        Draw.rect(c, 0xFF000000, 597, 72, 789, 82);
+        Draw.rect(c, f > 0.3f ? 0xFF2E9B3A : 0xFFE53935, 598, 73, 598 + 190 * f, 81);
+        Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
+        Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
+    }
+
     // ---- telas
     private void drawSplash(Canvas c) {
         Draw.rect(c, 0xFF0B8A3A, 0, 0, Game.W, Game.H);
@@ -262,17 +436,19 @@ final class GameView extends View {
         Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, 96, 16, 0xFFFFFFFF, Paint.Align.CENTER);
         R3.icon(c, heroLooks[hero], 150, 405, 1.9f, 0, Draw.P_IDLE);
         c.save(); c.translate(0, 0);
-        addBtn(c, B_PLAY, 290, 125, 560, 183, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
-        addBtn(c, B_STAGES, 290, 195, 560, 253, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
-        addBtn(c, B_OPTIONS, 290, 265, 560, 323, "OPÇÕES", true, 0xFF6A4C93);
-        addBtn(c, B_CREDITS, 290, 335, 560, 393, "CRÉDITOS", true, 0xFFB35C00);
+        addBtn(c, B_PLAY, 290, 108, 560, 158, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
+        addBtn(c, B_COOP, 290, 166, 560, 216, "DUPLA (BLUETOOTH)", true, 0xFFC62828);
+        addBtn(c, B_STAGES, 290, 224, 560, 274, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
+        addBtn(c, B_OPTIONS, 290, 282, 560, 332, "OPÇÕES", true, 0xFF6A4C93);
+        addBtn(c, B_CREDITS, 290, 340, 560, 390, "CRÉDITOS", true, 0xFFB35C00);
+        if (netMsgT > 0) { Draw.text(c, netMsg, 400, 418, 15, 0xFFFFAB91, Paint.Align.CENTER); }
         c.restore();
         Draw.text(c, "Progresso: " + Math.min(cleared, Data.STAGES.size()) + "/" + Data.STAGES.size() + " fases", 790, 440, 14, 0xFFFFFFFF, Paint.Align.RIGHT);
     }
 
     private void drawSelect(Canvas c) {
         panelBg(c, Data.TH_CAMPUS);
-        title(c, "ESCOLHA SEU PERSONAGEM", 44);
+        title(c, coop ? "ESCOLHA SEU PERSONAGEM (DUPLA)" : "ESCOLHA SEU PERSONAGEM", 44);
         for (int i = 0; i < 4; i++) {
             float x0 = 20 + i * 192, x1 = x0 + 180;
             boolean ok = heroUnlocked(i);
@@ -293,7 +469,7 @@ final class GameView extends View {
             addBtn(c, B_HERO + i, x0 + 10, 325, x1 - 10, 352, ok ? (sel ? "ESCOLHER ✔" : "ESCOLHER") : "—", ok, ok ? 0xFF1D3E9A : 0xFF555555);
         }
         addBtn(c, B_BACK, 30, 385, 230, 435, "VOLTAR", true, 0xFF7B1FA2);
-        addBtn(c, B_NEXT, 570, 385, 770, 435, "AVANÇAR ▶", true, 0xFF1B8F3A);
+        addBtn(c, B_NEXT, 570, 385, 770, 435, coop && localIdx() == 1 ? "PRONTO ▶" : "AVANÇAR ▶", true, 0xFF1B8F3A);
     }
 
     private void drawStages(Canvas c) {
@@ -303,9 +479,10 @@ final class GameView extends View {
         for (int i = 0; i < n; i++) {
             int col = i / 5, row = i % 5;
             float x0 = 30 + col * 385, y0 = 62 + row * 64;
-            boolean ok = i <= cleared;
+            boolean solo = coop && Data.STAGES.get(i).jet;
+            boolean ok = i <= cleared && !solo;
             String name = Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0];
-            addBtn(c, B_STAGE + i, x0, y0, x0 + 365, y0 + 56, ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
+            addBtn(c, B_STAGE + i, x0, y0, x0 + 365, y0 + 56, solo ? Data.STAGES.get(i).id + " · só no modo solo" : ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
         }
         addBtn(c, B_BACK, 30, 392, 230, 438, "VOLTAR", true, 0xFF7B1FA2);
     }
@@ -370,26 +547,52 @@ final class GameView extends View {
         // dicas de controle
         Draw.text(c, "Controles: analógico à esquerda • A soco (segure 1s = onda de choque) • B pulo (B+A voadora)", 400, 322, 13, 0xFFDDDDDD, Paint.Align.CENTER);
         Draw.text(c, "C agarrar/pegar arma (perto do inimigo: A soca, direção+A arremessa) • D especial (gasta 50 de Patriotismo)", 400, 342, 13, 0xFFDDDDDD, Paint.Align.CENTER);
-        Draw.text(c, "Personagem: " + Data.HERO_NAME[hero], 400, 372, 15, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, coop ? "Dupla: " + Data.HERO_NAME[hero] + " + " + (partnerHero >= 0 ? Data.HERO_NAME[partnerHero] : "(amigo escolhendo...)") : "Personagem: " + Data.HERO_NAME[hero], 400, 372, 15, 0xFFFFD400, Paint.Align.CENTER);
         addBtn(c, B_BACK, 30, 392, 210, 440, "VOLTAR", true, 0xFF7B1FA2);
-        addBtn(c, B_NEXT, 560, 392, 770, 440, cnt < full.length() ? "AVANÇAR ▶▶" : "AVANÇAR ▶", true, 0xFF1B8F3A);
+        addBtn(c, B_NEXT, 560, 392, 770, 440, cnt < full.length() ? "AVANÇAR ▶▶" : "AVANÇAR ▶", !coop || partnerHero >= 0, 0xFF1B8F3A);
     }
 
     // ---------------------------------------------------------------- jogo
     private void startStage(int idx) {
         stageSel = idx;
-        jetMode = Data.STAGES.get(idx).jet;
-        if (jetMode) jet.start(hero); else game.start(idx, hero);
+        jetMode = Data.STAGES.get(idx).jet && !coop;
+        game.mirror = false; game.local = 0; relay.rec = coop; relay.ev.clear();
+        if (jetMode) jet.start(hero);
+        else if (coop) { game.start(idx, hero, partnerHero >= 0 ? partnerHero : 0); net.send(Snap.msg(Snap.M_START, idx, hero, partnerHero >= 0 ? partnerHero : 0)); }
+        else game.start(idx, hero);
         screen = SC_PLAY; screenT = 0;
         resetTouch();
-        if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
+        playStageMusic(idx);
         last = System.nanoTime();
+    }
+
+    private void playStageMusic(int idx) {
+        if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
     }
 
     private void drawPlay(Canvas c, float dt) {
         if (jetMode) { drawJetPlay(c, dt); return; }
         Game g = game;
-        if (screen == SC_PLAY) {
+        if (g.mirror) {
+            // celular convidado: o estado chega do anfitrião
+            byte[] m = net.takeSnap();
+            if (m != null) { Snap.read(g, m, noVoice); g.adopt(1); }
+            if (g.stage == null || g.ps[0].p == null) {
+                Draw.rect(c, 0xFF000000, 0, 0, Game.W, Game.H);
+                Draw.text(c, "Sincronizando com o anfitrião...", 400, 225, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                return;
+            }
+            Snap.smooth(g, dt);
+            if (screen == SC_PLAY || screen == SC_PAUSE) {
+                if (g.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
+                else if (g.result == 1) onWin();
+            } else if ((screen == SC_OVER || screen == SC_WIN) && g.result == 0) {
+                screen = SC_PLAY; screenT = 0; resetTouch(); playStageMusic(stageSel);
+            }
+            if (screen == SC_PLAY && (Math.abs(curJx - sentJx) > 0.03f || Math.abs(curJy - sentJy) > 0.03f || ((curJx == 0 && curJy == 0) && (sentJx != 0 || sentJy != 0)))) {
+                sentJx = curJx; sentJy = curJy; net.send(Snap.msgInput(Snap.I_MOVE, curJx, curJy));
+            }
+        } else if (screen == SC_PLAY) {
             g.update(dt);
             if (g.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
             else if (g.result == 1) onWin();
@@ -399,6 +602,10 @@ final class GameView extends View {
         }
         c.save();
         if (g.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * g.shake, (rnd.nextFloat() - 0.5f) * g.shake);
+        if (coop && !g.mirror && net.connected()) {
+            snapT += dt;
+            if (snapT >= 0.033f) { snapT = 0; net.sendSnap(Snap.write(g, relay)); }
+        }
         R3.world(c, g, kindLooks, heroLooks, heroTorn, gfx == 0);
         drawOverlays(c);
         drawFx(c, g.fxs, g.camX);
@@ -410,6 +617,7 @@ final class GameView extends View {
             for (int i = 0; i < 12; i++) Draw.circle(c, 0x66FFFFFF, (i * 97 + g.time * 40) % 800, (i * 53) % 450, 18 + (i % 4) * 8);
         }
         drawHud(c);
+        if (g.np == 2) drawPartnerHud(c, g);
         drawEndOverlays(c, g.score, g.p.hp, g.p.maxHp);
     }
 
@@ -418,14 +626,14 @@ final class GameView extends View {
             Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
             title(c, "PAUSADO", 110);
             addBtn(c, B_RESUME, 290, 140, 510, 196, "CONTINUAR", true, 0xFF1B8F3A);
-            addBtn(c, B_RESTART, 290, 208, 510, 264, "REINICIAR FASE", true, 0xFF1D3E9A);
+            addBtn(c, B_RESTART, 290, 208, 510, 264, "REINICIAR FASE", !guestMode(), 0xFF1D3E9A);
             addBtn(c, B_MENU, 290, 276, 510, 332, "MENU PRINCIPAL", true, 0xFFB35C00);
         } else if (screen == SC_OVER) {
             Draw.rect(c, 0xBB200000, 0, 0, Game.W, Game.H);
             Draw.text(c, "GAME OVER", 400, 110, 54, 0xFFFF5252, Paint.Align.CENTER);
             Draw.text(c, "CORONEL HELENÃO (rádio): “Levanta, recruta!”", 400, 160, 20, 0xFFFFFFFF, Paint.Align.CENTER);
             Draw.text(c, "Pontuação: " + scoreV, 400, 195, 18, 0xFFFFD400, Paint.Align.CENTER);
-            addBtn(c, B_CONTINUE, 290, 225, 510, 285, "CONTINUAR", true, 0xFF1B8F3A);
+            addBtn(c, B_CONTINUE, 290, 225, 510, 285, guestMode() ? "Aguardando o anfitrião..." : "CONTINUAR", !guestMode(), 0xFF1B8F3A);
             addBtn(c, B_MENU, 290, 300, 510, 350, "MENU PRINCIPAL", true, 0xFFB35C00);
         } else if (screen == SC_WIN) {
             Draw.rect(c, 0xBB001A00, 0, 0, Game.W, Game.H);
@@ -434,8 +642,9 @@ final class GameView extends View {
             Draw.text(c, "Pontuação: " + scoreV, 400, 175, 26, 0xFFFFFFFF, Paint.Align.CENTER);
             Draw.text(c, "Vida restante: " + (int) hpV + " / " + (int) maxHpV, 400, 205, 16, 0xFFCCFFCC, Paint.Align.CENTER);
             if (!unlockMsg.isEmpty()) Draw.text(c, unlockMsg, 400, 235, 18, 0xFF76FF03, Paint.Align.CENTER);
-            boolean more = stageSel + 1 < Data.STAGES.size();
-            if (more) addBtn(c, B_NEXT, 270, 262, 530, 322, "PRÓXIMA MISSÃO ▶", true, 0xFF1B8F3A);
+            boolean more = nextStage() >= 0;
+            if (guestMode()) addBtn(c, B_NEXT, 270, 262, 530, 322, "Aguardando o anfitrião...", false, 0xFF1B8F3A);
+            else if (more) addBtn(c, B_NEXT, 270, 262, 530, 322, "PRÓXIMA MISSÃO ▶", true, 0xFF1B8F3A);
             else addBtn(c, B_NEXT, 270, 262, 530, 322, "VER CRÉDITOS ▶", true, 0xFF1B8F3A);
             addBtn(c, B_MENU, 270, 336, 530, 386, "MENU PRINCIPAL", true, 0xFFB35C00);
         }
@@ -512,18 +721,27 @@ final class GameView extends View {
     }
 
     // entrada: despacha para o modo de jogo atual
-    private void inPress(int b) { if (jetMode) jet.press(b); else game.press(b); }
-    private void inRelease(int b) { if (jetMode) jet.release(b); else game.release(b); }
-    private void inMove(float x, float y) { if (jetMode) jet.setMove(x, y); else game.setMove(x, y); }
+    private void inPress(int b) { if (jetMode) jet.press(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_PRESS, b, 0)); else game.press(b); }
+    private void inRelease(int b) { if (jetMode) jet.release(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_RELEASE, b, 0)); else game.release(b); }
+    private void inMove(float x, float y) { if (jetMode) jet.setMove(x, y); else if (game.mirror) { curJx = x; curJy = y; } else game.setMove(x, y); }
 
 
     /** Marcadores 2D sobre o mundo 3D: avisos de ataque, barras de vida e auras. */
     private void drawOverlays(Canvas c) {
         Game g = game;
-        Ent o = g.p;
-        float pz = R3.zOf(o.y);
-        if (g.penT > 0) R3.ringFx(c, o.x, o.h + 2, pz, 46 + (float) Math.sin(g.time * 12) * 3, 0xAA40C4FF, 4);
-        if (g.charged) R3.ringFx(c, o.x, o.h + 2, pz, 40 + (float) Math.sin(g.time * 20) * 6, 0xCCFFD400, 5);
+        for (int pi = 0; pi < g.np; pi++) {
+            g.use(pi);
+            Ent o = g.p;
+            float pz = R3.zOf(o.y);
+            if (g.penT > 0) R3.ringFx(c, o.x, o.h + 2, pz, 46 + (float) Math.sin(g.time * 12) * 3, 0xAA40C4FF, 4);
+            if (g.charged) R3.ringFx(c, o.x, o.h + 2, pz, 40 + (float) Math.sin(g.time * 20) * 6, 0xCCFFD400, 5);
+            if (g.np == 2 && o.st != Game.S_DEAD) {
+                R3.proj(o.x, o.h + 112 * R3.BIG, pz);
+                boolean me = pi == g.local;
+                Draw.text(c, (pi == 0 ? "1P" : "2P") + (me ? " ▼" : ""), R3.px, R3.py - 2, 14, pi == 0 ? 0xFF76FF03 : 0xFF40C4FF, Paint.Align.CENTER);
+            }
+        }
+        g.use(g.local);
         for (int i = 0; i < g.ents.size(); i++) {
             Ent e = g.ents.get(i);
             if (e.type != Ent.ENEMY || !e.alive) continue;
@@ -699,7 +917,7 @@ final class GameView extends View {
         joyActive = false; joyX = joyY = 0;
         for (int i = 0; i < 4; i++) btnDown[i] = false;
         downBtn = -1;
-        try { inMove(0, 0); if (jetMode) jet.release(Game.BC); else if (game.p != null) game.release(Game.BA); } catch (Exception ignored) { }
+        try { inMove(0, 0); if (jetMode) jet.release(Game.BC); else if (game.p != null) inRelease(Game.BA); } catch (Exception ignored) { }
     }
 
     // ---------------------------------------------------------------- toque
@@ -798,34 +1016,50 @@ final class GameView extends View {
         switch (id) {
             case B_PLAY: fromStageList = false; stageSel = 0; screen = SC_SELECT; screenT = 0; break;
             case B_STAGES: screen = SC_STAGES; screenT = 0; break;
+            case B_COOP: net.close(); coopSub = 0; screen = SC_COOP; screenT = 0; break;
+            case B_HOST: pendingBt = 1; if (btReady()) { pendingBt = 0; startHost(); } break;
+            case B_JOIN: pendingBt = 2; if (btReady()) { pendingBt = 0; openDevices(); } break;
+            case B_BTSET: { MainActivity a = act(); if (a != null) a.openBtSettings(); break; }
             case B_OPTIONS: screen = SC_OPTIONS; screenT = 0; break;
             case B_CREDITS: screen = SC_CREDITS; screenT = 0; sfx.music(2); break;
             case B_BACK:
+                if (coop) {
+                    if (screen == SC_BRIEF) screen = SC_STAGES; else if (screen == SC_STAGES) screen = SC_SELECT; else endCoop("");
+                    screenT = 0; break;
+                }
+                if (screen == SC_COOP) { if (coopSub != 0) { net.close(); coopSub = 0; } else goMenu(); break; }
                 if (screen == SC_BRIEF) { screen = fromStageList ? SC_STAGES : SC_SELECT; }
                 else if (screen == SC_SELECT && fromStageList) screen = SC_STAGES;
                 else goMenu();
                 screenT = 0;
                 break;
             case B_NEXT:
-                if (screen == SC_SELECT) { screen = SC_BRIEF; briefT = 0; screenT = 0; savePrefs(); }
+                if (screen == SC_SELECT && coop) {
+                    savePrefs(); net.send(Snap.msg(Snap.M_HERO, hero, 0, 0));
+                    if (net.host) { screen = SC_STAGES; screenT = 0; } else { screen = SC_WAIT; screenT = 0; }
+                }
+                else if (screen == SC_SELECT) { screen = SC_BRIEF; briefT = 0; screenT = 0; savePrefs(); }
                 else if (screen == SC_BRIEF) { startStage(stageSel); }
                 else if (screen == SC_WIN) {
-                    if (stageSel + 1 < Data.STAGES.size()) { stageSel++; screen = SC_BRIEF; briefT = 0; screenT = 0; sfx.music(2); }
-                    else { screen = SC_CREDITS; screenT = 0; }
+                    int nx = nextStage();
+                    if (nx >= 0) { stageSel = nx; screen = SC_BRIEF; briefT = 0; screenT = 0; sfx.music(2); }
+                    else if (coop) endCoop(""); else { screen = SC_CREDITS; screenT = 0; }
                 }
                 break;
             case B_RESUME: screen = SC_PLAY; last = System.nanoTime(); resetTouch(); break;
             case B_RESTART: startStage(stageSel); break;
-            case B_MENU: goMenu(); break;
+            case B_MENU: if (coop) endCoop(""); else goMenu(); break;
             case B_CONTINUE:
                 if (jetMode) jet.continueGame(); else game.continueGame();
-                screen = SC_PLAY; resetTouch(); last = System.nanoTime(); if (!(stageSel == 6 && sfx.stageMusic("voz_jornal_vinheta"))) sfx.music(1);
+                screen = SC_PLAY; resetTouch(); last = System.nanoTime(); playStageMusic(stageSel);
                 break;
             default:
-                if (id >= B_HERO && id < B_HERO + 4) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); } }
+                if (id >= B_HERO && id < B_HERO + 4) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
+                else if (id >= B_DEV && id < B_DEV + 8) { int d = id - B_DEV; if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
                 else if (id >= B_STAGE && id < B_STAGE + 20) {
                     int s = id - B_STAGE;
-                    if (s <= cleared && s < Data.STAGES.size()) { stageSel = s; fromStageList = true; screen = SC_SELECT; screenT = 0; }
+                    if (coop) { if (s <= cleared && s < Data.STAGES.size() && !Data.STAGES.get(s).jet) { stageSel = s; screen = SC_BRIEF; briefT = 0; screenT = 0; } }
+                    else if (s <= cleared && s < Data.STAGES.size()) { stageSel = s; fromStageList = true; screen = SC_SELECT; screenT = 0; }
                 } else if (id >= B_OPT && id < B_OPT + 10) {
                     switch (id - B_OPT) {
                         case 0: sfxLv = (sfxLv + 1) % 4; sfx.sfx(Game.SFX_ITEM); break;
