@@ -29,6 +29,11 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Imbroxável!", "voz_imbroxavel");
         CLIPS.put("Isso aqui é uma maravilha, pô!", "voz_maravilha");
         CLIPS.put("O Brasil vai acabar", "voz_mula_brasil");
+        CLIPS.put("Filho da puta!", "voz_filho_da_puta_1,voz_filho_da_puta_2");
+        CLIPS.put("Vagabundo!", "voz_vagabundo");
+        CLIPS.put("Escrota!", "voz_escrota");
+        CLIPS.put("Fudido!", "voz_fudido");
+        CLIPS.put("Vai pra puta que o pariu, porra!", "voz_vai_pra_puta");
     }
     private boolean ttsReady;
     float sfxVol = 1f, voiceVol = 1f, musicVol = 0.6f;
@@ -96,6 +101,7 @@ final class Sfx implements Game.Listener {
     private boolean playClip(String line) {
         String name = CLIPS.get(line);
         if (name == null) return false;
+        if (name.indexOf(',') >= 0) { String[] opts = name.split(","); name = opts[rnd.nextInt(opts.length)]; }
         try {
             int id = ctx.getResources().getIdentifier(name, "raw", ctx.getPackageName());
             if (id == 0) return false;

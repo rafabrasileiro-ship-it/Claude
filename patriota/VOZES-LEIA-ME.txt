@@ -7,3 +7,6 @@ voz_acabou       -> "Acabou, porra!"                            (especial / rugi
 voz_imbroxavel   -> "Imbroxável!"                               (especial do Jair)
 voz_maravilha    -> "Isso aqui é uma maravilha, pô!"            (vitória contra chefe)
 voz_mula_brasil  -> "O Brasil vai acabar"                       (chefe Mula)
+
+Provocações no meio da briga (Jair, aleatórias ao acertar/derrubar inimigos):
+voz_filho_da_puta_1 / voz_filho_da_puta_2, voz_vagabundo, voz_escrota, voz_fudido, voz_vai_pra_puta

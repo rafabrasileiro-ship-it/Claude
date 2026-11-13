@@ -345,6 +345,14 @@ final class Game {
         if (time - bossVoiceCd > 6f || bossVoiceCd == 0) { bossVoiceCd = time; L.voice(s); }
     }
 
+    private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!"};
+
+    /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
+    private void brawlVoice() {
+        if (hero != 0 || voiceCd > 0) return;
+        voice(BRIGA[rnd.nextInt(BRIGA.length)], false);
+    }
+
     private void voice(String s, boolean force) {
         pop(s, p.x, p.y - 110, 1.8f, 0xFFFFFFFF);
         if (force || voiceCd <= 0) { L.voice(s); voiceCd = 3.2f; }
@@ -832,6 +840,7 @@ final class Game {
         t.hp -= dmg; t.flash = 0.15f;
         meter = Math.min(100, meter + 4);
         score += 10;
+        if (rnd.nextFloat() < 0.12f) brawlVoice();
         fxs.add(new Fx(FX_SPARK, t.x, t.y, 40 + t.h, 0.25f, 16, 0xFFFFFFFF));
         L.vibrate(10);
         if (t.hp <= 0) { killEnemy(t, dir); return true; }
@@ -861,6 +870,7 @@ final class Game {
         t.st = S_DOWN; t.t = 0; t.vh = 220; t.vx = dir * 220; t.h = Math.max(t.h, 0.5f); t.aux = 0;
         score += k.score;
         L.sfx(SFX_HEAVY);
+        if (!k.boss && rnd.nextFloat() < 0.3f) brawlVoice();
         if (grabbed == t) grabbed = null;
         if (k.boss) {
             shake = 12;
