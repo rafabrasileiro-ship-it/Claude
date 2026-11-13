@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 /** Serialização do estado do jogo para o modo dupla (Bluetooth). Lógica pura, sem Android. */
 final class Snap {
-    static final byte M_SNAP = 1, M_INPUT = 2, M_HERO = 3, M_START = 4, M_BYE = 5, M_HELLO = 6;
+    static final byte M_SNAP = 1, M_INPUT = 2, M_HERO = 3, M_START = 4, M_BYE = 5, M_HELLO = 6, M_PING = 7, M_PONG = 8;
     static final byte I_MOVE = 0, I_PRESS = 1, I_RELEASE = 2;
 
     private Snap() { }

@@ -20,7 +20,7 @@ final class GameView extends View {
 
     // ids de botões de menu
     private static final int B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_NEXT = 6,
-            B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
+            B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_HOSTW = 15, B_JOINW = 16, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
 
     private final Sfx sfx;
     private final Game game;
@@ -66,6 +66,10 @@ final class GameView extends View {
     // ---- modo dupla (Bluetooth)
     private boolean coop;            // sessão em dupla ativa
     private int coopSub;             // 0 escolha, 1 criando sala, 2 lista de aparelhos, 3 conectando
+    private boolean coopWifi;       // true = Wi-Fi, false = Bluetooth
+    private float pingT, fpsAcc, fpsT;
+    private int autoMax = 2;
+    private final ArrayList<String[]> wifiList = new ArrayList<>();
     private int partnerHero = -1;
     private String netMsg = "";
     private float netMsgT, snapT, moveT;
@@ -98,7 +102,7 @@ final class GameView extends View {
             hero = prefs.getInt("hero", 0);
         } catch (Exception ignored) { }
         if (hero < 0 || hero > 3 || !heroUnlocked(hero)) hero = 0;
-        Draw.q = gfx;
+        Draw.q = gfx == 3 ? 2 : gfx;
         applyAudio();
     }
 
@@ -187,6 +191,16 @@ final class GameView extends View {
         float dt = Math.min(0.05f, (now - last) / 1e9f);
         last = now;
         if (!running) return;
+        if (gfx == 3 && screen == SC_PLAY) {
+            // gráficos automáticos: se o quadro demora, baixa a qualidade; se sobra folga, sobe
+            fpsAcc += dt; fpsT += 1;
+            if (fpsAcc >= 2f) {
+                float avg = fpsAcc / fpsT;
+                if (avg > 1f / 42f && Draw.q > 0) { Draw.q--; autoMax = Draw.q; }
+                else if (avg < 1f / 57f && Draw.q < autoMax) Draw.q++;
+                fpsAcc = 0; fpsT = 0;
+            }
+        }
         screenT += dt;
         if (netMsgT > 0) netMsgT -= dt;
         Draw.time += dt;
@@ -243,7 +257,7 @@ final class GameView extends View {
     }
 
     private void panelBg(Canvas c, int theme) {
-        Scene.bg(c, theme, screenT * 40, screenT, gfx == 0);
+        Scene.bg(c, theme, screenT * 40, screenT, Draw.q == 0);
         Draw.rect(c, 0x99000000, 0, 0, Game.W, Game.H);
     }
 
@@ -337,6 +351,7 @@ final class GameView extends View {
         if (screen == SC_COOP) {
             int st = net.state;
             if (st == Net.CONNECTED) beginCoop();
+            else if (st == Net.IDLE) return;
             else if (st == Net.FAILED) { coopMsg(net.info); net.close(); coopSub = 0; }
             return;
         }
@@ -358,18 +373,35 @@ final class GameView extends View {
         panelBg(c, Data.TH_PAULISTA);
         title(c, "DUPLA — BLUETOOTH", 44);
         if (coopSub == 0) {
-            String[] help = {"1) Nos dois celulares: ligue o Bluetooth e pareie um com o outro (botão roxo).",
-                    "2) Um jogador CRIA A SALA; o outro toca em ENTRAR e escolhe o aparelho do anfitrião.",
-                    "3) Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida.",
-                    "O anfitrião escolhe a fase. A fase do jet-ski é só no modo solo."};
-            for (int i = 0; i < help.length; i++) Draw.text(c, help[i], 400, 84 + i * 24, 14, 0xFFFFFFFF, Paint.Align.CENTER);
-            addBtn(c, B_HOST, 60, 200, 390, 256, "CRIAR SALA (esperar o amigo)", true, 0xFF1B8F3A);
-            addBtn(c, B_JOIN, 410, 200, 740, 256, "ENTRAR NA SALA DO AMIGO", true, 0xFF1D3E9A);
-            addBtn(c, B_BTSET, 60, 272, 740, 322, "PAREAR APARELHOS (abrir config. do Bluetooth)", true, 0xFF6A4C93);
+            String[] help = {"Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida.",
+                    "Wi-Fi é o mais rápido e fluido: os dois celulares na mesma rede (ou no ponto de acesso de um deles).",
+                    "Um jogador CRIA A SALA; o outro toca em ENTRAR. O anfitrião escolhe a fase (jet-ski é só solo)."};
+            for (int i = 0; i < help.length; i++) Draw.text(c, help[i], 400, 80 + i * 22, 13, 0xFFFFFFFF, Paint.Align.CENTER);
+            addBtn(c, B_HOSTW, 60, 160, 390, 216, "CRIAR SALA — Wi-Fi (recomendado)", true, 0xFF1B8F3A);
+            addBtn(c, B_JOINW, 410, 160, 740, 216, "ENTRAR NA SALA — Wi-Fi", true, 0xFF1D3E9A);
+            addBtn(c, B_HOST, 60, 232, 390, 282, "Criar sala — Bluetooth", true, 0xFF2E7D32);
+            addBtn(c, B_JOIN, 410, 232, 740, 282, "Entrar na sala — Bluetooth", true, 0xFF283593);
+            addBtn(c, B_BTSET, 60, 298, 740, 340, "Parear aparelhos (só para Bluetooth): abrir config.", true, 0xFF6A4C93);
         } else if (coopSub == 1) {
             String dots = dots();
-            Draw.text(c, "Sala criada! Aguardando o amigo" + dots, 400, 170, 24, 0xFFFFFFFF, Paint.Align.CENTER);
-            Draw.text(c, "No outro celular: DUPLA > ENTRAR NA SALA DO AMIGO > toque no nome deste aparelho.", 400, 210, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+            Draw.text(c, "Sala criada (" + (coopWifi ? "Wi-Fi" : "Bluetooth") + ")! Aguardando o amigo" + dots, 400, 170, 24, 0xFFFFFFFF, Paint.Align.CENTER);
+            Draw.text(c, "No outro celular: DUPLA > ENTRAR NA SALA > toque no nome deste aparelho.", 400, 210, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+        } else if (coopSub == 2 && coopWifi) {
+            wifiList.clear();
+            java.util.ArrayList<String> keys = new java.util.ArrayList<>(net.found.keySet());
+            java.util.Collections.sort(keys);
+            for (String k : keys) { Object[] v = net.found.get(k); if (v != null) wifiList.add(new String[]{k, (String) v[0]}); }
+            if (wifiList.isEmpty()) {
+                Draw.text(c, "Procurando salas na rede" + dots(), 400, 150, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                Draw.text(c, "O amigo precisa tocar em CRIAR SALA — Wi-Fi, na mesma rede.", 400, 180, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+            } else {
+                Draw.text(c, "Salas encontradas — toque na do amigo:", 400, 80, 15, 0xFFFFFFFF, Paint.Align.CENTER);
+                for (int i = 0; i < Math.min(8, wifiList.size()); i++) {
+                    int col = i / 4, row = i % 4;
+                    float x0 = 40 + col * 370, y0 = 100 + row * 62;
+                    addBtn(c, B_DEV + i, x0, y0, x0 + 350, y0 + 52, wifiList.get(i)[1], true, 0xFF1D3E9A);
+                }
+            }
         } else if (coopSub == 2) {
             if (devices.isEmpty()) {
                 Draw.text(c, "Nenhum aparelho pareado.", 400, 150, 20, 0xFFFFFFFF, Paint.Align.CENTER);
@@ -414,6 +446,7 @@ final class GameView extends View {
         float f = Math.max(0f, q.p.hp / q.p.maxHp);
         Draw.rect(c, 0xFF000000, 597, 72, 789, 82);
         Draw.rect(c, f > 0.3f ? 0xFF2E9B3A : 0xFFE53935, 598, 73, 598 + 190 * f, 81);
+        Draw.text(c, (net.isWifi() ? "Wi-Fi" : "Bluetooth") + (net.rtt >= 0 && net.rtt < 5000 ? " " + net.rtt + " ms" : ""), 790, 102, 10, 0xFFBBBBBB, Paint.Align.RIGHT);
         Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
         Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
     }
@@ -430,7 +463,7 @@ final class GameView extends View {
     }
 
     private void drawMenu(Canvas c) {
-        Scene.bg(c, Data.TH_PAULISTA, screenT * 30, screenT, gfx == 0);
+        Scene.bg(c, Data.TH_PAULISTA, screenT * 30, screenT, Draw.q == 0);
         Draw.rect(c, 0x66000000, 0, 0, Game.W, Game.H);
         Draw.text(c, "OPERAÇÃO PATRIOTA 3D", 400, 70, 42, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, 96, 16, 0xFFFFFFFF, Paint.Align.CENTER);
@@ -496,13 +529,13 @@ final class GameView extends View {
         addBtn(c, B_OPT + 1, 120, 128, 680, 176, "Volume das vozes: " + LV[voiceLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 2, 120, 186, 680, 234, "Música: " + LV[musicLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 3, 120, 244, 680, 292, "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta"}[gfx], true, 0xFF1D3E9A);
+        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático (ajusta pelo desempenho)"}[gfx], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 5, 120, 360, 680, 408, "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"), true, 0xFF1D3E9A);
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
 
     private void drawCredits(Canvas c) {
-        Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, gfx == 0);
+        Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, Draw.q == 0);
         Draw.rect(c, 0x55000000, 0, 0, Game.W, Game.H);
         // motociata triunfal
         R3.zoom = 1f;
@@ -524,7 +557,7 @@ final class GameView extends View {
 
     private void drawBrief(Canvas c, float dt) {
         Data.Stage st = Data.STAGES.get(stageSel);
-        if (st.jet) Scene.lake(c, screenT * 40, screenT, gfx == 0); else Scene.bg(c, st.segs.get(0).theme, screenT * 20, screenT, gfx == 0);
+        if (st.jet) Scene.lake(c, screenT * 40, screenT, Draw.q == 0); else Scene.bg(c, st.segs.get(0).theme, screenT * 20, screenT, Draw.q == 0);
         Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
         Draw.text(c, "MISSÃO " + st.id, 400, 44, 30, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, st.title, 400, 72, 18, 0xFFFFFFFF, Paint.Align.CENTER);
@@ -583,6 +616,7 @@ final class GameView extends View {
                 return;
             }
             Snap.smooth(g, dt);
+            pingT += dt; if (pingT > 1f) { pingT = 0; net.ping(); }
             if (screen == SC_PLAY || screen == SC_PAUSE) {
                 if (g.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
                 else if (g.result == 1) onWin();
@@ -604,9 +638,9 @@ final class GameView extends View {
         if (g.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * g.shake, (rnd.nextFloat() - 0.5f) * g.shake);
         if (coop && !g.mirror && net.connected()) {
             snapT += dt;
-            if (snapT >= 0.033f) { snapT = 0; net.sendSnap(Snap.write(g, relay)); }
+            if (snapT >= 1f / net.rate) { snapT = 0; net.sendSnap(Snap.write(g, relay)); }
         }
-        R3.world(c, g, kindLooks, heroLooks, heroTorn, gfx == 0);
+        R3.world(c, g, kindLooks, heroLooks, heroTorn, Draw.q == 0);
         drawOverlays(c);
         drawFx(c, g.fxs, g.camX);
         Scene.post(c, g.theme());
@@ -671,7 +705,7 @@ final class GameView extends View {
         } else if (screen == SC_WIN || screen == SC_OVER) j.update(0);
         c.save();
         if (j.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * j.shake, (rnd.nextFloat() - 0.5f) * j.shake);
-        R3.jetWorld(c, j, heroLooks, gfx == 0);
+        R3.jetWorld(c, j, heroLooks, Draw.q == 0);
         for (Jet.Whale w : j.whales) {
             if (w.dying || w.x < j.camX - 100 || w.x > j.camX + Game.W + 100) continue;
             R3.proj(w.x, 70 * w.size + w.h, R3.zOf(w.y));
@@ -1017,8 +1051,14 @@ final class GameView extends View {
             case B_PLAY: fromStageList = false; stageSel = 0; screen = SC_SELECT; screenT = 0; break;
             case B_STAGES: screen = SC_STAGES; screenT = 0; break;
             case B_COOP: net.close(); coopSub = 0; screen = SC_COOP; screenT = 0; break;
-            case B_HOST: pendingBt = 1; if (btReady()) { pendingBt = 0; startHost(); } break;
-            case B_JOIN: pendingBt = 2; if (btReady()) { pendingBt = 0; openDevices(); } break;
+            case B_HOSTW:
+                if (!Net.wifiAvailable()) { coopMsg("Conecte os dois celulares na mesma rede Wi-Fi (ou ligue o ponto de acesso de um deles)."); break; }
+                coopWifi = true; net.listenWifi(android.os.Build.MODEL); coopSub = 1; break;
+            case B_JOINW:
+                if (!Net.wifiAvailable()) { coopMsg("Conecte os dois celulares na mesma rede Wi-Fi (ou ligue o ponto de acesso de um deles)."); break; }
+                coopWifi = true; net.scanWifi(); coopSub = 2; break;
+            case B_HOST: coopWifi = false; pendingBt = 1; if (btReady()) { pendingBt = 0; startHost(); } break;
+            case B_JOIN: coopWifi = false; pendingBt = 2; if (btReady()) { pendingBt = 0; openDevices(); } break;
             case B_BTSET: { MainActivity a = act(); if (a != null) a.openBtSettings(); break; }
             case B_OPTIONS: screen = SC_OPTIONS; screenT = 0; break;
             case B_CREDITS: screen = SC_CREDITS; screenT = 0; sfx.music(2); break;
@@ -1055,7 +1095,8 @@ final class GameView extends View {
                 break;
             default:
                 if (id >= B_HERO && id < B_HERO + 4) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
-                else if (id >= B_DEV && id < B_DEV + 8) { int d = id - B_DEV; if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
+                else if (id >= B_DEV && id < B_DEV + 8) { int d = id - B_DEV; if (coopWifi) { if (d < wifiList.size()) { net.connectWifi(wifiList.get(d)[0], wifiList.get(d)[1]); coopSub = 3; } }
+                    else if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
                 else if (id >= B_STAGE && id < B_STAGE + 20) {
                     int s = id - B_STAGE;
                     if (coop) { if (s <= cleared && s < Data.STAGES.size() && !Data.STAGES.get(s).jet) { stageSel = s; screen = SC_BRIEF; briefT = 0; screenT = 0; } }
@@ -1066,7 +1107,7 @@ final class GameView extends View {
                         case 1: voiceLv = (voiceLv + 1) % 4; break;
                         case 2: musicLv = (musicLv + 1) % 4; break;
                         case 3: sensLv = (sensLv + 1) % 3; break;
-                        case 4: gfx = (gfx + 1) % 3; Draw.q = gfx; break;
+                        case 4: gfx = (gfx + 1) % 4; Draw.q = gfx == 3 ? 2 : gfx; break;
                         case 5: vibOn = 1 - vibOn; break;
                         default: break;
                     }
