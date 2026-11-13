@@ -363,8 +363,8 @@ final class Game {
     private static final String[] CONTRA_MULA = {"Para de mentir, Lula!"};
     // falas "de fundo" (alto-falante) por fase
     private static final String[] AMB_MANIF = {"Bora pra rua, gente!", "(Mula sobre a fome)", "(Mula no alto-falante)",
-            "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!"};
-    private static final String[] AMB_UNIV = {"(Mula sobre a fome)", "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!"};
+            "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!"};
+    private static final String[] AMB_UNIV = {"(Mula sobre a fome)", "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!"};
     private static final String[] AMB_FINAL = {"(Mula no alto-falante)", "O Brasil acabou!"};
 
     /** Duração aproximada de cada gravação (s), para não cortar uma fala com a seguinte. */

@@ -31,7 +31,8 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Para de mentir, Lula!", "voz_para_de_mentir");
         CLIPS.put("Hahahaha!", "voz_risada");
         CLIPS.put("Bora pra rua, gente!", "voz_lula_bora_pra_rua");
-        CLIPS.put("Lula!", "voz_lula_grito_1,voz_lula_grito_2");
+        CLIPS.put("Lula!", "voz_lula_grito_1,voz_lula_grito_2,voz_lula_nome_1,voz_lula_nome_2,voz_lula_nome_3,voz_lula_nome_4");
+        CLIPS.put("É Lula!", "voz_lula_e_lula_final");
         CLIPS.put("O maior presidente da história do Brasil!", "voz_lula_maior_presidente_1,voz_lula_maior_presidente_2");
         CLIPS.put("É Lula, é Lula!", "voz_lula_e_lula");
         CLIPS.put("Agora é Lula!", "voz_lula_agora_e_lula");
