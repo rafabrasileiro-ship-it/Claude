@@ -11,6 +11,10 @@ final class Draw {
 
     static final Paint P = new Paint(Paint.ANTI_ALIAS_FLAG);
     static boolean noShadow;
+    /** Qualidade gráfica: 0 leve (chapado), 1 normal (contorno, sombras, gradientes), 2 alta (+texturas e luz). */
+    static int q = 2;
+    /** Escala de perspectiva da entidade atual (fundo menor, frente maior). */
+    static float persp = 1f;
     static final Path PATH = new Path();
     static final RectF RF = new RectF();
 
@@ -43,6 +47,31 @@ final class Draw {
         P.setStyle(Paint.Style.FILL);
         P.setColor(color);
         c.drawPath(PATH, P);
+        if (q >= 1 && (color >>> 24) == 255) {
+            P.setStyle(Paint.Style.STROKE);
+            P.setStrokeWidth(1.2f);
+            P.setColor(shade(color, -0.45f));
+            c.drawPath(PATH, P);
+            P.setStyle(Paint.Style.FILL);
+        }
+    }
+
+    /** Gradiente vertical por faixas (barato e sem shaders). */
+    static void grad(Canvas c, float l, float t, float r, float b, int top, int bot) {
+        int n = q == 0 ? 2 : 14;
+        float h = (b - t) / n;
+        for (int i = 0; i < n; i++) rect(c, mix(top, bot, i / (float) (n - 1)), l, t + i * h, r, t + (i + 1) * h + 1);
+    }
+
+    /** Sombra suave projetada no chão (luz vindo da esquerda e do alto). */
+    static void softShadow(Canvas c, float x, float y, float rx, float ry) {
+        if (noShadow) return;
+        if (q == 0) { oval(c, 0x55000000, x, y + 2, rx, ry); return; }
+        float ox = rx * 0.25f;
+        oval(c, 0x14000000, x + ox, y + 2, rx * 1.25f, ry * 1.3f);
+        oval(c, 0x22000000, x + ox, y + 2, rx * 1.0f, ry * 1.0f);
+        oval(c, 0x38000000, x + ox * 0.7f, y + 2, rx * 0.7f, ry * 0.7f);
+        oval(c, 0x50000000, x + ox * 0.4f, y + 2, rx * 0.4f, ry * 0.45f);
     }
 
     static void rect(Canvas c, int color, float l, float t, float r, float b) {
@@ -100,9 +129,8 @@ final class Draw {
      */
     static void person(Canvas c, float x, float y, float h, int face, Look lk, float walk, float mv, int pose, float pt,
                        float flash, int weapon, boolean guard) {
-        float sc = lk.scale;
-        // sombra
-        if (!noShadow) oval(c, 0x55000000, x, y + 2, 18 * sc * (1f - Math.min(0.5f, h / 200f)), 5 * sc);
+        float sc = lk.scale * persp;
+        softShadow(c, x, y, 18 * sc * (1f - Math.min(0.5f, h / 200f)), 5 * sc);
         c.save();
         c.translate(x, y - h);
         if (pose == P_DOWN) {
@@ -136,6 +164,7 @@ final class Draw {
                 poly(c, shoe, -3 * g + lf, -6, 7 * g + lf, -6, 10 * g + lf, 0, -3 * g + lf, 0);
             }
         }
+        if (q >= 1 && !toga && !reitor) { line(c, shade(pants, -0.3f), -1 * g, -34, 0, -16, 1.2f); }
         if (fem) {
             poly(c, shirt, -14, -62, 14, -62, 20, -26, -20, -26);
         }
@@ -152,6 +181,11 @@ final class Draw {
         if (!toga && !reitor && !fem) {
             poly(c, shirt, -13 * g, -70, 13 * g, -70, 10 * g, -38, -10 * g, -38);
             poly(c, shade(shirt, -0.12f), -13 * g, -70, -4 * g, -70, -4 * g, -38, -10 * g, -38);
+        }
+        if (q >= 1 && !toga && !reitor && !fem) { // luz: lado da frente mais claro, costas escuras, dobras
+            poly(c, shade(shirt, 0.16f), 3 * g, -70, 13 * g, -70, 10 * g, -38, 2 * g, -38);
+            line(c, shade(shirt, -0.3f), -2 * g, -60, 1 * g, -44, 1.2f);
+            line(c, shade(shirt, -0.25f), 4 * g, -56, 6 * g, -42, 1.0f);
         }
         if (lk.hero == 0) { // camisa da seleção: gola verde e escudo
             poly(c, 0xFF1B8F3A, -6, -70, 6, -70, 0, -62);
@@ -178,6 +212,11 @@ final class Draw {
         float hx = 2;
         if (pose == P_HURT) hx = -2;
         poly(c, skin, hx - 10, -92, hx + 6, -94, hx + 12, -84, hx + 10, -74, hx - 2, -70, hx - 11, -76);
+        if (q >= 1) { // volume da cabeça
+            poly(c, shade(skin, -0.2f), hx - 10, -90, hx - 3, -92, hx - 4, -72, hx - 11, -76);
+            poly(c, shade(skin, 0.12f), hx + 6, -90, hx + 11, -86, hx + 9, -78, hx + 5, -80);
+            poly(c, shade(skin, -0.28f), hx - 4, -72, hx + 6, -72, hx + 5, -67, hx - 3, -67);
+        }
         // cabelo
         if (lk.acc == Data.AC_MULA || lk.acc == Data.AC_COAT || lk.acc == Data.AC_ANCHOR || lk.hero == 3 || lk.hero == 2) {
             poly(c, hair, hx - 11, -88, hx + 4, -97, hx + 12, -90, hx + 8, -86, hx - 11, -80);
@@ -360,7 +399,7 @@ final class Draw {
         c.save();
         c.translate(x, y);
         c.scale(face, 1);
-        oval(c, 0x55000000, 0, 2, 50, 7);
+        softShadow(c, 0, 0, 50, 7);
         if (truck) {
             rect(c, 0xFFB71C1C, -60, -62, 10, -14);
             rect(c, 0xFF1B8F3A, 10, -50, 50, -14);
@@ -385,10 +424,10 @@ final class Draw {
     }
 
     static void raptor(Canvas c, float x, float y, float h, int face, float walk, float mv, int pose, float pt, float flash, boolean roar) {
-        oval(c, 0x55000000, x, y + 2, 48, 8);
+        softShadow(c, x, y, 48 * persp, 8 * persp);
         c.save();
         c.translate(x, y - h);
-        c.scale(face * 1.15f, 1.15f);
+        c.scale(face * 1.15f * persp, 1.15f * persp);
         int body = flash > 0 ? 0xFFFFFFFF : 0xFF3F8F2E, belly = flash > 0 ? 0xFFFFFFFF : 0xFFB8D87A, dark = flash > 0 ? 0xFFFFFFFF : 0xFF2A6420;
         float sw = (float) Math.sin(walk * 0.1f) * 12f * mv;
         // cauda
@@ -431,7 +470,7 @@ final class Draw {
 
     // ---------------------------------------------------------------- objetos
     static void crate(Canvas c, float x, float y, float flash, int theme, float hpFrac) {
-        oval(c, 0x55000000, x, y + 2, 22, 5);
+        softShadow(c, x, y, 22 * persp, 5 * persp);
         int col = flash > 0 ? 0xFFFFFFFF : 0xFFC68B3E;
         if (theme == Data.TH_PAULISTA) { // carrinho de ambulante
             rect(c, flash > 0 ? col : 0xFFE53935, x - 22, y - 34, x + 22, y - 12);
@@ -445,11 +484,12 @@ final class Draw {
             line(c, 0xFF6D4C41, x - 20, y - 34, x + 20, y, 2.5f);
             line(c, 0xFF6D4C41, x + 20, y - 34, x - 20, y, 2.5f);
             rect(c, 0xFF1B8F3A, x - 6, y - 40, x + 6, y - 34);
+            if (q >= 2) { for (int i = 0; i < 4; i++) line(c, 0x33000000, x - 18, y - 28 + i * 7, x + 18, y - 27 + i * 7, 1f); rect(c, 0x30FFFFFF, x - 20, y - 34, x - 16, y); }
         }
     }
 
     static void desk(Canvas c, float x, float y, float flash, float frac) {
-        oval(c, 0x55000000, x, y + 2, 60, 8);
+        softShadow(c, x, y, 60, 8);
         int col = flash > 0 ? 0xFFFFFFFF : 0xFF37474F;
         poly(c, col, x - 60, y - 52, x + 60, y - 52, x + 66, y - 8, x - 66, y - 8);
         poly(c, flash > 0 ? col : 0xFF546E7A, x - 66, y - 60, x + 66, y - 60, x + 60, y - 52, x - 60, y - 52);
@@ -463,7 +503,7 @@ final class Draw {
 
     static void item(Canvas c, float x, float y, float h, int kind, float t) {
         float bob = (float) Math.sin(t * 5) * 2;
-        oval(c, 0x44000000, x, y + 1, 12, 4);
+        softShadow(c, x, y, 12, 4);
         c.save();
         c.translate(x, y - h - 10 + bob);
         switch (kind) {

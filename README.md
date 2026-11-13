@@ -37,6 +37,7 @@ Feito em Java nativo com Canvas (sem imagens nem bibliotecas), então o APK é m
 - Heróis: Jair Bonossauro e 3 desbloqueáveis (Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a).
 - Golpes: combo de 4, voadora (B+A), onda de choque (segurar A 1s), agarrão/arremesso (C), especial (D, gasta 50 de Patriotismo).
 - Missão 5: Velociraptor com a bandeira de batalha (combo de bandeirada, varredura aérea, investida com lança, rugido).
+- Gráficos Leve/Normal/Alta (sombras suaves, texturas, gradientes, perspectiva e vinheta) nas Opções.
 - Itens, armas temporárias, menus (splash, menu, seleção, opções, créditos), briefing, pausa, game over e vitória.
 - Vozes por síntese de fala do Android (pt-BR) quando disponível; efeitos e música gerados por código.
 

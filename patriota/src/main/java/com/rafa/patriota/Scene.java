@@ -21,6 +21,71 @@ final class Scene {
         }
         Draw.line(c, line, 0, 330, 800, 330, 1.2f);
         Draw.line(c, line, 0, 390, 800, 390, 1.2f);
+        if (Draw.q >= 1) { // fundo do piso mais escuro (profundidade)
+            for (int i = 0; i < 6; i++) Draw.rect(c, ((0x42 - i * 0x0B) << 24), 0, FLOOR_TOP + 7 + i * 16, 800, FLOOR_TOP + 23 + i * 16);
+        }
+        texture(c, cam);
+    }
+
+    private static final int NT = 260;
+    private static final float[] TX = new float[NT], TY = new float[NT], TS = new float[NT];
+    static {
+        java.util.Random r = new java.util.Random(11);
+        for (int i = 0; i < NT; i++) { TX[i] = r.nextFloat() * 900; TY[i] = r.nextFloat(); TS[i] = r.nextFloat(); }
+    }
+    private static int texTheme;
+
+    /** Textura procedural do piso (granulado, grama, madeira, mármore...). */
+    private static void texture(Canvas c, float cam) {
+        if (Draw.q < 2) return;
+        float scroll = cam % 900;
+        int th = texTheme;
+        for (int i = 0; i < NT; i++) {
+            float x = TX[i] - scroll; if (x < -40) x += 900; if (x > 820) continue;
+            float depth = TY[i];
+            float y = FLOOR_TOP + 10 + depth * (450 - FLOOR_TOP - 12);
+            float k = 0.4f + depth * 1.1f;
+            switch (th) {
+                case Data.TH_CAMPUS: // grama
+                    Draw.line(c, TS[i] > 0.5f ? 0x553E8E41 : 0x5586C36A, x, y, x + 2 * k, y - 6 * k, 1.3f);
+                    break;
+                case Data.TH_NOVELA: case Data.TH_BBB: // veios de madeira
+                    Draw.line(c, 0x30000000, x, y, x + (30 + TS[i] * 50) * k, y, 1.1f);
+                    break;
+                case Data.TH_TRIBUNAL: // mármore
+                    if (TS[i] > 0.6f) Draw.line(c, 0x30909090, x, y, x + 26 * k, y + 5 * k, 1f);
+                    else Draw.rect(c, 0x18FFFFFF, x, y, x + 3 * k, y + 2 * k);
+                    break;
+                case Data.TH_PALCO: case Data.TH_JORNAL: // piso brilhante/reflexo
+                    if (TS[i] > 0.7f) Draw.rect(c, 0x16FFFFFF, x, y, x + 2 * k, y + 22 * k);
+                    else Draw.rect(c, 0x14000000, x, y, x + 3 * k, y + 2 * k);
+                    break;
+                default: // asfalto/concreto
+                    Draw.rect(c, TS[i] > 0.5f ? 0x30000000 : 0x1EFFFFFF, x, y, x + (1 + TS[i] * 3) * k, y + (1 + TS[i] * 2) * k);
+            }
+        }
+    }
+
+    /** Pós-processamento: tom de cor do cenário e vinheta. */
+    static void post(Canvas c, int theme) {
+        if (Draw.q < 2) return;
+        int tint;
+        switch (theme) {
+            case Data.TH_PORTAO: tint = 0x1CFF8A3D; break;
+            case Data.TH_QUARENT: tint = 0x14A5C8E0; break;
+            case Data.TH_PALCO: tint = 0x18401080; break;
+            case Data.TH_NOVELA: tint = 0x14FFC070; break;
+            case Data.TH_TRIBUNAL: tint = 0x10FFF2D0; break;
+            default: tint = 0x0CFFE8B0;
+        }
+        Draw.rect(c, tint, 0, 0, 800, 450);
+        for (int i = 0; i < 16; i++) { // vinheta suave
+            Draw.P.setStyle(Paint.Style.STROKE);
+            Draw.P.setStrokeWidth(14);
+            Draw.P.setColor(((16 - i) * 2) << 24);
+            c.drawRect(-7 + i * 9, -7 + i * 5, 807 - i * 9, 457 - i * 5, Draw.P);
+        }
+        Draw.P.setStyle(Paint.Style.FILL);
     }
 
     private static void skyline(Canvas c, float cam, int col, int win, boolean lite, float f, int seed) {
@@ -30,15 +95,25 @@ final class Scene {
             int idx = (((i % 5) + 5) + seed) % 5;
             float bh = 70 + idx * 26;
             Draw.rect(c, col, bx, FLOOR_TOP - bh, bx + 76, FLOOR_TOP);
+            if (Draw.q >= 1) {
+                Draw.rect(c, 0x30000000, bx + 52, FLOOR_TOP - bh, bx + 76, FLOOR_TOP);
+                Draw.rect(c, 0x26FFFFFF, bx, FLOOR_TOP - bh, bx + 76, FLOOR_TOP - bh + 4);
+                Draw.rect(c, 0x22000000, bx, FLOOR_TOP - 40, bx + 76, FLOOR_TOP);
+            }
             if (!lite) {
                 for (int wy = 0; wy < bh - 14; wy += 16)
                     for (int wx = 8; wx < 70; wx += 16)
                         Draw.rect(c, ((wx + wy + idx) % 3 == 0) ? win : Draw.shade(col, 0.08f), bx + wx, FLOOR_TOP - bh + 8 + wy, bx + wx + 7, FLOOR_TOP - bh + 14 + wy);
             }
         }
+        if (Draw.q >= 1) { // neblina atmosférica: camadas distantes ficam mais claras
+            int a = (int) (Math.max(0f, 0.55f - f) * 200);
+            Draw.rect(c, (a << 24) | 0xC8DCEB, 0, FLOOR_TOP - 190, 800, FLOOR_TOP);
+        }
     }
 
     static void bg(Canvas c, int theme, float cam, float time, boolean lite) {
+        texTheme = theme;
         switch (theme) {
             case Data.TH_PAULISTA: paulista(c, cam, time, lite); break;
             case Data.TH_QUARENT: quarentena(c, cam, time, lite); break;
@@ -54,8 +129,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 1. Paulista
     private static void paulista(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFF7FB8E0, 0, 0, 800, 130);
-        Draw.rect(c, 0xFFB9DDF2, 0, 130, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF5E9FD6, 0xFFD2EAF8);
         skyline(c, cam, 0xFF6C8AA6, 0xFFE3F2FD, lite, 0.2f, 0);
         skyline(c, cam, 0xFF566F8A, 0xFFFFF59D, lite, 0.35f, 2);
         // MASP: caixa vermelha suspensa
@@ -85,7 +159,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 2. Quarentena
     private static void quarentena(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFFB7C9D6, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF9FB4C4, 0xFFDCE6EC);
         skyline(c, cam, 0xFF8FA3B3, 0xFFFFFFFF, lite, 0.2f, 1);
         skyline(c, cam, 0xFF73869A, 0xFFE0F7FA, lite, 0.35f, 3);
         float o = off(cam, 0.7f, 300);
@@ -113,7 +187,8 @@ final class Scene {
 
     // ---------------------------------------------------------------- 3. Campus
     private static void campus(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFFA8DAF5, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF6FB6EA, 0xFFD6F0FB);
+        Draw.circle(c, 0x33FFF59D, 650, 60, 46);
         Draw.circle(c, 0xFFFFF59D, 650, 60, 30);
         float o = off(cam, 0.5f, 1500);
         for (int k = 0; k < 2; k++) {
@@ -139,9 +214,8 @@ final class Scene {
 
     // ---------------------------------------------------------------- 3b. Portão
     private static void portao(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFF4A2E6B, 0, 0, 800, 90);
-        Draw.rect(c, 0xFFB3506B, 0, 90, 800, 170);
-        Draw.rect(c, 0xFFFF8F5A, 0, 170, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, 140, 0xFF3A2160, 0xFFB3506B);
+        Draw.grad(c, 0, 140, 800, FLOOR_TOP, 0xFFB3506B, 0xFFFFA566);
         Draw.circle(c, 0xFFFFE082, 560, 215, 40);
         skyline(c, cam, 0xFF3A2A4D, 0xFFFFD54F, lite, 0.25f, 4);
         float o = off(cam, 0.6f, 700);
@@ -172,7 +246,7 @@ final class Scene {
     // ---------------------------------------------------------------- 4.1 Novela
     private static void novela(Canvas c, float cam, float time, boolean lite) {
         Draw.rect(c, 0xFF1F1B2E, 0, 0, 800, 50);
-        Draw.rect(c, 0xFFEADBC0, 0, 50, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 50, 800, FLOOR_TOP, 0xFFD6C29E, 0xFFF5E9D0);
         if (!lite) for (int i = 0; i < 9; i++) Draw.circle(c, 0xFFFFF59D, 50 + i * 95 + (cam * 0.1f % 95), 24, 6);
         float o = off(cam, 0.5f, 1000);
         for (int k = 0; k < 2; k++) {
@@ -199,7 +273,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 4.2 Palco
     private static void palco(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFF140C2A, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF0A0516, 0xFF241548);
         // painel de LED
         float o = off(cam, 0.4f, 600);
         for (int k = -1; k < 3; k++) {
@@ -233,7 +307,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 4.3 BBB
     private static void bbb(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFFE91E63, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFFB5154F, 0xFFF0508A);
         float o = off(cam, 0.5f, 800);
         for (int k = -1; k < 3; k++) {
             float x0 = o + k * 800;
@@ -261,7 +335,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 4.4 Jornal
     private static void jornal(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFF0D2347, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF061226, 0xFF17407A);
         // cidade ao fundo (vidro)
         skyline(c, cam, 0xFF18407A, 0xFFFFF59D, lite, 0.2f, 0);
         float o = off(cam, 0.45f, 800);
@@ -286,7 +360,7 @@ final class Scene {
 
     // ---------------------------------------------------------------- 5 Tribunal
     private static void tribunal(Canvas c, float cam, float time, boolean lite) {
-        Draw.rect(c, 0xFFA5D2F0, 0, 0, 800, FLOOR_TOP);
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF78B4E6, 0xFFDCEEF9);
         float o = off(cam, 0.5f, 1100);
         for (int k = -1; k < 2; k++) {
             float x0 = o + k * 1100;

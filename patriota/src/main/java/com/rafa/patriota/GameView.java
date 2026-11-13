@@ -32,7 +32,7 @@ final class GameView extends View {
     private int cleared;
     private int hero, stageSel;
     private boolean fromStageList;
-    private int sfxLv = 3, voiceLv = 3, musicLv = 2, sensLv = 1, gfx = 1, vibOn = 1;
+    private int sfxLv = 3, voiceLv = 3, musicLv = 2, sensLv = 1, gfx = 2, vibOn = 1;
     private String unlockMsg = "";
 
     private float sc = 1, ox, oy;
@@ -79,10 +79,11 @@ final class GameView extends View {
         try {
             cleared = prefs.getInt("cleared", 0);
             sfxLv = prefs.getInt("sfx", 3); voiceLv = prefs.getInt("voice", 3); musicLv = prefs.getInt("music", 2);
-            sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 1); vibOn = prefs.getInt("vib", 1);
+            sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 2); vibOn = prefs.getInt("vib", 1);
             hero = prefs.getInt("hero", 0);
         } catch (Exception ignored) { }
         if (hero < 0 || hero > 3 || !heroUnlocked(hero)) hero = 0;
+        Draw.q = gfx;
         applyAudio();
     }
 
@@ -314,7 +315,7 @@ final class GameView extends View {
         addBtn(c, B_OPT + 1, 120, 128, 680, 176, "Volume das vozes: " + LV[voiceLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 2, 120, 186, 680, 234, "Música: " + LV[musicLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 3, 120, 244, 680, 292, "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos: " + (gfx == 0 ? "Leve" : "Normal"), true, 0xFF1D3E9A);
+        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos: " + new String[]{"Leve", "Normal", "Alta (texturas e sombras)"}[gfx], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 5, 120, 360, 680, 408, "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"), true, 0xFF1D3E9A);
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
@@ -404,6 +405,7 @@ final class GameView extends View {
         Collections.sort(drawList, BY_Y);
         for (int i = 0; i < drawList.size(); i++) drawEnt(c, drawList.get(i));
         drawFx(c);
+        Scene.post(c, g.theme());
         for (Game.Pop q : g.pops) {
             float a = Math.max(0f, Math.min(1f, (q.life - q.t) / 0.35f));
             Draw.text(c, q.s, q.x - g.camX, q.y, 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
@@ -455,6 +457,13 @@ final class GameView extends View {
         Game g = game;
         float sx = e.x - g.camX;
         if (sx < -120 || sx > Game.W + 120) return;
+        Draw.persp = Draw.q >= 1 ? 0.88f + 0.2f * Math.max(0f, Math.min(1f, (e.y - Game.Y0) / (float) (Game.Y1 - Game.Y0))) : 1f;
+        drawEntInner(c, e, sx);
+        Draw.persp = 1f;
+    }
+
+    private void drawEntInner(Canvas c, Ent e, float sx) {
+        Game g = game;
         switch (e.type) {
             case Ent.CRATE: Draw.crate(c, sx, e.y, e.flash, g.theme(), e.hp / e.maxHp); break;
             case Ent.ITEM: Draw.item(c, sx, e.y, e.h, e.kind, e.life); break;
@@ -832,7 +841,7 @@ final class GameView extends View {
                         case 1: voiceLv = (voiceLv + 1) % 4; break;
                         case 2: musicLv = (musicLv + 1) % 4; break;
                         case 3: sensLv = (sensLv + 1) % 3; break;
-                        case 4: gfx = 1 - gfx; break;
+                        case 4: gfx = (gfx + 1) % 3; Draw.q = gfx; break;
                         case 5: vibOn = 1 - vibOn; break;
                         default: break;
                     }
