@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 
@@ -17,6 +18,18 @@ final class Sfx implements Game.Listener {
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
     private TextToSpeech tts;
+    private Context ctx;
+    private MediaPlayer mp;
+    /** frase -> nome do arquivo em res/raw (sem extensão). Se o arquivo existir, toca a gravação. */
+    private static final java.util.HashMap<String, String> CLIPS = new java.util.HashMap<>();
+    static {
+        CLIPS.put("E daí? Lamento, quer que eu faça o quê?", "voz_inicio");
+        CLIPS.put("Tem que se fuder, porra!", "voz_combo");
+        CLIPS.put("Acabou, porra!", "voz_acabou");
+        CLIPS.put("Imbroxável!", "voz_imbroxavel");
+        CLIPS.put("Isso aqui é uma maravilha, pô!", "voz_maravilha");
+        CLIPS.put("O Brasil vai acabar", "voz_mula_brasil");
+    }
     private boolean ttsReady;
     float sfxVol = 1f, voiceVol = 1f, musicVol = 0.6f;
     private final Random rnd = new Random(7);
@@ -24,7 +37,9 @@ final class Sfx implements Game.Listener {
     boolean vibrateOn = true;
     private long lastVib;
 
-    Sfx(Context ctx) {
+    Sfx(Context context) {
+        this.ctx = context.getApplicationContext();
+        final Context ctx = context;
         try { vib = (android.os.Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE); } catch (Exception ignored) { }
         try {
             fx[Game.SFX_HIT] = track(noise(0.07f, 0.9f, 220));
@@ -68,12 +83,31 @@ final class Sfx implements Game.Listener {
     }
 
     @Override public void voice(String line) {
-        if (voiceVol <= 0 || tts == null || !ttsReady) return;
+        if (voiceVol <= 0) return;
+        if (playClip(line)) return;
+        if (tts == null || !ttsReady) return;
         try {
             Bundle b = new Bundle();
             b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, voiceVol);
             tts.speak(line, TextToSpeech.QUEUE_FLUSH, b, "v");
         } catch (Throwable ignored) { }
+    }
+
+    private boolean playClip(String line) {
+        String name = CLIPS.get(line);
+        if (name == null) return false;
+        try {
+            int id = ctx.getResources().getIdentifier(name, "raw", ctx.getPackageName());
+            if (id == 0) return false;
+            if (mp != null) { try { mp.release(); } catch (Throwable ignored) { } mp = null; }
+            MediaPlayer m = MediaPlayer.create(ctx, id);
+            if (m == null) return false;
+            m.setVolume(voiceVol, voiceVol);
+            m.setOnCompletionListener(x -> { try { x.release(); } catch (Throwable ignored) { } if (mp == x) mp = null; });
+            mp = m;
+            m.start();
+            return true;
+        } catch (Throwable t) { return false; }
     }
 
     @Override public void vibrate(int ms) {
@@ -97,6 +131,7 @@ final class Sfx implements Game.Listener {
     void pauseAll() {
         try { if (currentMusic != null) currentMusic.pause(); } catch (Throwable ignored) { }
         try { if (tts != null) tts.stop(); } catch (Throwable ignored) { }
+        try { if (mp != null) mp.pause(); } catch (Throwable ignored) { }
     }
 
     void resumeAll() {
@@ -114,6 +149,7 @@ final class Sfx implements Game.Listener {
         try { for (AudioTrack t : fx) if (t != null) t.release(); } catch (Throwable ignored) { }
         try { if (musicBattle != null) musicBattle.release(); if (musicTriumph != null) musicTriumph.release(); } catch (Throwable ignored) { }
         try { if (tts != null) { tts.stop(); tts.shutdown(); } } catch (Throwable ignored) { }
+        try { if (mp != null) mp.release(); } catch (Throwable ignored) { }
     }
 
     // ---------------------------------------------------------------- síntese

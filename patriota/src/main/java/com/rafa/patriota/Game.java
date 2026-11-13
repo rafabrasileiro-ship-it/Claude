@@ -289,7 +289,7 @@ final class Game {
                 ents.add(d);
             }
             if (kind == Data.K_REITOR) { e.aux = 34; }
-            if (kind == Data.K_MULA) { e.cd = 1.5f; }
+            if (kind == Data.K_MULA) { e.cd = 1.5f; bossSay(e, "O Brasil vai acabar"); }
         }
         ents.add(e);
         return e;
@@ -336,6 +336,14 @@ final class Game {
     }
 
     void pop(String s, float x, float y, float life, int color) { pops.add(new Pop(s, x, y, life, color)); }
+
+    private float bossVoiceCd;
+
+    /** Fala de chefe: balão sobre ele + áudio (arquivo em res/raw ou voz sintetizada). */
+    private void bossSay(Ent e, String s) {
+        pop("\u201C" + s + "\u201D", e.x, e.y - 160, 2.2f, 0xFFFFE082);
+        if (time - bossVoiceCd > 6f || bossVoiceCd == 0) { bossVoiceCd = time; L.voice(s); }
+    }
 
     private void voice(String s, boolean force) {
         pop(s, p.x, p.y - 110, 1.8f, 0xFFFFFFFF);
@@ -1351,6 +1359,7 @@ final class Game {
                 } else if (e.atk == 2) {
                     fxs.add(new Fx(FX_RING, e.x, e.y, 30, 0.6f, 115, 0xFFFF5252));
                     pop("DISCURSO!", e.x, e.y - 140, 1f, 0xFFFF5252);
+                    bossSay(e, "O Brasil vai acabar");
                     if (Math.abs(p.x - e.x) < 115 && Math.abs(p.y - e.y) < 55 && p.h < 40) hurtPlayer(10, p.x >= e.x ? 1 : -1, 1);
                     L.sfx(SFX_ROAR);
                 } else { meleeBox(e, 90, 12, 1); L.sfx(SFX_HEAVY); }

@@ -1,0 +1,9 @@
+Coloque aqui as gravações das falas (.ogg, .mp3 ou .wav) com EXATAMENTE estes nomes.
+Se o arquivo existir, o jogo toca a gravação; se não, usa a voz sintetizada do Android.
+
+voz_inicio       -> "E daí? Lamento, quer que eu faça o quê?"  (início de missão)
+voz_combo        -> "Tem que se fuder, porra!"                  (finalizador de combo)
+voz_acabou       -> "Acabou, porra!"                            (especial / rugido)
+voz_imbroxavel   -> "Imbroxável!"                               (especial do Jair)
+voz_maravilha    -> "Isso aqui é uma maravilha, pô!"            (vitória contra chefe)
+voz_mula_brasil  -> "O Brasil vai acabar"                       (chefe Mula)

@@ -42,3 +42,5 @@ Feito em Java nativo com Canvas (sem imagens nem bibliotecas), então o APK é m
 
 APK pronto: pasta `dist/` (`operacao-patriota-vN.apk`), gerado pelo workflow **Gerar APK**.
 Compilar local: `./gradlew :patriota:assembleRelease` → `patriota/build/outputs/apk/release/`.
+
+**Vozes reais:** coloque as gravações em `patriota/src/main/res/raw/` com os nomes listados em `LEIA-ME.txt` (ex.: `voz_mula_brasil.ogg`). Sem o arquivo, o jogo usa a voz sintetizada do Android.
