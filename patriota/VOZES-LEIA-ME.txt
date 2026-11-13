@@ -10,3 +10,7 @@ voz_mula_brasil  -> "O Brasil vai acabar"                       (chefe Mula)
 
 Provocações no meio da briga (Jair, aleatórias ao acertar/derrubar inimigos):
 voz_filho_da_puta_1 / voz_filho_da_puta_2, voz_vagabundo, voz_escrota, voz_fudido, voz_vai_pra_puta
+
+Falas por fase (Jair, no meio das brigas):
+Estúdios da Grobo (4.1 a 4.4): voz_nao_tem_credibilidade, voz_canalhas
+Universidade (fase 3): voz_sao_vagabundos, voz_idiotas_uteis

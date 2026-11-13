@@ -33,6 +33,10 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Vagabundo!", "voz_vagabundo");
         CLIPS.put("Escrota!", "voz_escrota");
         CLIPS.put("Fudido!", "voz_fudido");
+        CLIPS.put("Não tem credibilidade!", "voz_nao_tem_credibilidade");
+        CLIPS.put("Canalhas!", "voz_canalhas");
+        CLIPS.put("São uns idiotas úteis!", "voz_idiotas_uteis");
+        CLIPS.put("São vagabundos!", "voz_sao_vagabundos");
         CLIPS.put("Vai pra puta que o pariu, porra!", "voz_vai_pra_puta");
     }
     private boolean ttsReady;

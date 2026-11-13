@@ -345,12 +345,18 @@ final class Game {
         if (time - bossVoiceCd > 6f || bossVoiceCd == 0) { bossVoiceCd = time; L.voice(s); }
     }
 
+    private static final String[] GROBO = {"Não tem credibilidade!", "Canalhas!"};
+    private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!"};
     private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!"};
 
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
         if (hero != 0 || voiceCd > 0) return;
-        voice(BRIGA[rnd.nextInt(BRIGA.length)], false);
+        String[] pool = BRIGA;
+        // falas específicas por fase: estúdios da Grobo (4.1 a 4.4) e universidade (fase 3)
+        if (stageIdx >= 3 && stageIdx <= 6 && rnd.nextFloat() < 0.7f) pool = GROBO;
+        else if (stageIdx == 2 && rnd.nextFloat() < 0.7f) pool = UNIVERSIDADE;
+        voice(pool[rnd.nextInt(pool.length)], false);
     }
 
     private void voice(String s, boolean force) {
