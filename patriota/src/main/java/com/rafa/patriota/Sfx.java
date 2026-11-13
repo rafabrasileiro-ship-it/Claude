@@ -32,6 +32,7 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Hahahaha!", "voz_risada");
         CLIPS.put("Bora pra rua, gente!", "voz_lula_bora_pra_rua");
         CLIPS.put("Boa noite.", "voz_boa_noite");
+        CLIPS.put("Fuck you, Elon Musk!", "voz_xanxa_elon");
         CLIPS.put("Um forte abraço!", "voz_forte_abraco");
         CLIPS.put("Cara sem dente!", "voz_lula_cara_sem_dente");
         CLIPS.put("Por favor, me ajuda!", "voz_lula_me_ajuda");

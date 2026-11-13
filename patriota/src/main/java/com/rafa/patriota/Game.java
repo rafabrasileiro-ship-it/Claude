@@ -517,6 +517,7 @@ final class Game {
             case "(Mula sobre a fome)": return 3.4f;
             case "Bora pra rua, gente!": return 1.8f;
             case "Boa noite.": return 1.8f;
+            case "Fuck you, Elon Musk!": return 2.4f;
             case "Um forte abraço!": return 8.3f;
             case "Cara sem dente!": return 6.2f;
             case "Por favor, me ajuda!": return 5.2f;
@@ -1603,8 +1604,9 @@ final class Game {
                 } else { e.vx = f * 360; e.life = 0.4f; e.dmg = 12; L.sfx(SFX_THROW); }
                 break;
             case Data.K_XANXA:
-                if (e.atk == 0) { meleeBox(e, 85, 11, 1); L.sfx(SFX_HEAVY); }
+                if (e.atk == 0) { meleeBox(e, 85, 11, 1); L.sfx(SFX_HEAVY); if (rnd.nextFloat() < 0.5f) bossSay(e, "Fuck you, Elon Musk!"); }
                 else {
+                    bossSay(e, "Fuck you, Elon Musk!");
                     for (int i = -1; i <= 1; i++) spawnProj(PJ_BOOK, e.x + f * 30, e.y, 50, f * 300, (p.y - e.y) * 0.35f + i * 30, 0, 6, false, 3f, false, false, 12);
                     pop("BOLSA VOADORA!", e.x, e.y - 140, 1f, 0xFFFFCC80); L.sfx(SFX_THROW);
                 }

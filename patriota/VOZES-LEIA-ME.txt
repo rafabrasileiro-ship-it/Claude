@@ -31,6 +31,7 @@ voz_lula_e_lula_final, voz_lula_nome_1..4 (só a palavra "Lula") -> de fundo, fa
 v28:
 voz_jornal_vinheta     -> música de fundo da fase 4.4 (telejornal), volume reduzido
 voz_boa_noite          -> "Boa noite." dita pelo William Boné (fase 4.4)
+voz_xanxa_elon         -> "Fuck you, Elon Musk!" dita pela Xanxa (fase final, em dupla)
 voz_forte_abraco       -> "Um forte abraço!" ao vencer cada fase
 voz_lula_cara_sem_dente-> fase 1 e fase final (de fundo)
 voz_lula_me_ajuda      -> fase final (de fundo)
