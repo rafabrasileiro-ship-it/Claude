@@ -79,11 +79,10 @@ final class Scene {
             default: tint = 0x0CFFE8B0;
         }
         Draw.rect(c, tint, 0, 0, 800, 450);
-        for (int i = 0; i < 16; i++) { // vinheta suave
-            Draw.P.setStyle(Paint.Style.STROKE);
-            Draw.P.setStrokeWidth(14);
-            Draw.P.setColor(((16 - i) * 2) << 24);
-            c.drawRect(-7 + i * 9, -7 + i * 5, 807 - i * 9, 457 - i * 5, Draw.P);
+        // vinheta: escurece de leve o topo e a base
+        for (int i = 0; i < 6; i++) {
+            Draw.rect(c, 0x07000000, 0, 0, 800, 36 - i * 6);
+            Draw.rect(c, 0x07000000, 0, 414 + i * 6, 800, 450);
         }
         Draw.P.setStyle(Paint.Style.FILL);
     }

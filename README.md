@@ -31,7 +31,7 @@ Código principal: `app/src/main/java/com/rafa/dino/GameView.java` (desenho com 
 # Operação Patriota 3D 🇧🇷 (módulo `patriota`)
 
 Beat 'em up de luta de rua (progressão lateral, visual low poly) para Android, baseado no GDD "Operação Patriota 3D".
-Feito em Java nativo com Canvas (sem imagens nem bibliotecas), então o APK é minúsculo e roda a 60 FPS em aparelhos fracos.
+Feito em Java nativo, com um renderizador 3D próprio (câmera em perspectiva, modelos de blocos articulados, luz e sombra) sem bibliotecas externas, então o APK é minúsculo.
 
 - 5 missões (a 4 é dividida em 4 minifases nos estúdios), 8 fases selecionáveis, chefes com padrões próprios.
 - Heróis: Jair Bonossauro e 3 desbloqueáveis (Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a).

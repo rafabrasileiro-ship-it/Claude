@@ -257,7 +257,7 @@ final class GameView extends View {
         Draw.rect(c, 0x66000000, 0, 0, Game.W, Game.H);
         Draw.text(c, "OPERAÇÃO PATRIOTA 3D", 400, 70, 42, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, 96, 16, 0xFFFFFFFF, Paint.Align.CENTER);
-        Draw.person(c, 150, 400, 0, 1, heroLooks[hero], screenT * 60, 0, Draw.P_IDLE, 0, 0, -1, false);
+        R3.icon(c, heroLooks[hero], 150, 405, 1.9f, 0, Draw.P_IDLE);
         c.save(); c.translate(0, 0);
         addBtn(c, B_PLAY, 290, 125, 560, 183, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
         addBtn(c, B_STAGES, 290, 195, 560, 253, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
@@ -277,7 +277,7 @@ final class GameView extends View {
             Draw.rect(c, sel ? 0xCC1B8F3A : 0xCC222222, x0, 70, x1, 360);
             Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(sel ? 5 : 2); Draw.P.setColor(sel ? 0xFFFFD400 : 0xFF888888);
             c.drawRect(x0, 70, x1, 360, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
-            Draw.person(c, (x0 + x1) / 2, 215, 0, 1, heroLooks[i], screenT * 60, 0, Draw.P_IDLE, 0, 0, -1, false);
+            R3.icon(c, heroLooks[i], (x0 + x1) / 2, 222, 1.15f, 0, i == hero ? Draw.P_WIND : Draw.P_IDLE);
             Draw.text(c, Data.HERO_NAME[i], (x0 + x1) / 2, 245, 14, 0xFFFFFFFF, Paint.Align.CENTER);
             String[] ds = Data.HERO_DESC[i].split("\n");
             for (int k = 0; k < ds.length; k++) Draw.text(c, ds[k], (x0 + x1) / 2, 268 + k * 16, 11.5f, 0xFFDDDDDD, Paint.Align.CENTER);
@@ -316,7 +316,7 @@ final class GameView extends View {
         addBtn(c, B_OPT + 1, 120, 128, 680, 176, "Volume das vozes: " + LV[voiceLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 2, 120, 186, 680, 234, "Música: " + LV[musicLv], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 3, 120, 244, 680, 292, "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos: " + new String[]{"Leve", "Normal", "Alta (texturas e sombras)"}[gfx], true, 0xFF1D3E9A);
+        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta"}[gfx], true, 0xFF1D3E9A);
         addBtn(c, B_OPT + 5, 120, 360, 680, 408, "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"), true, 0xFF1D3E9A);
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
@@ -325,15 +325,14 @@ final class GameView extends View {
         Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, gfx == 0);
         Draw.rect(c, 0x55000000, 0, 0, Game.W, Game.H);
         // motociata triunfal
+        R3.begin(0);
         for (int i = 0; i < 5; i++) {
             float x = ((screenT * 260 + i * 210) % 1300) - 200;
-            c.save();
-            Draw.noShadow = true;
-            Draw.moto(c, x, 420 - (i % 2) * 10, 1, screenT + i, false);
-            Draw.person(c, x - 4, 410 - (i % 2) * 10, 8, 1, heroLooks[i % 4], 0, 0, Draw.P_IDLE, 0, 0, -1, false);
-            Draw.noShadow = false;
-            c.restore();
+            float z = 10 + (i % 2) * 60;
+            R3.moto(c, x, z, 1, false);
+            R3.person(c, x - 6, 8, z, 1, heroLooks[i % 4], 0, 0, Draw.P_SPEC, 0, 0, -1, false, false);
         }
+        R3.flush(c);
         String[] lines = {"OPERAÇÃO PATRIOTA 3D", "", "Um beat 'em up satírico", "", "Design de jogo: Rafa", "Programação: Claude", "", "Personagens: Jair Bonossauro, Coronel Helenão,",
                 "Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a", "", "Chefes: Doutor Atila-mento, Reitor Desconstruído,", "Apresentador Domingão, William Boné,", "Xerxes de Moraes e Mula", "",
                 "Obra de ficção e paródia.", "Qualquer semelhança é mera coincidência.", "", "Obrigado por jogar!"};
@@ -352,12 +351,7 @@ final class GameView extends View {
         c.save();
         c.clipRect(30, 95, 190, 255);
         Draw.rect(c, 0xFF2E3B2A, 30, 95, 190, 255);
-        Draw.person(c, 110, 285, 0, 1, helenao, 0, 0, Draw.P_IDLE, 0, 0, -1, false);
-        c.save();
-        c.translate(110, 285); c.scale(1.4f, 1.4f);
-        Draw.poly(c, 0xFF556B2F, -12, -91, -2, -101, 14, -96, 13, -87, -10, -86); // boina
-        Draw.rect(c, 0xFF9E9E9E, 1, -77.5f, 13, -74.5f); // bigode
-        c.restore();
+        R3.icon(c, helenao, 110, 330, 1.5f, 0, Draw.P_IDLE);
         c.restore();
         Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(3); Draw.P.setColor(0xFFFFD400);
         c.drawRect(30, 95, 190, 255, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
@@ -399,17 +393,16 @@ final class GameView extends View {
         }
         c.save();
         if (g.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * g.shake, (rnd.nextFloat() - 0.5f) * g.shake);
-        Scene.bg(c, g.theme(), g.camX, g.time, gfx == 0);
-        drawList.clear();
-        drawList.addAll(g.ents);
-        drawList.add(g.p);
-        Collections.sort(drawList, BY_Y);
-        for (int i = 0; i < drawList.size(); i++) drawEnt(c, drawList.get(i));
+        R3.world(c, g, kindLooks, heroLooks, heroTorn, gfx == 0);
+        drawOverlays(c);
         drawFx(c);
         Scene.post(c, g.theme());
         for (Game.Pop q : g.pops) {
             float a = Math.max(0f, Math.min(1f, (q.life - q.t) / 0.35f));
-            Draw.text(c, q.s, q.x - g.camX, q.y, 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
+            float row = Math.max(Game.Y0, Math.min(Game.Y1, q.y + 95));
+            R3.proj(q.x, (row - q.y) * 1.25f, R3.zOf(row));
+            float tx = Math.max(60, Math.min(740, R3.px));
+            Draw.text(c, q.s, tx, Math.max(20, R3.py), 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
         }
         c.restore();
         if (g.blurT > 0) {
@@ -454,117 +447,27 @@ final class GameView extends View {
         sfx.music(2);
     }
 
-    private void drawEnt(Canvas c, Ent e) {
+    /** Marcadores 2D sobre o mundo 3D: avisos de ataque, barras de vida e auras. */
+    private void drawOverlays(Canvas c) {
         Game g = game;
-        float sx = e.x - g.camX;
-        if (sx < -120 || sx > Game.W + 120) return;
-        Draw.persp = Draw.q >= 1 ? 0.88f + 0.2f * Math.max(0f, Math.min(1f, (e.y - Game.Y0) / (float) (Game.Y1 - Game.Y0))) : 1f;
-        drawEntInner(c, e, sx);
-        Draw.persp = 1f;
-    }
-
-    private void drawEntInner(Canvas c, Ent e, float sx) {
-        Game g = game;
-        switch (e.type) {
-            case Ent.CRATE: Draw.crate(c, sx, e.y, e.flash, g.theme(), e.hp / e.maxHp); break;
-            case Ent.ITEM: Draw.item(c, sx, e.y, e.h, e.kind, e.life); break;
-            case Ent.PROJ: Draw.proj(c, e, sx, e.y, g.time); break;
-            case Ent.DESK: Draw.desk(c, sx, e.y, e.flash, e.hp / e.maxHp); break;
-            case Ent.ENEMY: drawEnemy(c, e, sx); break;
-            case Ent.PLAYER: drawPlayer(c, e, sx); break;
-            default: break;
-        }
-    }
-
-    private void drawEnemy(Canvas c, Ent e, float sx) {
-        Data.Kind k = Data.KINDS[e.kind];
-        int pose; float pt = 0; float mv = 1f;
-        switch (e.st) {
-            case Game.S_WIND: pose = Draw.P_WIND; pt = e.t / Math.max(0.1f, e.wind > 0 ? e.wind : k.windup); mv = 0; break;
-            case Game.S_ATK: pose = Draw.P_PUNCH; pt = Math.min(1f, e.t / 0.3f); mv = 0; break;
-            case Game.S_HURT: pose = Draw.P_HURT; mv = 0; break;
-            case Game.S_DOWN: case Game.S_DEAD: pose = Draw.P_DOWN; mv = 0; break;
-            case Game.S_HELD: pose = Draw.P_HURT; mv = 0; break;
-            default: pose = Draw.P_IDLE; break;
-        }
-        if (e.st == Game.S_DEAD && ((int) (e.t * 14) & 1) == 0) return; // pisca ao sumir
-        Draw.Look lk = kindLooks[e.kind];
-        float flash = e.flash;
-        if (e.st == Game.S_WIND && ((int) (e.t * 20) & 1) == 0) flash = 0.01f;
-        boolean airDown = e.st == Game.S_DOWN && e.h > 0;
-        Draw.person(c, sx, e.y, e.h, e.face, lk, e.walk, mv, pose, pt, flash, -1, e.guardUp);
-        if (e.shield > 0) {
-            Draw.P.setStyle(Paint.Style.FILL); Draw.P.setColor(0x4480DEEA);
-            c.drawCircle(sx, e.y - 50 * k.scale - e.h, 52 * k.scale, Draw.P);
-            Draw.ring(c, 0xAA80DEEA, sx, e.y - 50 * k.scale - e.h, 52 * k.scale, 3);
-        }
-        if (e.st == Game.S_WIND && !airDown) Draw.text(c, "!", sx, e.y - 104 * k.scale - e.h, 22, 0xFFFF5252, Paint.Align.CENTER);
-        if (e.confT > 0) Draw.text(c, "? ? ?", sx, e.y - 104 * k.scale - e.h, 16, 0xFF66BB6A, Paint.Align.CENTER);
-        if (!k.boss && e.hp < e.maxHp && !e.dying) {
-            float bw = 36;
-            Draw.rect(c, 0xAA000000, sx - bw / 2, e.y - 104 * k.scale - e.h + 6, sx + bw / 2, e.y - 104 * k.scale - e.h + 10);
-            Draw.rect(c, 0xFFE53935, sx - bw / 2, e.y - 104 * k.scale - e.h + 6, sx - bw / 2 + bw * Math.max(0, e.hp) / e.maxHp, e.y - 104 * k.scale - e.h + 10);
-        }
-    }
-
-    private void drawPlayer(Canvas c, Ent o, float sx) {
-        Game g = game;
-        if (g.penT > 0) { Draw.ring(c, 0xAA40C4FF, sx, o.y - 50 - o.h, 46 + (float) Math.sin(g.time * 12) * 3, 4); }
-        if (g.charged) Draw.ring(c, 0xAAFFD400, sx, o.y - 40 - o.h, 36 + (float) Math.sin(g.time * 20) * 5, 5);
-        if (o.inv > 0 && o.inv < 3 && o.st != Game.S_SPECIAL && ((int) (g.time * 14) & 1) == 0 && o.st != Game.S_DOWN) return;
-        Draw.Look lk = (g.hero == 0 && g.stageIdx == 7) ? heroTorn : heroLooks[g.hero];
-        float pt = 0; int pose = Draw.P_IDLE; float mv = 0;
-        boolean moving = (Math.abs(g.jx) > 0.2f || Math.abs(g.jy) > 0.2f) && g.rootT <= 0;
-        switch (o.st) {
-            case Game.S_IDLE: pose = Draw.P_IDLE; mv = moving ? 1f : 0f; break;
-            case Game.S_ATK: {
-                pt = g.atkProg();
-                boolean fin = g.mounted ? g.comboStep == 3 : g.comboStep == 4;
-                pose = (fin && g.weapon < 0 && g.hero != 2) ? Draw.P_KICK : Draw.P_PUNCH;
-                if (g.mounted) pose = g.comboStep == 3 ? Draw.P_KICK : Draw.P_PUNCH;
-                break;
+        Ent o = g.p;
+        float pz = R3.zOf(o.y);
+        if (g.penT > 0) R3.ringFx(c, o.x, o.h + 2, pz, 46 + (float) Math.sin(g.time * 12) * 3, 0xAA40C4FF, 4);
+        if (g.charged) R3.ringFx(c, o.x, o.h + 2, pz, 40 + (float) Math.sin(g.time * 20) * 6, 0xCCFFD400, 5);
+        for (int i = 0; i < g.ents.size(); i++) {
+            Ent e = g.ents.get(i);
+            if (e.type != Ent.ENEMY || !e.alive) continue;
+            Data.Kind k = Data.KINDS[e.kind];
+            R3.proj(e.x, e.h + 100 * k.scale * R3.BIG, R3.zOf(e.y));
+            float sx = R3.px, sy = R3.py;
+            if (e.st == Game.S_WIND) Draw.text(c, "!", sx, sy - 4, 24, 0xFFFF5252, Paint.Align.CENTER);
+            if (e.confT > 0) Draw.text(c, "? ? ?", sx, sy - 4, 16, 0xFF66BB6A, Paint.Align.CENTER);
+            if (!k.boss && e.hp < e.maxHp && !e.dying) {
+                float bw = 36;
+                Draw.rect(c, 0xAA000000, sx - bw / 2, sy + 2, sx + bw / 2, sy + 6);
+                Draw.rect(c, 0xFFE53935, sx - bw / 2, sy + 2, sx - bw / 2 + bw * Math.max(0, e.hp) / e.maxHp, sy + 6);
             }
-            case Game.S_JUMP: pose = Draw.P_JUMP; break;
-            case Game.S_JKICK: pose = g.mounted ? Draw.P_SPIN : Draw.P_JKICK; break;
-            case Game.S_HURT: pose = Draw.P_HURT; break;
-            case Game.S_DOWN: case Game.S_DEAD: pose = Draw.P_DOWN; break;
-            case Game.S_GRAB: pose = Draw.P_GRAB; break;
-            case Game.S_CHARGE: pose = Draw.P_CHARGE; break;
-            case Game.S_SPECIAL:
-                if (g.spK == Game.SP_SPIN) pose = Draw.P_SPIN;
-                else if (g.spK == Game.SP_BURST) pose = Draw.P_WIND;
-                else pose = Draw.P_SPEC;
-                break;
-            default: break;
         }
-        if (o.st == Game.S_SPECIAL && (g.spK == Game.SP_RIDE || g.spK == Game.SP_TRUCK)) {
-            boolean truck = g.spK == Game.SP_TRUCK;
-            Draw.moto(c, sx, o.y, o.face, g.time, truck);
-            Draw.noShadow = true;
-            Draw.person(c, sx - o.face * 4, o.y, truck ? 36 : 22, o.face, lk, 0, 0, Draw.P_IDLE, 0, 0, -1, false);
-            Draw.noShadow = false;
-            return;
-        }
-        if (g.mounted) {
-            boolean roar = o.st == Game.S_SPECIAL && g.spK == Game.SP_ROAR;
-            int rp = Draw.P_IDLE;
-            if (o.st == Game.S_ATK) rp = g.comboStep == 3 ? Draw.P_KICK : Draw.P_PUNCH;
-            else if (o.st == Game.S_JKICK) rp = Draw.P_SPIN;
-            else if (o.st == Game.S_SPECIAL && g.spK == Game.SP_LANCE) rp = Draw.P_SPEC;
-            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) {
-                Draw.person(c, sx, o.y, o.h, o.face, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false);
-                return;
-            }
-            Draw.raptor(c, sx, o.y, o.h, o.face, o.walk, mv, rp, pt, o.flash, roar);
-            Draw.noShadow = true;
-            Draw.Look rl = lk;
-            float old = rl.scale; rl.scale = 0.78f;
-            Draw.person(c, sx - o.face * 6, o.y, o.h + 66, o.face, rl, 0, 0, Draw.P_IDLE, 0, o.flash, -1, false);
-            rl.scale = old;
-            Draw.noShadow = false;
-            return;
-        }
-        Draw.person(c, sx, o.y, o.h, o.face, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false);
     }
 
     private void drawFx(Canvas c) {
@@ -573,15 +476,14 @@ final class GameView extends View {
             float k = Math.min(1f, f.t / f.life);
             int a = (int) ((1f - k) * 255);
             int col = (a << 24) | (f.color & 0xFFFFFF);
-            float sx = f.x - g.camX, sy = f.y - f.h;
+            float fz = R3.zOf(f.y);
+            R3.proj(f.x, f.h * R3.BIG, fz);
+            float sx = R3.px, sy = R3.py;
             switch (f.kind) {
-                case Game.FX_RING: {
-                    float r = f.r * k;
-                    Draw.RF.set(sx - r, sy - r * 0.45f, sx + r, sy + r * 0.45f);
-                    Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(6 * (1f - k) + 2); Draw.P.setColor(col);
-                    c.drawOval(Draw.RF, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
+                case Game.FX_RING:
+                    R3.ringFx(c, f.x, 2, fz, f.r * k, col, 6 * (1f - k) + 2);
+                    if (Draw.q >= 1) R3.ringFx(c, f.x, 2, fz, f.r * k * 0.7f, (a / 2 << 24) | (f.color & 0xFFFFFF), 3);
                     break;
-                }
                 case Game.FX_SPARK: {
                     float r = f.r * (0.4f + k);
                     for (int i = 0; i < 6; i++) {
@@ -590,9 +492,11 @@ final class GameView extends View {
                     }
                     break;
                 }
-                case Game.FX_LINE:
-                    Draw.line(c, col, sx, sy, f.x2 - g.camX, f.y2 - 30, 4);
+                case Game.FX_LINE: {
+                    R3.proj(f.x2, 40, R3.zOf(f.y2));
+                    Draw.line(c, col, sx, sy, R3.px, R3.py, 4);
                     break;
+                }
                 case Game.FX_BOOM: {
                     for (int i = 0; i < 7; i++) {
                         float ang = i * 0.9f;
@@ -615,7 +519,7 @@ final class GameView extends View {
         Draw.Look lk = (g.hero == 0 && g.stageIdx == 7) ? heroTorn : heroLooks[g.hero];
         float old = lk.scale; lk.scale = 1.5f;
         Draw.noShadow = true;
-        Draw.person(c, 36, 140, 0, 1, lk, 0, 0, Draw.P_IDLE, 0, 0, -1, false);
+        R3.icon(c, lk, 30, 278, 1.5f, 0, Draw.P_IDLE);
         Draw.noShadow = false;
         lk.scale = old;
         c.restore();
