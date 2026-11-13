@@ -58,7 +58,7 @@ final class Draw {
 
     /** Gradiente vertical por faixas (barato e sem shaders). */
     static void grad(Canvas c, float l, float t, float r, float b, int top, int bot) {
-        int n = q == 0 ? 2 : 14;
+        int n = q == 0 ? 2 : (q == 1 ? 20 : 34);
         float h = (b - t) / n;
         for (int i = 0; i < n; i++) rect(c, mix(top, bot, i / (float) (n - 1)), l, t + i * h, r, t + (i + 1) * h + 1);
     }

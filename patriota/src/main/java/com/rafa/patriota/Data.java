@@ -132,8 +132,10 @@ final class Data {
     static final class Stage {
         final String id, title, briefing;
         final ArrayList<Seg> segs = new ArrayList<>();
+        boolean jet;
         Stage(String id, String title, String briefing) { this.id = id; this.title = title; this.briefing = briefing; }
         Stage seg(Seg s) { segs.add(s); return this; }
+        Stage jet() { jet = true; return this; }
     }
 
     static final ArrayList<Stage> STAGES = new ArrayList<>();
@@ -184,6 +186,10 @@ final class Data {
                 .seg(new Seg(TH_JORNAL).add(K_CINE, 3, 0, 0, 1.5f).crate(400, -1))
                 .seg(new Seg(TH_JORNAL).add(K_CINE, 3, 0, 0, 1.3f).crate(300, IT_PASTEL))
                 .seg(new Seg(TH_JORNAL).r("Destrua a bancada para expor o âncora, Jair!").add(K_BONE, 1, 1, 0.5f, 0).add(K_CINE, 2, 0, 6f, 3f)));
+
+        STAGES.add(new Stage("B", "Travessia do Lago — Jet-Ski",
+                "A ponte está bloqueada, Jair. Pegue o jet-ski e atravesse o lago até o Tribunal. Cuidado: tem baleia demais nessas águas, e elas são muito mal-humoradas. Bata de frente, pule ou desvie.")
+                .jet());
 
         STAGES.add(new Stage("5", "O Resgate e o Velociraptor — Sublime Tribunal Nacional",
                 "Eles cercaram o Sublime Tribunal com canetadas e burocracia, Jair. Ninguém mais conseguiria passar por aquela segurança... exceto você.")

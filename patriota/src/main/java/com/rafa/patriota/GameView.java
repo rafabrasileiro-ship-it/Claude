@@ -60,6 +60,8 @@ final class GameView extends View {
     private float u; // unidade de tamanho dos controles (px)
 
     private final ArrayList<Ent> drawList = new ArrayList<>();
+    private final Jet jet;
+    private boolean jetMode;
     private static final Comparator<Ent> BY_Y = (a, b) -> Float.compare(a.y, b.y);
 
     GameView(Context ctx) {
@@ -67,6 +69,7 @@ final class GameView extends View {
         prefs = ctx.getSharedPreferences("patriota", Context.MODE_PRIVATE);
         sfx = new Sfx(ctx);
         game = new Game(sfx);
+        jet = new Jet(sfx);
         java.util.Arrays.fill(role, -1);
         loadPrefs();
         buildLooks();
@@ -298,13 +301,13 @@ final class GameView extends View {
         title(c, "SELEÇÃO DE FASES", 44);
         int n = Data.STAGES.size();
         for (int i = 0; i < n; i++) {
-            int col = i / 4, row = i % 4;
-            float x0 = 30 + col * 385, y0 = 70 + row * 74;
+            int col = i / 5, row = i % 5;
+            float x0 = 30 + col * 385, y0 = 62 + row * 64;
             boolean ok = i <= cleared;
             String name = Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0];
-            addBtn(c, B_STAGE + i, x0, y0, x0 + 365, y0 + 62, ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
+            addBtn(c, B_STAGE + i, x0, y0, x0 + 365, y0 + 56, ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
         }
-        addBtn(c, B_BACK, 30, 385, 230, 435, "VOLTAR", true, 0xFF7B1FA2);
+        addBtn(c, B_BACK, 30, 392, 230, 438, "VOLTAR", true, 0xFF7B1FA2);
     }
 
     private static final String[] LV = {"0%", "33%", "66%", "100%"};
@@ -325,6 +328,7 @@ final class GameView extends View {
         Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, gfx == 0);
         Draw.rect(c, 0x55000000, 0, 0, Game.W, Game.H);
         // motociata triunfal
+        R3.zoom = 1f;
         R3.begin(0);
         for (int i = 0; i < 5; i++) {
             float x = ((screenT * 260 + i * 210) % 1300) - 200;
@@ -343,7 +347,7 @@ final class GameView extends View {
 
     private void drawBrief(Canvas c, float dt) {
         Data.Stage st = Data.STAGES.get(stageSel);
-        Scene.bg(c, st.segs.get(0).theme, screenT * 20, screenT, gfx == 0);
+        if (st.jet) Scene.lake(c, screenT * 40, screenT, gfx == 0); else Scene.bg(c, st.segs.get(0).theme, screenT * 20, screenT, gfx == 0);
         Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
         Draw.text(c, "MISSÃO " + st.id, 400, 44, 30, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, st.title, 400, 72, 18, 0xFFFFFFFF, Paint.Align.CENTER);
@@ -374,14 +378,16 @@ final class GameView extends View {
     // ---------------------------------------------------------------- jogo
     private void startStage(int idx) {
         stageSel = idx;
-        game.start(idx, hero);
+        jetMode = Data.STAGES.get(idx).jet;
+        if (jetMode) jet.start(hero); else game.start(idx, hero);
         screen = SC_PLAY; screenT = 0;
         resetTouch();
-        sfx.music(1);
+        if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
         last = System.nanoTime();
     }
 
     private void drawPlay(Canvas c, float dt) {
+        if (jetMode) { drawJetPlay(c, dt); return; }
         Game g = game;
         if (screen == SC_PLAY) {
             g.update(dt);
@@ -395,21 +401,19 @@ final class GameView extends View {
         if (g.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * g.shake, (rnd.nextFloat() - 0.5f) * g.shake);
         R3.world(c, g, kindLooks, heroLooks, heroTorn, gfx == 0);
         drawOverlays(c);
-        drawFx(c);
+        drawFx(c, g.fxs, g.camX);
         Scene.post(c, g.theme());
-        for (Game.Pop q : g.pops) {
-            float a = Math.max(0f, Math.min(1f, (q.life - q.t) / 0.35f));
-            float row = Math.max(Game.Y0, Math.min(Game.Y1, q.y + 95));
-            R3.proj(q.x, (row - q.y) * 1.25f, R3.zOf(row));
-            float tx = Math.max(60, Math.min(740, R3.px));
-            Draw.text(c, q.s, tx, Math.max(20, R3.py), 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
-        }
+        drawPops(c, g.pops);
         c.restore();
         if (g.blurT > 0) {
             Draw.rect(c, ((int) (Math.min(1f, g.blurT) * 150) << 24) | 0xFFFFFF, 0, 0, Game.W, Game.H);
             for (int i = 0; i < 12; i++) Draw.circle(c, 0x66FFFFFF, (i * 97 + g.time * 40) % 800, (i * 53) % 450, 18 + (i % 4) * 8);
         }
         drawHud(c);
+        drawEndOverlays(c, g.score, g.p.hp, g.p.maxHp);
+    }
+
+    private void drawEndOverlays(Canvas c, int scoreV, float hpV, float maxHpV) {
         if (screen == SC_PAUSE) {
             Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
             title(c, "PAUSADO", 110);
@@ -420,15 +424,15 @@ final class GameView extends View {
             Draw.rect(c, 0xBB200000, 0, 0, Game.W, Game.H);
             Draw.text(c, "GAME OVER", 400, 110, 54, 0xFFFF5252, Paint.Align.CENTER);
             Draw.text(c, "CORONEL HELENÃO (rádio): “Levanta, recruta!”", 400, 160, 20, 0xFFFFFFFF, Paint.Align.CENTER);
-            Draw.text(c, "Pontuação: " + g.score, 400, 195, 18, 0xFFFFD400, Paint.Align.CENTER);
+            Draw.text(c, "Pontuação: " + scoreV, 400, 195, 18, 0xFFFFD400, Paint.Align.CENTER);
             addBtn(c, B_CONTINUE, 290, 225, 510, 285, "CONTINUAR", true, 0xFF1B8F3A);
             addBtn(c, B_MENU, 290, 300, 510, 350, "MENU PRINCIPAL", true, 0xFFB35C00);
         } else if (screen == SC_WIN) {
             Draw.rect(c, 0xBB001A00, 0, 0, Game.W, Game.H);
             Draw.text(c, "MISSÃO CUMPRIDA!", 400, 100, 46, 0xFFFFD400, Paint.Align.CENTER);
             Draw.text(c, Data.STAGES.get(stageSel).title, 400, 135, 18, 0xFFFFFFFF, Paint.Align.CENTER);
-            Draw.text(c, "Pontuação: " + g.score, 400, 175, 26, 0xFFFFFFFF, Paint.Align.CENTER);
-            Draw.text(c, "Vida restante: " + (int) g.p.hp + " / " + (int) g.p.maxHp, 400, 205, 16, 0xFFCCFFCC, Paint.Align.CENTER);
+            Draw.text(c, "Pontuação: " + scoreV, 400, 175, 26, 0xFFFFFFFF, Paint.Align.CENTER);
+            Draw.text(c, "Vida restante: " + (int) hpV + " / " + (int) maxHpV, 400, 205, 16, 0xFFCCFFCC, Paint.Align.CENTER);
             if (!unlockMsg.isEmpty()) Draw.text(c, unlockMsg, 400, 235, 18, 0xFF76FF03, Paint.Align.CENTER);
             boolean more = stageSel + 1 < Data.STAGES.size();
             if (more) addBtn(c, B_NEXT, 270, 262, 530, 322, "PRÓXIMA MISSÃO ▶", true, 0xFF1B8F3A);
@@ -445,7 +449,73 @@ final class GameView extends View {
         if (cleared > before && cleared >= 1 && cleared <= 3) unlockMsg = "Desbloqueado: " + Data.HERO_NAME[cleared] + "!";
         savePrefs();
         sfx.music(2);
+        sfx.voice("Um forte abraço!");
     }
+
+    // ---------------------------------------------------------------- fase do jet-ski
+    private void drawJetPlay(Canvas c, float dt) {
+        Jet j = jet;
+        if (screen == SC_PLAY) {
+            j.update(dt);
+            if (j.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
+            else if (j.result == 1) onWin();
+        } else if (screen == SC_WIN || screen == SC_OVER) j.update(0);
+        c.save();
+        if (j.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * j.shake, (rnd.nextFloat() - 0.5f) * j.shake);
+        R3.jetWorld(c, j, heroLooks, gfx == 0);
+        for (Jet.Whale w : j.whales) {
+            if (w.dying || w.x < j.camX - 100 || w.x > j.camX + Game.W + 100) continue;
+            R3.proj(w.x, 70 * w.size + w.h, R3.zOf(w.y));
+            float sx = R3.px, sy = R3.py;
+            Draw.text(c, w.type == 0 ? "Baleia Dino" : "Baleia Gilmar", sx, sy - 6, 12, 0xFFFFFFFF, Paint.Align.CENTER);
+            Draw.rect(c, 0xAA000000, sx - 24, sy, sx + 24, sy + 4);
+            Draw.rect(c, 0xFFE53935, sx - 24, sy, sx - 24 + 48 * Math.max(0, w.hp) / w.maxHp, sy + 4);
+        }
+        drawFx(c, j.fxs, j.camX);
+        Scene.post(c, Data.TH_PAULISTA);
+        drawPops(c, j.pops);
+        c.restore();
+        drawJetHud(c);
+        drawEndOverlays(c, j.score, j.hp, j.maxHp);
+    }
+
+    private void drawJetHud(Canvas c) {
+        Jet j = jet;
+        Draw.rect(c, 0xFF223322, 8, 8, 66, 66);
+        c.save(); c.clipRect(8, 8, 66, 66);
+        R3.icon(c, heroLooks[j.hero], 30, 278, 1.5f, 0, Draw.P_IDLE);
+        c.restore();
+        Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(3); Draw.P.setColor(0xFFFFD400);
+        c.drawRect(8, 8, 66, 66, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
+        Draw.text(c, Data.HERO_NAME[j.hero] + " (jet-ski)", 74, 20, 13, 0xFFFFFFFF, Paint.Align.LEFT);
+        float hpf = Math.max(0f, j.hp / j.maxHp);
+        Draw.rect(c, 0xFF000000, 73, 25, 277, 41);
+        Draw.rect(c, hpf > 0.3f ? 0xFF2E9B3A : 0xFFE53935, 75, 27, 75 + 200 * hpf, 39);
+        Draw.rect(c, 0xFF000000, 73, 45, 237, 57);
+        Draw.rect(c, j.meter >= 50 ? (((int) (j.time * 6) & 1) == 0 ? 0xFFFFEA00 : 0xFFFFB300) : 0xFFC9A400, 75, 47, 75 + 160 * j.meter / 100f, 55);
+        Draw.rect(c, 0xFF000000, 155, 45, 157, 57);
+        Draw.text(c, j.meter >= 50 ? "D: PATRIOTAS!" : "PATRIOTISMO", 243, 56, 10, 0xFFFFFFFF, Paint.Align.LEFT);
+        if (j.combo >= 2) Draw.text(c, "COMBO x" + j.combo, 74, 78, 14, 0xFFFFD400, Paint.Align.LEFT);
+        Draw.text(c, String.format("%07d", j.score), 730, 30, 22, 0xFFFFFFFF, Paint.Align.RIGHT);
+        Draw.text(c, "Baleias: " + j.kills, 730, 48, 12, 0xFFDDDDDD, Paint.Align.RIGHT);
+        Draw.rect(c, 0xAA000000, 742, 8, 792, 50);
+        Draw.rect(c, 0xFFFFFFFF, 758, 18, 764, 40);
+        Draw.rect(c, 0xFFFFFFFF, 772, 18, 778, 40);
+        // progresso da travessia
+        Draw.rect(c, 0xAA000000, 290, 10, 610, 24);
+        Draw.rect(c, 0xFF1B8F3A, 292, 12, 292 + 316 * j.progress(), 22);
+        Draw.circle(c, 0xFFFFD400, 292 + 316 * j.progress(), 17, 7);
+        Draw.text(c, "TRAVESSIA DO LAGO", 450, 40, 12, 0xFFFFFFFF, Paint.Align.CENTER);
+        Draw.text(c, "CAIS", 622, 22, 11, 0xFFFFD400, Paint.Align.LEFT);
+        if (j.specialT > 0) Draw.text(c, "PATRIOTAS DE JET-SKI!", 400, 70, 20, 0xFFFFE082, Paint.Align.CENTER);
+        if (j.time < 6f) Draw.text(c, "A bater de frente • B pula • C turbo • D chama os patriotas", 400, 436, 13, 0xFFFFFFFF, Paint.Align.CENTER);
+    }
+
+    // entrada: despacha para o modo de jogo atual
+    private void inPress(int b) { if (jetMode) jet.press(b); else game.press(b); }
+    private void inRelease(int b) { if (jetMode) jet.release(b); else game.release(b); }
+    private void inMove(float x, float y) { if (jetMode) jet.setMove(x, y); else game.setMove(x, y); }
+
 
     /** Marcadores 2D sobre o mundo 3D: avisos de ataque, barras de vida e auras. */
     private void drawOverlays(Canvas c) {
@@ -470,9 +540,18 @@ final class GameView extends View {
         }
     }
 
-    private void drawFx(Canvas c) {
-        Game g = game;
-        for (Game.Fx f : g.fxs) {
+    private void drawPops(Canvas c, ArrayList<Game.Pop> pops) {
+        for (Game.Pop q : pops) {
+            float a = Math.max(0f, Math.min(1f, (q.life - q.t) / 0.35f));
+            float row = Math.max(Game.Y0, Math.min(Game.Y1, q.y + 95));
+            R3.proj(q.x, (row - q.y) * 1.25f, R3.zOf(row));
+            float tx = Math.max(60, Math.min(740, R3.px));
+            Draw.text(c, q.s, tx, Math.max(20, R3.py), 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
+        }
+    }
+
+    private void drawFx(Canvas c, ArrayList<Game.Fx> list, float camX) {
+        for (Game.Fx f : list) {
             float k = Math.min(1f, f.t / f.life);
             int a = (int) ((1f - k) * 255);
             int col = (a << 24) | (f.color & 0xFFFFFF);
@@ -497,6 +576,12 @@ final class GameView extends View {
                     Draw.line(c, col, sx, sy, R3.px, R3.py, 4);
                     break;
                 }
+                case Game.FX_DUST: {
+                    float r = f.r * (0.5f + k * 1.4f);
+                    Draw.circle(c, ((int) ((1f - k) * 110) << 24) | (f.color & 0xFFFFFF), sx, sy - 6 * k, r);
+                    Draw.circle(c, ((int) ((1f - k) * 70) << 24) | 0xFFFFFF, sx - r * 0.2f, sy - 8 * k, r * 0.6f);
+                    break;
+                }
                 case Game.FX_BOOM: {
                     for (int i = 0; i < 7; i++) {
                         float ang = i * 0.9f;
@@ -516,7 +601,7 @@ final class GameView extends View {
         c.save();
         c.clipRect(8, 8, 66, 66);
         Draw.rect(c, 0xFF223322, 8, 8, 66, 66);
-        Draw.Look lk = (g.hero == 0 && g.stageIdx == 7) ? heroTorn : heroLooks[g.hero];
+        Draw.Look lk = (g.hero == 0 && g.stageIdx == Data.STAGES.size() - 1) ? heroTorn : heroLooks[g.hero];
         float old = lk.scale; lk.scale = 1.5f;
         Draw.noShadow = true;
         R3.icon(c, lk, 30, 278, 1.5f, 0, Draw.P_IDLE);
@@ -591,11 +676,11 @@ final class GameView extends View {
         p.setStyle(Paint.Style.FILL); p.setColor(joyActive ? 0xAAFFFFFF : 0x55FFFFFF);
         c.drawCircle(jx0 + joyX * R * 0.7f, jy0 + joyY * R * 0.7f, 0.62f * u, p);
         String[] lab = {"A", "B", "C", "D"};
-        String[] sub = {"SOCO", "PULO", "AGARRA", "ESPECIAL"};
+        String[] sub = jetMode ? new String[]{"BATER", "PULO", "TURBO", "PATRIOTAS"} : new String[]{"SOCO", "PULO", "AGARRA", "ESPECIAL"};
         int[] col = {0xFFD32F2F, 0xFF1976D2, 0xFF388E3C, 0xFFFBC02D};
         for (int i = 0; i < 4; i++) {
             float x = bx(i), y = by(i), r = (i == 0 ? 0.88f : 0.76f) * u;
-            boolean glow = i == 3 && game.meter >= 50 && (((int) (game.time * 6)) & 1) == 0;
+            boolean glow = i == 3 && (jetMode ? jet.meter : game.meter) >= 50 && (((int) ((jetMode ? jet.time : game.time) * 6)) & 1) == 0;
             p.setStyle(Paint.Style.FILL);
             p.setColor(btnDown[i] ? 0xDD000000 | (col[i] & 0xFFFFFF) : (glow ? 0xBB000000 | (col[i] & 0xFFFFFF) : 0x77000000 | (col[i] & 0xFFFFFF)));
             c.drawCircle(x, y, r, p);
@@ -614,7 +699,7 @@ final class GameView extends View {
         joyActive = false; joyX = joyY = 0;
         for (int i = 0; i < 4; i++) btnDown[i] = false;
         downBtn = -1;
-        try { game.setMove(0, 0); if (game.p != null) game.release(Game.BA); } catch (Exception ignored) { }
+        try { inMove(0, 0); if (jetMode) jet.release(Game.BC); else if (game.p != null) game.release(Game.BA); } catch (Exception ignored) { }
     }
 
     // ---------------------------------------------------------------- toque
@@ -658,7 +743,7 @@ final class GameView extends View {
             for (int i = 0; i < 4; i++) {
                 float dx = x - bx(i), dy = y - by(i), r = (i == 0 ? 0.88f : 0.76f) * u * 1.25f;
                 if (dx * dx + dy * dy <= r * r) {
-                    role[id] = i + 1; btnDown[i] = true; game.press(i);
+                    role[id] = i + 1; btnDown[i] = true; inPress(i);
                     return;
                 }
             }
@@ -689,9 +774,9 @@ final class GameView extends View {
         float dead = 0.18f;
         float mag = (float) Math.sqrt(nx * nx + ny * ny);
         float gain = sensLv == 0 ? 0.8f : sensLv == 1 ? 1.15f : 1.6f;
-        if (mag < dead) { game.setMove(0, 0); return; }
+        if (mag < dead) { inMove(0, 0); return; }
         float k = Math.min(1f, (mag - dead) / (1f - dead) * gain) / mag;
-        game.setMove(nx * k, ny * k);
+        inMove(nx * k, ny * k);
     }
 
     private void touchUp(int id, float x, float y) {
@@ -699,8 +784,8 @@ final class GameView extends View {
         int r = role[id];
         role[id] = -1;
         if (screen == SC_PLAY) {
-            if (r == 0) { joyActive = false; joyX = joyY = 0; game.setMove(0, 0); }
-            else if (r >= 1 && r <= 4) { btnDown[r - 1] = false; game.release(r - 1); }
+            if (r == 0) { joyActive = false; joyX = joyY = 0; inMove(0, 0); }
+            else if (r >= 1 && r <= 4) { btnDown[r - 1] = false; inRelease(r - 1); }
             return;
         }
         Btn b = hit(x, y);
@@ -733,7 +818,8 @@ final class GameView extends View {
             case B_RESTART: startStage(stageSel); break;
             case B_MENU: goMenu(); break;
             case B_CONTINUE:
-                game.continueGame(); screen = SC_PLAY; resetTouch(); last = System.nanoTime(); sfx.music(1);
+                if (jetMode) jet.continueGame(); else game.continueGame();
+                screen = SC_PLAY; resetTouch(); last = System.nanoTime(); if (!(stageSel == 6 && sfx.stageMusic("voz_jornal_vinheta"))) sfx.music(1);
                 break;
             default:
                 if (id >= B_HERO && id < B_HERO + 4) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); } }

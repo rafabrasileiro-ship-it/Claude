@@ -57,7 +57,7 @@ final class Game {
         }
     }
 
-    static final int FX_RING = 0, FX_SPARK = 1, FX_LINE = 2, FX_BOOM = 3;
+    static final int FX_RING = 0, FX_SPARK = 1, FX_LINE = 2, FX_BOOM = 3, FX_DUST = 4;
 
     int hero, stageIdx;
     Data.Stage stage;
@@ -103,6 +103,9 @@ final class Game {
     private float auraT;
     private boolean auraNow;
     private float spTick;
+    private float introT;
+    int combo, maxCombo;
+    float comboTimer, slowT2, punch, dustT;
     private boolean roared;
 
     Game(Listener l) { L = l; }
@@ -141,6 +144,8 @@ final class Game {
         voiceCd = 0; goT = 0; auraT = 0;
         p.inv = 1f;
         voice(stageIdx == 2 && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
+        introT = stageIdx == Data.STAGES.size() - 1 ? 1.4f : 0f;
+        combo = 0; comboTimer = 0; slowT2 = 0; punch = 0; dustT = 0;
     }
 
     /** Continua depois do game over: reinicia o bloco atual com vida cheia. */
@@ -169,6 +174,9 @@ final class Game {
     // ---------------------------------------------------------------- loop
     void update(float dt) {
         if (dt > 0.05f) dt = 0.05f;
+        if (slowT2 > 0) { slowT2 -= dt; dt *= 0.35f; }
+        if (punch > 0) punch = Math.max(0f, punch - dt * 2.5f);
+        if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) combo = 0; }
         time += dt;
         if (result != 0) {
             for (int i = fxs.size() - 1; i >= 0; i--) { Fx f = fxs.get(i); f.t += dt; if (f.t > f.life) fxs.remove(i); }
@@ -183,6 +191,7 @@ final class Game {
             for (int i = fxs.size() - 1; i >= 0; i--) { Fx f = fxs.get(i); f.t += dt; if (f.t > f.life) fxs.remove(i); }
             return;
         }
+        if (introT > 0) { introT -= dt; if (introT <= 0 && L.hasClip("Se prepare!")) { L.voice("Se prepare!"); pop("\u201CSe prepare!\u201D", camX + W / 2f, 150, 1.6f, 0xFFFFE082); ambT = Math.max(ambT, 7f); } }
         updateAmbient(dt);
 
         updatePlayer(dt);
@@ -302,6 +311,7 @@ final class Game {
             }
             if (kind == Data.K_REITOR) { e.aux = 34; }
             if (kind == Data.K_MULA) { e.cd = 1.5f; bossSay(e, "O Brasil acabou!"); }
+            if (kind == Data.K_BONE) { bossSay(e, "Boa noite."); }
         }
         ents.add(e);
         return e;
@@ -363,9 +373,9 @@ final class Game {
     private static final String[] CONTRA_MULA = {"Para de mentir, Lula!"};
     // falas "de fundo" (alto-falante) por fase
     private static final String[] AMB_MANIF = {"Bora pra rua, gente!", "(Mula sobre a fome)", "(Mula no alto-falante)",
-            "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!"};
+            "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!", "Cara sem dente!"};
     private static final String[] AMB_UNIV = {"(Mula sobre a fome)", "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!"};
-    private static final String[] AMB_FINAL = {"(Mula no alto-falante)", "O Brasil acabou!"};
+    private static final String[] AMB_FINAL = {"(Mula no alto-falante)", "O Brasil acabou!", "Cara sem dente!", "Por favor, me ajuda!"};
 
     /** Duração aproximada de cada gravação (s), para não cortar uma fala com a seguinte. */
     private static float clipLen(String s) {
@@ -380,6 +390,11 @@ final class Game {
             case "O Brasil acabou!": return 4.3f;
             case "(Mula sobre a fome)": return 3.4f;
             case "Bora pra rua, gente!": return 1.8f;
+            case "Boa noite.": return 1.8f;
+            case "Um forte abraço!": return 8.3f;
+            case "Cara sem dente!": return 6.2f;
+            case "Por favor, me ajuda!": return 5.2f;
+            case "Se prepare!": return 1.3f;
             case "O maior presidente da história do Brasil!": return 2.5f;
             case "Lula!": return 2.3f;
             default: return 1.4f;
@@ -389,7 +404,7 @@ final class Game {
     private void updateAmbient(float dt) {
         ambT -= dt;
         if (ambT > 0 || p.st == S_DEAD) return;
-        String[] pool = stageIdx == 0 ? AMB_MANIF : stageIdx == 2 ? AMB_UNIV : stageIdx == 7 ? AMB_FINAL : null;
+        String[] pool = stageIdx == 0 ? AMB_MANIF : stageIdx == 2 ? AMB_UNIV : stageIdx == Data.STAGES.size() - 1 ? AMB_FINAL : null;
         if (pool == null) { ambT = 30f; return; }
         String s = pool[rnd.nextInt(pool.length)];
         if (!L.hasClip(s)) { ambT = 5f; return; }
@@ -440,6 +455,10 @@ final class Game {
         final boolean pA = bufA > 0, pB = bufB > 0, pC = bufC > 0, pD = bufD > 0;
         bufA -= dt; bufB -= dt; bufC -= dt; bufD -= dt;
 
+        if (o.st == S_IDLE && (Math.abs(pvx) > 90 || Math.abs(pvy) > 60)) {
+            dustT -= dt;
+            if (dustT <= 0) { dustT = 0.11f; fxs.add(new Fx(FX_DUST, o.x - o.face * 8, o.y, 4, 0.45f, 12, 0xFFD7CCC8)); }
+        }
         float spd = Data.HERO_SPD[hero] * (mounted ? 1.3f : 1f) * (slowT > 0 ? 0.5f : 1f) * (coffeeT > 0 ? 1.1f : 1f);
         float ad = dt * atkSpeed();
 
@@ -462,7 +481,7 @@ final class Game {
                 if (Math.abs(jx) > 0.2f) o.face = jx > 0 ? 1 : -1;
                 o.vh -= GRAV * dt; o.h += o.vh * dt;
                 if (pA) { bufA = 0; o.st = S_JKICK; o.t = 0; o.hit.clear(); spTick = 0; L.sfx(SFX_THROW); }
-                if (o.h <= 0) { o.h = 0; o.vh = 0; o.st = S_IDLE; o.t = 0; }
+                if (o.h <= 0) { o.h = 0; o.vh = 0; o.st = S_IDLE; o.t = 0; for (int i = 0; i < 3; i++) fxs.add(new Fx(FX_DUST, o.x + (i - 1) * 14, o.y, 4, 0.5f, 16, 0xFFD7CCC8)); }
                 break;
             }
             case S_JKICK: {
@@ -747,7 +766,7 @@ final class Game {
         meter -= 50;
         o.st = S_SPECIAL; o.t = 0; spK = sp; o.hit.clear(); spTick = 0; roared = false;
         o.inv = 99f; o.h = 0; o.vh = 0;
-        L.sfx(SFX_SPECIAL);
+        L.sfx(SFX_SPECIAL); punch = 1f;
         switch (sp) {
             case SP_RIDE:
                 spDur = 1.05f; o.x = o.face > 0 ? camX - 50 : camX + W + 50; o.vx = o.face * 900; break;
@@ -907,7 +926,9 @@ final class Game {
         }
         t.hp -= dmg; t.flash = 0.15f;
         meter = Math.min(100, meter + 4);
-        score += 10;
+        combo++; comboTimer = 1.8f; if (combo > maxCombo) maxCombo = combo;
+        score += 10 * Math.max(1, 1 + combo / 10);
+        if (combo > 0 && combo % 10 == 0) { meter = Math.min(100, meter + 10); pop("COMBO x" + combo + "!", t.x, t.y - 130, 1.1f, 0xFFFFD400); punch = 0.5f; }
         if (rnd.nextFloat() < 0.12f) brawlVoice();
         fxs.add(new Fx(FX_SPARK, t.x, t.y, 40 + t.h, 0.25f, 16, 0xFFFFFFFF));
         L.vibrate(10);
@@ -942,7 +963,7 @@ final class Game {
         if (!k.boss && rnd.nextFloat() < 0.3f) brawlVoice();
         if (grabbed == t) grabbed = null;
         if (k.boss) {
-            shake = 12;
+            shake = 12; slowT2 = 0.9f; punch = 1f;
             voice("Isso aqui é uma maravilha, pô!", true);
             for (Ent e : ents) if (e.type == Ent.PROJ && !e.friendly) e.alive = false;
             for (Ent e : ents) if (e.type == Ent.DESK) e.alive = false;
@@ -1413,7 +1434,7 @@ final class Game {
                 if (e.atk == 0) {
                     for (int i = -1; i <= 1; i++) spawnProj(PJ_PAPER, e.x + f * 30, e.y, 40, f * 430, (p.y - e.y) * 0.8f + i * 30, 0, 6, false, 2.5f, false, false, 12);
                     L.sfx(SFX_THROW);
-                } else if (e.atk == 1) { meleeBox(e, 105, 14, 1); L.sfx(SFX_HEAVY); }
+                } else if (e.atk == 1) { meleeBox(e, 105, 14, 1); bossSay(e, "Boa noite."); L.sfx(SFX_HEAVY); }
                 else { e.vx = f * 360; e.life = 0.45f; e.dmg = 12; L.sfx(SFX_THROW); }
                 break;
             case Data.K_XEREX:

@@ -27,3 +27,11 @@ voz_lula_game          -> fases 1 e 5
 voz_lula_brasil_acabou -> fase 5 (e quando o Mula entra/discursa)
 voz_lula_grito_1/2, voz_lula_maior_presidente_1/2, voz_lula_e_lula, voz_lula_agora_e_lula -> de fundo, fases 1 e 3
 voz_lula_e_lula_final, voz_lula_nome_1..4 (só a palavra "Lula") -> de fundo, fases 1 e 3
+
+v28:
+voz_jornal_vinheta     -> música de fundo da fase 4.4 (telejornal), volume reduzido
+voz_boa_noite          -> "Boa noite." dita pelo William Boné (fase 4.4)
+voz_forte_abraco       -> "Um forte abraço!" ao vencer cada fase
+voz_lula_cara_sem_dente-> fase 1 e fase final (de fundo)
+voz_lula_me_ajuda      -> fase final (de fundo)
+voz_lula_se_prepare    -> início da fase final

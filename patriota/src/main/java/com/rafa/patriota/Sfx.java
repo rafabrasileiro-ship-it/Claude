@@ -16,7 +16,7 @@ final class Sfx implements Game.Listener {
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
     private Context ctx;
-    private MediaPlayer mp, mpAmb;
+    private MediaPlayer mp, mpAmb, mpStage;
     /** frase -> nome do arquivo em res/raw (sem extensão). Se o arquivo existir, toca a gravação. */
     private static final java.util.HashMap<String, String> CLIPS = new java.util.HashMap<>();
     static {
@@ -31,6 +31,11 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Para de mentir, Lula!", "voz_para_de_mentir");
         CLIPS.put("Hahahaha!", "voz_risada");
         CLIPS.put("Bora pra rua, gente!", "voz_lula_bora_pra_rua");
+        CLIPS.put("Boa noite.", "voz_boa_noite");
+        CLIPS.put("Um forte abraço!", "voz_forte_abraco");
+        CLIPS.put("Cara sem dente!", "voz_lula_cara_sem_dente");
+        CLIPS.put("Por favor, me ajuda!", "voz_lula_me_ajuda");
+        CLIPS.put("Se prepare!", "voz_lula_se_prepare");
         CLIPS.put("Lula!", "voz_lula_grito_1,voz_lula_grito_2,voz_lula_nome_1,voz_lula_nome_2,voz_lula_nome_3,voz_lula_nome_4");
         CLIPS.put("É Lula!", "voz_lula_e_lula_final");
         CLIPS.put("O maior presidente da história do Brasil!", "voz_lula_maior_presidente_1,voz_lula_maior_presidente_2");
@@ -130,7 +135,31 @@ final class Sfx implements Game.Listener {
         try { vib.vibrate(ms); } catch (Throwable ignored) { }
     }
 
+    /** Música de fundo de uma fase (arquivo em loop, volume mais baixo para as falas aparecerem). */
+    boolean stageMusic(String resName) {
+        stopStageMusic();
+        try {
+            try { if (currentMusic != null) currentMusic.pause(); } catch (Throwable ignored) { }
+            currentMusic = null;
+            int id = ctx.getResources().getIdentifier(resName, "raw", ctx.getPackageName());
+            if (id == 0) return false;
+            MediaPlayer m = MediaPlayer.create(ctx, id);
+            if (m == null) return false;
+            m.setLooping(true);
+            float v = Math.min(1f, musicVol * 0.45f);
+            m.setVolume(v, v);
+            if (musicVol > 0) m.start();
+            mpStage = m;
+            return true;
+        } catch (Throwable t) { return false; }
+    }
+
+    private void stopStageMusic() {
+        if (mpStage != null) { try { mpStage.release(); } catch (Throwable ignored) { } mpStage = null; }
+    }
+
     void music(int which) { // 0 nada, 1 batalha, 2 triunfo
+        stopStageMusic();
         AudioTrack want = which == 1 ? musicBattle : which == 2 ? musicTriumph : null;
         if (want == currentMusic && want != null) { try { want.setVolume(musicVol); } catch (Throwable ignored) { } return; }
         try { if (currentMusic != null) { currentMusic.pause(); } } catch (Throwable ignored) { }
@@ -144,14 +173,17 @@ final class Sfx implements Game.Listener {
         try { if (currentMusic != null) currentMusic.pause(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.pause(); } catch (Throwable ignored) { }
         try { if (mpAmb != null) mpAmb.pause(); } catch (Throwable ignored) { }
+        try { if (mpStage != null) mpStage.pause(); } catch (Throwable ignored) { }
     }
 
     void resumeAll() {
+        try { if (mpStage != null && musicVol > 0) mpStage.start(); } catch (Throwable ignored) { }
         try { if (currentMusic != null && musicVol > 0) { currentMusic.setVolume(musicVol); currentMusic.play(); } } catch (Throwable ignored) { }
     }
 
     void setMusicVol(float v) {
         musicVol = v;
+        try { if (mpStage != null) { mpStage.setVolume(Math.min(1f, v * 0.45f), Math.min(1f, v * 0.45f)); if (v <= 0) mpStage.pause(); else mpStage.start(); } } catch (Throwable ignored) { }
         try {
             if (currentMusic != null) { currentMusic.setVolume(v); if (v <= 0) currentMusic.pause(); else currentMusic.play(); }
         } catch (Throwable ignored) { }
@@ -162,6 +194,7 @@ final class Sfx implements Game.Listener {
         try { if (musicBattle != null) musicBattle.release(); if (musicTriumph != null) musicTriumph.release(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.release(); } catch (Throwable ignored) { }
         try { if (mpAmb != null) mpAmb.release(); } catch (Throwable ignored) { }
+        stopStageMusic();
     }
 
     // ---------------------------------------------------------------- síntese

@@ -22,6 +22,10 @@ final class R3 {
     private static final float OFFY = 125;
     static float cx;
     static float px, py, pd;                            // resultado da projeção
+    static float zoom = 1f;                             // "soco" de câmera (zoom rápido nos impactos)
+    static int alphaMul = 255;
+    static int fog = 0xFFB9DDF2;                        // cor da neblina (por cenário)
+    static float fogK = 0.22f;
     static final float Z_BACK;                          // onde o piso encontra o cenário de fundo
 
     static {
@@ -50,6 +54,7 @@ final class R3 {
         if (zg < 50) zg = 50;
         px = 400 + F * (X - cx) / zg;
         py = 225 - F * yc / zc + OFFY;
+        if (zoom != 1f) { px = 400 + (px - 400) * zoom; py = 300 + (py - 300) * zoom; }
         pd = zc;
     }
 
@@ -145,7 +150,12 @@ final class R3 {
             float lit = nx * LX + ny * LY + nz * LZ;
             float k = 0.62f + 0.38f * Math.max(0f, lit);
             if (ny < -0.5f) k = 0.45f;
-            int a = color >>> 24, r = (int) (((color >> 16) & 255) * k), g = (int) (((color >> 8) & 255) * k), b = (int) ((color & 255) * k);
+            int a = (color >>> 24) * alphaMul / 255, r = (int) (((color >> 16) & 255) * k), g = (int) (((color >> 8) & 255) * k), b = (int) ((color & 255) * k);
+            if (Draw.q >= 1) { // neblina por profundidade + luz de contorno suave
+                float dd = (SD[q[0]] + SD[q[2]]) * 0.5f;
+                float fk = Math.max(0f, Math.min(fogK, (dd - 1250f) / 2600f));
+                if (fk > 0) { r += (int) ((((fog >> 16) & 255) - r) * fk); g += (int) ((((fog >> 8) & 255) - g) * fk); b += (int) (((fog & 255) - b) * fk); }
+            }
             if (lit > 0.75f && Draw.q >= 2) { r = Math.min(255, r + 14); g = Math.min(255, g + 14); b = Math.min(255, b + 12); }
             int j = nq * 4;
             float d = 0;
@@ -565,6 +575,7 @@ final class R3 {
     // ---------------------------------------------------------------- ícone (menus e HUD)
     /** Desenha uma pessoa 3D com os pés em (sx,sy) na tela, com escala k. */
     static void icon(Canvas c, Look lk, float sx, float sy, float k, float walk, int pose) {
+        float oz0 = zoom; zoom = 1f;
         begin(0);
         person(c, 400, 0, 0, 1, lk, walk, 0, pose, 0, 0, -1, false, false);
         proj(400, 0, 0);
@@ -574,11 +585,16 @@ final class R3 {
         c.translate(-px, -py);
         flush(c);
         c.restore();
+        zoom = oz0;
     }
 
     // ---------------------------------------------------------------- cena completa
+    private static final int[] FOG = {0xFFBFDDF0, 0xFFC9D6DF, 0xFFCFEAF8, 0xFF8F5A66, 0xFFE8DCC0, 0xFF2A1A50, 0xFFE8A6C0, 0xFF1B3F72, 0xFFEAF2F8};
+
     static void world(Canvas c, Game g, Look[] kindLooks, Look[] heroLooks, Look heroTorn, boolean lite) {
         int theme = g.theme();
+        zoom = 1f + 0.035f * g.punch;
+        fog = FOG[theme];
         Scene.bg(c, theme, g.camX, g.time, lite);
         begin(g.camX);
         floor(c, theme, g.camX);
@@ -587,6 +603,7 @@ final class R3 {
         for (int i = 0; i < g.ents.size(); i++) ent(c, g, g.ents.get(i), kindLooks);
         player(c, g, heroLooks, heroTorn);
         flush(c);
+        // (o zoom permanece até o fim do quadro para os marcadores 2D)
     }
 
     private static void ent(Canvas c, Game g, Ent e, Look[] kindLooks) {
@@ -622,7 +639,7 @@ final class R3 {
         Ent o = g.p;
         float Z = zOf(o.y);
         if (o.inv > 0 && o.inv < 3 && o.st != Game.S_SPECIAL && ((int) (g.time * 14) & 1) == 0 && o.st != Game.S_DOWN) return;
-        Look lk = (g.hero == 0 && g.stageIdx == 7) ? heroTorn : heroLooks[g.hero];
+        Look lk = (g.hero == 0 && g.stageIdx == Data.STAGES.size() - 1) ? heroTorn : heroLooks[g.hero];
         float pt = 0, mv = 0; int pose = Draw.P_IDLE;
         boolean moving = (Math.abs(g.jx) > 0.2f || Math.abs(g.jy) > 0.2f) && g.rootT <= 0;
         switch (o.st) {
@@ -662,5 +679,147 @@ final class R3 {
             return;
         }
         person(c, o.x, o.h, Z, o.face, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false, true);
+    }
+
+    // ================================================================ FASE DO JET-SKI
+    static void jetski(Canvas c, float X, float Z, float H, int face, float bank, Look rider, float flash, boolean patriot, float time, boolean ram) {
+        shadow(c, X, Z, 60, 18, H + 6);
+        model(X, H, Z, face, 1.1f, flash);
+        rot(ram ? 9 : -2 + bank * 0.3f, -40, 4);
+        // casco
+        box(-50, 0, -13, 42, 13, 13, 0xFFF4F4F4);
+        box(-50, 0, -13.4f, 42, 4, 13.4f, 0xFF1D3E9A);
+        box(30, 5, -10, 58, 13, 10, 0xFFF4F4F4); box(52, 8, -6, 68, 13, 6, 0xFFF4F4F4);
+        box(-50, 13, -12, 32, 19, 12, 0xFFFFD400);
+        bias = 2;
+        box(-30, 6, -13.8f, 20, 10, -13.4f, 0xFF1B8F3A);
+        bias = 0;
+        box(-12, 19, -10, 24, 30, 10, 0xFF1B8F3A);
+        box(-48, 19, -6.5f, -14, 25, 6.5f, 0xFF212121);
+        box(18, 26, -2, 22, 46, 2, 0xFF9E9E9E); box(17, 44, -15, 23, 48, 15, 0xFF424242);
+        box(26, 30, -9, 29, 49, 9, 0x7790CAF9);
+        // espuma / esteira
+        float sp = (float) Math.sin(time * 30) * 2f;
+        box(-74, 0, -12 + sp, -48, 4.5f + sp * 0.3f, 12 - sp, 0xAAFFFFFF);
+        box(-96, 0, -8, -74, 3, 8, 0x77FFFFFF);
+        if (patriot) { box(-46, 19, -1, -43, 70, 1, 0xFF5D4037); box(-43, 52, -0.6f, -12, 68, 0.6f, 0xFF1B8F3A); box(-34, 56, -0.9f, -22, 64, 0.9f, 0xFFFFD400); }
+        // piloto
+        float sc0 = rider.scale; rider.scale = 0.74f;
+        person(c, X - face * 8, H + 22, Z, face, rider, time * 3, 0, ram ? Draw.P_PUNCH : Draw.P_SPEC, ram ? 1f : 0f, flash, -1, false, false);
+        rider.scale = sc0;
+    }
+
+    static void whale(Canvas c, Jet.Whale w, float Z, float time) {
+        float s = w.size;
+        shadow(c, w.x, Z, 70 * s, 24 * s, 0);
+        float dy = w.dying ? -Math.min(1f, w.sinkT) * 46 * s : 0;
+        model(w.x, dy + (w.h > 0 ? w.h : 0), Z, -1, s, w.flash);
+        if (w.dying) { alphaMul = Math.max(40, 255 - (int) (w.sinkT * 200)); rot(-w.sinkT * 38, 0, 20); }
+        boolean dino = w.type == 0;
+        int back = dino ? 0xFF4F6D86 : 0xFF5C6477, belly = dino ? 0xFFB5C9D8 : 0xFFC4C8D2, dark = Draw.shade(back, -0.25f);
+        float sway = (float) Math.sin(time * 2.2f + w.id) * 3f;
+        // cauda e nadadeira
+        push(); rot(sway * 0.6f, -58, 20);
+        box(-100, 10, -11, -56, 32, 11, dark);
+        box(-124, 26, -32, -98, 31, 32, back);
+        pop();
+        // corpo
+        box(-62, 0, -25, 42, 40, 25, back);
+        box(-62, 0, -25.4f, 42, 12, 25.4f, belly);
+        box(-40, 40, -14, 10, 47, 14, back);                 // dorso
+        box(-8, 47, -2, 0, 62, 2, dark);                     // nadadeira dorsal
+        // cabeça
+        box(34, 0, -27, 88, 44, 27, back);
+        box(34, 0, -27.4f, 88, 13, 27.4f, belly);
+        box(88, 6, -19, 102, 36, 19, back);
+        box(88, 6, -19.4f, 102, 12, 19.4f, belly);
+        // nadadeira peitoral (lado da câmera)
+        push(); rot(-22 + sway, 18, 8); box(2, -6, -44, 36, 8, -25, dark); pop();
+        // ---- caricatura do rosto (lado visível: -z): placa de "pele" humana sobre a cabeça
+        bias = 4;
+        float zf = -27.9f;
+        int skin = dino ? 0xFFD9A98A : 0xFFE9BFA3;
+        box(38, 12, zf, 90, 46, zf + 0.5f, skin);
+        box(90, 14, -19.4f, 101, 34, -18.8f, skin);
+        bias = 5;
+        if (dino) {
+            box(38, 40, zf - 0.1f, 90, 47, zf + 0.5f, 0xFFF2D8C4);   // careca reluzente
+            box(36, 30, zf - 0.1f, 42, 46, zf + 0.5f, 0xFF9A9A9A);   // cabelo grisalho lateral
+            box(62, 4, zf - 0.1f, 84, 13, zf + 0.5f, 0xFFA8A8A8);    // cavanhaque
+            box(58, 15, zf - 0.2f, 96, 21, zf + 0.5f, 0xFF3E3E3E);   // bigode escuro
+        } else {
+            box(28, 44, -19, 72, 56, 19, 0xFFF4F4F4);                // topete branco
+            box(10, 42, -16, 40, 52, 16, 0xFFF4F4F4);
+            box(36, 42, zf - 0.1f, 90, 49, zf + 0.5f, 0xFFEFEFEF);   // testa coberta de cabelo
+            box(58, 14, zf - 0.2f, 98, 22, zf + 0.5f, 0xFFF0F0F0);   // bigodão branco
+            box(58, 10, zf - 0.2f, 94, 14, zf + 0.5f, 0xFFD2D2D2);
+            box(66, 24, zf - 0.1f, 76, 28, zf + 0.5f, 0xFFE59E94);   // bochecha corada
+        }
+        // olho + óculos (lentes translúcidas)
+        float ex = dino ? 64 : 66;
+        box(ex - 8, 26, zf - 0.2f, ex + 8, 39, zf + 0.5f, 0xFFFFFFFF);
+        box(ex - 2, 29, zf - 0.3f, ex + 5, 36, zf + 0.5f, dino ? 0xFF3A2A1A : 0xFF2A3A55);
+        box(ex, 31, zf - 0.4f, ex + 3, 34, zf + 0.5f, 0xFF000000);
+        int fr = 0xFF121212;
+        float fw = dino ? 1.7f : 1.2f;
+        box(ex - 11, 37.5f, zf - 0.5f, ex + 11, 37.5f + fw * 1.4f, zf + 0.4f, fr);
+        box(ex - 11, 23.5f, zf - 0.5f, ex + 11, 23.5f + fw * 1.4f, zf + 0.4f, fr);
+        box(ex - 11, 23.5f, zf - 0.5f, ex - 11 + fw * 1.4f, 39, zf + 0.4f, fr);
+        box(ex + 11 - fw * 1.4f, 23.5f, zf - 0.5f, ex + 11, 39, zf + 0.4f, fr);
+        box(ex + 11, 30, zf - 0.5f, ex + 24, 32, zf + 0.4f, fr);          // haste dos óculos
+        // sobrancelha grossa e boca
+        box(ex - 11, 40.5f, zf - 0.5f, ex + 11, dino ? 44f : 45.5f, zf + 0.4f, dino ? 0xFF555555 : 0xFFF2F2F2);
+        box(ex - 12, 7.5f, zf - 0.4f, ex + 30, 9.5f, zf + 0.4f, 0xFF3B1F1F);
+        bias = 0;
+        // respiro
+        float sp = Math.max(0f, (float) Math.sin(time * 1.4f + w.id * 2f)) * 22f;
+        if (sp > 2) box(-2, 47, -1.5f, 2, 47 + sp, 1.5f, 0x66E0F7FA);
+        alphaMul = 255;
+    }
+
+    static void jetWorld(Canvas c, Jet j, Look[] heroLooks, boolean lite) {
+        Scene.lake(c, j.camX, j.time, lite);
+        zoom = 1f; fog = 0xFFCFEAF8; fogK = 0.3f;
+        begin(j.camX);
+        water(c, j.camX, j.time);
+        for (Jet.Whale w : j.whales) { if (w.x > j.camX - 250 && w.x < j.camX + Game.W + 250) whale(c, w, zOf(w.y), j.time); }
+        for (Jet.Patriot p : j.patriots) jetski(c, p.x, zOf(p.y), 0, 1, 0, heroLooks[p.look], 0, true, j.time, true);
+        boolean blink = j.inv > 0 && j.inv < 3 && ((int) (j.time * 14) & 1) == 0 && j.specialT <= 0;
+        if (!blink) jetski(c, j.x, zOf(j.y), j.h + (float) Math.sin(j.time * 9) * 1.4f, 1, j.bank, heroLooks[j.hero], j.flash, false, j.time, j.ramT > 0);
+        flush(c);
+        fogK = 0.22f;
+    }
+
+    static void water(Canvas c, float camX, float time) {
+        float x0 = cx - 900, x1 = cx + 900, zn = -160;
+        int strips = 12;
+        for (int i = 0; i < strips; i++) {
+            float za = zn + (Z_BACK - zn) * i / strips, zb = zn + (Z_BACK - zn) * (i + 1) / strips;
+            float t = i / (float) (strips - 1);
+            gquad(c, Draw.mix(0xFF0B6E99, 0xFF6FD0E6, t), x0, za, x1, zb, 0);
+        }
+        PT.setStyle(Paint.Style.STROKE);
+        for (float z = -120; z < Z_BACK - 20; z += 46) {
+            float t = (z + 120) / (Z_BACK + 120);
+            PT.setStrokeWidth(1.2f + (1f - t) * 1.6f);
+            PT.setColor(((int) (60 + (1f - t) * 70) << 24) | 0xFFFFFF);
+            PATH.reset();
+            boolean first = true;
+            for (float x = cx - 900; x <= cx + 900; x += 50) {
+                float wy = (float) Math.sin(x * 0.022f + time * 2.1f + z * 0.07f) * 2.4f;
+                proj(x, wy, z);
+                if (first) { PATH.moveTo(px, py); first = false; } else PATH.lineTo(px, py);
+            }
+            c.drawPath(PATH, PT);
+        }
+        PT.setStyle(Paint.Style.FILL);
+        // brilhos do sol na água
+        for (int i = 0; i < 40; i++) {
+            float sx = cx - 800 + ((i * 197 + (float) Math.floor(camX * 0.4f)) % 1600);
+            float sz = -60 + (i * 53 % 100) / 100f * (Z_BACK - 40);
+            float tw = (float) Math.sin(time * 3 + i) * 0.5f + 0.5f;
+            proj(sx, 0.5f, sz);
+            Draw.circle(c, ((int) (40 + tw * 120) << 24) | 0xFFFFFF, px, py, 1.4f + tw * 1.8f);
+        }
     }
 }

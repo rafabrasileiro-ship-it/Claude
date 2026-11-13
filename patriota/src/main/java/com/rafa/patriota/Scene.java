@@ -383,4 +383,40 @@ final class Scene {
         }
         floor(c, cam, 0xFFDCD3C3, 0xFFC4BAA6, 0xFFB0A590);
     }
+
+    // ---------------------------------------------------------------- Lago (jet-ski)
+    static void lake(Canvas c, float cam, float time, boolean lite) {
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, 0xFF5FA8E0, 0xFFFBE5C4);
+        Draw.circle(c, 0x33FFF3C0, 600, 150, 70);
+        Draw.circle(c, 0x55FFF3C0, 600, 150, 44);
+        Draw.circle(c, 0xFFFFF6D8, 600, 150, 26);
+        // colinas distantes
+        float o = off(cam, 0.08f, 800);
+        for (int k = -1; k < 3; k++) {
+            float x0 = o + k * 800;
+            Draw.poly(c, 0xFF7F9FB0, x0, FLOOR_TOP, x0, 215, x0 + 200, 190, x0 + 420, 222, x0 + 620, 196, x0 + 800, 218, x0 + 800, FLOOR_TOP);
+        }
+        // Brasília ao longe: Congresso, Catedral e Ponte JK
+        float o2 = off(cam, 0.16f, 1600);
+        for (int k = -1; k < 2; k++) {
+            float x0 = o2 + k * 1600;
+            if (x0 > 820 || x0 < -1700) continue;
+            Draw.rect(c, 0xFF6C8296, x0 + 300, 214, x0 + 520, FLOOR_TOP);
+            Draw.rect(c, 0xFF5E7388, x0 + 340, 188, x0 + 372, 214); Draw.rect(c, 0xFF5E7388, x0 + 448, 188, x0 + 480, 214);
+            Draw.poly(c, 0xFF5E7388, x0 + 300, 214, x0 + 350, 202, x0 + 400, 214);
+            Draw.poly(c, 0xFF5E7388, x0 + 420, 214, x0 + 470, 202, x0 + 520, 214);
+            Draw.rect(c, 0xFF55697D, x0 + 540, 198, x0 + 556, FLOOR_TOP); Draw.rect(c, 0xFF55697D, x0 + 560, 198, x0 + 576, FLOOR_TOP);
+            Draw.poly(c, 0xFF778EA2, x0 + 640, FLOOR_TOP, x0 + 660, 204, x0 + 700, 204, x0 + 720, FLOOR_TOP);
+            // arcos da ponte
+            for (int a = 0; a < 3; a++) {
+                float ax = x0 + 800 + a * 260;
+                Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(5); Draw.P.setColor(0xFF8A9DAE);
+                Draw.RF.set(ax, 168, ax + 240, 330);
+                c.drawArc(Draw.RF, 180, 180, false, Draw.P);
+                Draw.P.setStyle(Paint.Style.FILL);
+            }
+            Draw.rect(c, 0xFF7C90A1, x0 + 800, 246, x0 + 1600, 252);
+        }
+        Draw.rect(c, 0x22FFFFFF, 0, 200, 800, FLOOR_TOP);
+    }
 }

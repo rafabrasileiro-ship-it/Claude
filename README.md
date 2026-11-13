@@ -36,6 +36,7 @@ Feito em Java nativo, com um renderizador 3D próprio (câmera em perspectiva, m
 - 5 missões (a 4 é dividida em 4 minifases nos estúdios), 8 fases selecionáveis, chefes com padrões próprios.
 - Heróis: Jair Bonossauro e 3 desbloqueáveis (Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a).
 - Golpes: combo de 4, voadora (B+A), onda de choque (segurar A 1s), agarrão/arremesso (C), especial (D, gasta 50 de Patriotismo).
+- Fase bônus: Travessia do Lago de jet-ski, desviando (ou batendo de frente) em baleias caricatas; o especial chama patriotas de jet-ski.
 - Missão 5: Velociraptor com a bandeira de batalha (combo de bandeirada, varredura aérea, investida com lança, rugido).
 - Gráficos Leve/Normal/Alta (sombras suaves, texturas, gradientes, perspectiva e vinheta) nas Opções.
 - Itens, armas temporárias, menus (splash, menu, seleção, opções, créditos), briefing, pausa, game over e vitória.
