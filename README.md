@@ -47,3 +47,6 @@ APK pronto: pasta `dist/` (`operacao-patriota-vN.apk`), gerado pelo workflow **G
 Compilar local: `./gradlew :patriota:assembleRelease` → `patriota/build/outputs/apk/release/`.
 
 **Vozes reais:** coloque as gravações em `patriota/src/main/res/raw/` com os nomes listados em `patriota/VOZES-LEIA-ME.txt` (ex.: `voz_mula_brasil.ogg`). Sem o arquivo, a fala não aparece nem toca.
+
+- Moto de Jair: Harley-Davidson clássica preta com a bandeira do Brasil hasteada atrás.
+- Heroína Michele Bonossauro (de branco; especial Poder da Oração: cura a dupla). Na fase final em 2 jogadores, a chefona Xanxa (de marrom e preto) entra junto com o Mula.

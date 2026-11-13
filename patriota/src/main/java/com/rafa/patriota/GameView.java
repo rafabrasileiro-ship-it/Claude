@@ -44,7 +44,7 @@ final class GameView extends View {
     private float briefT;
 
     private final Draw.Look[] kindLooks = new Draw.Look[Data.KINDS.length];
-    private final Draw.Look[] heroLooks = new Draw.Look[4];
+    private final Draw.Look[] heroLooks = new Draw.Look[5];
     private Draw.Look heroTorn;
     private Draw.Look helenao;
 
@@ -101,7 +101,7 @@ final class GameView extends View {
             sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 2); vibOn = prefs.getInt("vib", 1);
             hero = prefs.getInt("hero", 0);
         } catch (Exception ignored) { }
-        if (hero < 0 || hero > 3 || !heroUnlocked(hero)) hero = 0;
+        if (hero < 0 || hero > 4 || !heroUnlocked(hero)) hero = 0;
         Draw.q = gfx == 3 ? 2 : gfx;
         applyAudio();
     }
@@ -118,7 +118,7 @@ final class GameView extends View {
         sfx.setMusicVol(musicLv / 3f * 0.8f);
     }
 
-    private boolean heroUnlocked(int h) { return h == 0 || cleared >= h; }
+    private boolean heroUnlocked(int h) { return h == 0 || h == 4 || cleared >= h; }
 
     private void buildLooks() {
         for (int i = 0; i < Data.KINDS.length; i++) {
@@ -128,7 +128,7 @@ final class GameView extends View {
             if (i == Data.K_CHEFAO || i == Data.K_DOMINGAO || i == Data.K_ATILA) l.girth = 1.2f;
             kindLooks[i] = l;
         }
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             Draw.Look l = new Draw.Look();
             int[] c = Data.HERO_COL[i];
             l.skin = c[0]; l.shirt = c[1]; l.pants = c[2]; l.hair = c[3]; l.hero = i;
@@ -360,7 +360,7 @@ final class GameView extends View {
         byte[] m;
         while ((m = net.poll()) != null) {
             switch (m[0]) {
-                case Snap.M_HERO: if (m.length > 1) partnerHero = Math.max(0, Math.min(3, m[1])); break;
+                case Snap.M_HERO: if (m.length > 1) partnerHero = Math.max(0, Math.min(4, m[1])); break;
                 case Snap.M_START: if (guestMode() && m.length > 3) startGuest(m[1], m[2], m[3]); break;
                 case Snap.M_INPUT: if (!guestMode() && !game.mirror && game.np == 2) Snap.applyInput(game, m); break;
                 case Snap.M_BYE: endCoop("O amigo saiu da partida."); return;
@@ -371,7 +371,7 @@ final class GameView extends View {
 
     private void drawCoop(Canvas c) {
         panelBg(c, Data.TH_PAULISTA);
-        title(c, "DUPLA — BLUETOOTH", 44);
+        title(c, "2 JOGADORES", 44);
         if (coopSub == 0) {
             String[] help = {"Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida.",
                     "Wi-Fi é o mais rápido e fluido: os dois celulares na mesma rede (ou no ponto de acesso de um deles).",
@@ -470,7 +470,7 @@ final class GameView extends View {
         R3.icon(c, heroLooks[hero], 150, 405, 1.9f, 0, Draw.P_IDLE);
         c.save(); c.translate(0, 0);
         addBtn(c, B_PLAY, 290, 108, 560, 158, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
-        addBtn(c, B_COOP, 290, 166, 560, 216, "DUPLA (BLUETOOTH)", true, 0xFFC62828);
+        addBtn(c, B_COOP, 290, 166, 560, 216, "2 JOGADORES", true, 0xFFC62828);
         addBtn(c, B_STAGES, 290, 224, 560, 274, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
         addBtn(c, B_OPTIONS, 290, 282, 560, 332, "OPÇÕES", true, 0xFF6A4C93);
         addBtn(c, B_CREDITS, 290, 340, 560, 390, "CRÉDITOS", true, 0xFFB35C00);
@@ -482,18 +482,18 @@ final class GameView extends View {
     private void drawSelect(Canvas c) {
         panelBg(c, Data.TH_CAMPUS);
         title(c, coop ? "ESCOLHA SEU PERSONAGEM (DUPLA)" : "ESCOLHA SEU PERSONAGEM", 44);
-        for (int i = 0; i < 4; i++) {
-            float x0 = 20 + i * 192, x1 = x0 + 180;
+        for (int i = 0; i < 5; i++) {
+            float x0 = 10 + i * 156, x1 = x0 + 148;
             boolean ok = heroUnlocked(i);
             boolean sel = i == hero;
             Draw.rect(c, sel ? 0xCC1B8F3A : 0xCC222222, x0, 70, x1, 360);
             Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(sel ? 5 : 2); Draw.P.setColor(sel ? 0xFFFFD400 : 0xFF888888);
             c.drawRect(x0, 70, x1, 360, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
             R3.icon(c, heroLooks[i], (x0 + x1) / 2, 222, 1.15f, 0, i == hero ? Draw.P_WIND : Draw.P_IDLE);
-            Draw.text(c, Data.HERO_NAME[i], (x0 + x1) / 2, 245, 14, 0xFFFFFFFF, Paint.Align.CENTER);
+            Draw.text(c, Data.HERO_NAME[i], (x0 + x1) / 2, 245, 12.5f, 0xFFFFFFFF, Paint.Align.CENTER);
             String[] ds = Data.HERO_DESC[i].split("\n");
-            for (int k = 0; k < ds.length; k++) Draw.text(c, ds[k], (x0 + x1) / 2, 268 + k * 16, 11.5f, 0xFFDDDDDD, Paint.Align.CENTER);
-            Draw.text(c, "HP " + (int) Data.HERO_HP[i] + "  VEL " + (int) (Data.HERO_SPD[i] * 100) + "  DANO " + (int) (Data.HERO_DMG[i] * 100), (x0 + x1) / 2, 312, 11, 0xFFFFD400, Paint.Align.CENTER);
+            for (int k = 0; k < ds.length; k++) Draw.text(c, ds[k], (x0 + x1) / 2, 268 + k * 15, 10.5f, 0xFFDDDDDD, Paint.Align.CENTER);
+            Draw.text(c, "HP " + (int) Data.HERO_HP[i] + "  VEL " + (int) (Data.HERO_SPD[i] * 100) + "  DANO " + (int) (Data.HERO_DMG[i] * 100), (x0 + x1) / 2, 314, 9.5f, 0xFFFFD400, Paint.Align.CENTER);
             if (!ok) {
                 Draw.rect(c, 0xCC000000, x0, 70, x1, 360);
                 Draw.text(c, "BLOQUEADO", (x0 + x1) / 2, 200, 18, 0xFFFF5252, Paint.Align.CENTER);
@@ -892,6 +892,15 @@ final class GameView extends View {
             if (b.shield > 0) Draw.rect(c, 0xFF80DEEA, 300, 22, 300 + 300 * Math.min(1f, b.shield / 45f), 25);
             Draw.text(c, Data.KINDS[b.kind].name.toUpperCase(), 450, 40, 13, 0xFFFFFFFF, Paint.Align.CENTER);
         }
+        for (Ent x : g.ents) {
+            if (x.type == Ent.ENEMY && x.alive && x.kind == Data.K_XANXA) {
+                float f = Math.max(0f, x.hp / x.maxHp);
+                Draw.rect(c, 0xFF000000, 298, 44, 602, 58);
+                Draw.rect(c, 0xFF8D6E63, 300, 46, 300 + 300 * f, 56);
+                Draw.text(c, "XANXA", 450, 70, 12, 0xFFFFFFFF, Paint.Align.CENTER);
+                break;
+            }
+        }
         // rádio
         if (g.radioT > 0 && g.radio != null && !g.radio.isEmpty()) {
             Draw.rect(c, 0xCC101810, 150, 60, 650, 118);
@@ -1094,7 +1103,7 @@ final class GameView extends View {
                 screen = SC_PLAY; resetTouch(); last = System.nanoTime(); playStageMusic(stageSel);
                 break;
             default:
-                if (id >= B_HERO && id < B_HERO + 4) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
+                if (id >= B_HERO && id < B_HERO + 5) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
                 else if (id >= B_DEV && id < B_DEV + 8) { int d = id - B_DEV; if (coopWifi) { if (d < wifiList.size()) { net.connectWifi(wifiList.get(d)[0], wifiList.get(d)[1]); coopSub = 3; } }
                     else if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
                 else if (id >= B_STAGE && id < B_STAGE + 20) {

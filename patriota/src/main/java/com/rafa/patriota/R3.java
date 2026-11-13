@@ -296,7 +296,8 @@ final class R3 {
         model(X, H, Z, face, s, flash);
         int skin = lk.skin, shirt = lk.shirt, pants = lk.pants, hair = lk.hair, shoe = 0xFF1B1B1B;
         float g = lk.girth;
-        boolean fem = lk.acc == Data.AC_DRESS || lk.acc == Data.AC_DANCER;
+        boolean fem = lk.acc == Data.AC_DRESS || lk.acc == Data.AC_DANCER || lk.acc == Data.AC_XANXA || lk.hero == 4;
+        boolean lady = lk.acc == Data.AC_XANXA || lk.hero == 4; // mangas compridas
         boolean robe = lk.acc == Data.AC_TOGA || lk.acc == Data.AC_REITOR;
         boolean longS = lk.acc == Data.AC_SUIT || lk.acc == Data.AC_ANCHOR || lk.acc == Data.AC_COAT || robe
                 || lk.acc == Data.AC_KNIFE || lk.hero == 3 || lk.acc == Data.AC_MULA;
@@ -333,6 +334,8 @@ final class R3 {
             leg(5.6f, aHipB, aKneeB, Draw.shade(pants, -0.1f), shoe, g);
             leg(-5.6f, aHipF, aKneeF, pants, shoe, g);
             if (fem) box(-8, 26, -12, 8, 46, 12, shirt);
+            if (lk.hero == 4) { box(-9.5f, 10, -13.5f, 9.5f, 30, 13.5f, shirt); bias = 3; box(-9.8f, 10, -13.8f, 9.8f, 12.5f, 13.8f, 0xFFD4AF37); bias = 0; }
+            if (lk.acc == Data.AC_XANXA) { box(-9.5f, 12, -13.5f, 9.5f, 36, 13.5f, 0xFF111111); }
         }
         // ---- tronco
         float ch = breath * 0.4f;
@@ -349,6 +352,11 @@ final class R3 {
         if (lk.acc == Data.AC_MULA) { box(-7.4f * g, 44, -12, 7.4f * g, 72.2f, 12, 0xFFB71C1C); box(6, 44, -2.5f, 7.7f * g, 72, 2.5f, 0xFFEEEEEE); }
         if (lk.acc == Data.AC_DANCER) box(-7.3f, 58, -12, 7.3f, 66, 12, 0xFFFFFF00);
         if (lk.hero == 3) box(6, 50, -1.4f, 7.5f, 70, 1.4f, 0xFF2E7D32);
+        if (lk.hero == 4) { // cinto dourado e colar de pérolas
+            box(-7.3f, 41, -11.9f, 7.3f, 44.5f, 11.9f, 0xFFD4AF37);
+            for (int i = 0; i < 7; i++) box(7.4f, 66 - (float) Math.abs(i - 3) * 1.4f, -6 + i * 1.9f, 8.6f, 68 - (float) Math.abs(i - 3) * 1.4f, -4.4f + i * 1.9f, 0xFFFFFFF0);
+        }
+        if (lk.acc == Data.AC_XANXA) { box(-7.3f, 58, -11.9f, 7.3f, 63, 11.9f, 0xFF111111); box(6, 62, -5, 8, 70, 5, 0xFF111111); box(7.4f, 52, -1, 8.6f, 56, 1, 0xFFD4AF37); }
         bias = 0;
         // ---- pescoço e cabeça
         box(-3, 71, -3.2f, 3.4f, 76, 3.2f, Draw.shade(skin, -0.15f));
@@ -365,7 +373,7 @@ final class R3 {
         box(-2.2f, 80.5f, -8.2f, 0.6f, 85, -7, Draw.shade(skin, -0.2f));          // orelha
         // cabelo / chapéus
         if (lk.acc == Data.AC_KNIFE) { box(-8, 76, -8, 5, 93, 8, 0xFF1A1A1A); box(-8, 88, -8, 8, 93, 8, 0xFF1A1A1A); }
-        else if (fem) { box(-8, 87, -8, 6, 93, 8, hair); box(-8.5f, 64, -8, -3, 90, 8, hair); }
+        else if (fem) { box(-8, 87, -8, 6, 93, 8, hair); box(-8.5f, 64, -8, -3, 90, 8, hair); if (lk.hero == 4) { box(-8, 86, -8.4f, 7, 91, -6.5f, hair); box(-8, 86, 6.5f, 7, 91, 8.4f, hair); box(-10, 52, -8, -4, 66, 8, hair); } }
         else { box(-7.6f, 87.5f, -7.6f, 5.5f, 92.6f, 7.6f, hair); box(-7.6f, 79, -7.6f, -4.2f, 90, 7.6f, hair); }
         if (lk.acc == Data.AC_MULA) { box(-1, 75.5f, -7.5f, 7.6f, 80.5f, 7.5f, 0xFFF2F2F2); }
         if (lk.acc == Data.AC_MASK) { box(1, 76.5f, -7.5f, 7.7f, 82, 7.5f, 0xFFFFFFFF); box(9, 75, -8.5f, 9.8f, 92, 8.5f, 0x6680DEEA); }
@@ -377,7 +385,7 @@ final class R3 {
         bias = 0;
         pop();
         // ---- braços
-        int up = fem ? skin : (lk.acc == Data.AC_COAT ? 0xFFF4F4F4 : lk.acc == Data.AC_MULA ? 0xFFB71C1C : lk.acc == Data.AC_TOGA ? 0xFF141414 : shirt);
+        int up = fem && !lady ? skin : (lk.acc == Data.AC_COAT ? 0xFFF4F4F4 : lk.acc == Data.AC_MULA ? 0xFFB71C1C : lk.acc == Data.AC_TOGA ? 0xFF141414 : shirt);
         int fo = longS ? up : skin;
         arm(15f, aShF, aElF, Draw.shade(up, -0.08f), Draw.shade(fo, -0.08f), skin, lk, -1, false, pose, guard);
         arm(-15f, aShN, aElN, up, fo, skin, lk, weapon, true, pose, guard);
@@ -427,6 +435,7 @@ final class R3 {
             case Data.AC_HAWAII: box(-1.5f, 24, z - 1.5f, 1.5f, 40, z + 1.5f, 0xFF212121); box(-3, 19, z - 3, 3, 25, z + 3, 0xFF9E9E9E); break;
             case Data.AC_COAT: box(-3, 8, z - 3, 3, 40, z + 3, 0xFFE0F7FA); box(-2, 14, z - 3.3f, 2, 30, z + 3.3f, 0xFFE53935); box(-0.6f, -8, z - 0.6f, 0.6f, 8, z + 0.6f, 0xFFB0BEC5); break;
             case Data.AC_ANCHOR: box(-1.8f, 4, z - 1.8f, 1.8f, 40, z + 1.8f, 0xFF1A237E); box(-1, -3, z - 1, 1, 4, z + 1, 0xFFB0BEC5); break;
+            case Data.AC_XANXA: box(-5, 20, z - 4, 5, 32, z + 4, 0xFF111111); box(-3, 31, z - 0.6f, 3, 34, z + 0.6f, 0xFF6D4C33); break;
             case Data.AC_MULA: box(-3, 24, z - 3, 3, 40, z + 3, 0xFF6D4C41); box(-1.5f, 18, z - 1.5f, 1.5f, 24, z + 1.5f, 0xFF8D6E63); break;
             default: break;
         }
@@ -498,11 +507,59 @@ final class R3 {
             for (int i = 0; i < 2; i++) { float wx = i == 0 ? -36 : 32; box(wx - 11, 0, -20, wx + 11, 22, -13, 0xFF1A1A1A); box(wx - 11, 0, 13, wx + 11, 22, 20, 0xFF1A1A1A); }
             box(-52, 64, -1.5f, -49, 104, 1.5f, 0xFF5D4037); box(-49, 84, -0.8f, -18, 104, 0.8f, 0xFF1B8F3A);
         } else {
-            box(-36, 0, -4, -14, 24, 4, 0xFF1A1A1A); box(16, 0, -4, 38, 24, 4, 0xFF1A1A1A);
-            box(-26, 14, -6, 28, 30, 6, 0xFFFFD400); box(-22, 28, -5, 4, 36, 5, 0xFF1B8F3A); box(6, 26, -6.5f, 24, 38, 6.5f, 0xFFFFD400);
-            push(); rot(-20, 26, 30); box(24, 28, -1.5f, 28, 56, 1.5f, 0xFF9E9E9E); box(22, 54, -12, 30, 58, 12, 0xFF616161); pop();
-            box(-48 - (float) Math.sin(Draw.time * 40) * 6, 14, -2, -36, 20, 2, 0xFFFF9800);
+            harley();
         }
+    }
+
+    /** Harley-Davidson clássica preta (cromados, banco de couro, alforjes) com a bandeira do Brasil hasteada atrás. */
+    private static void harley() {
+        final int BK = 0xFF121212, CH = 0xFFD7DEE2, CH2 = 0xFF8E9AA0, LE = 0xFF3E2723, GOLD = 0xFFD4AF37;
+        // rodas (pneu largo + aro cromado)
+        for (int w = 0; w < 2; w++) {
+            float cx = w == 0 ? -34 : 36;
+            box(cx - 13, 6, -4.5f, cx + 13, 20, 4.5f, 0xFF0A0A0A); box(cx - 9, 2, -4.5f, cx + 9, 24, 4.5f, 0xFF0A0A0A); box(cx - 5, 0, -4.5f, cx + 5, 26, 4.5f, 0xFF0A0A0A);
+            bias = 2; box(cx - 7, 6, -4.9f, cx + 7, 20, 4.9f, CH2); box(cx - 3, 10, -5.2f, cx + 3, 16, 5.2f, CH); bias = 0;
+        }
+        // escapamentos cromados e alforjes
+        box(-56, 7, 5, -6, 12, 8.5f, CH); box(-56, 7, -8.5f, -6, 12, -5, CH);
+        box(-56, 6, 4.6f, -52, 13, 9, CH2); box(-56, 6, -9, -52, 13, -4.6f, CH2);
+        box(-46, 12, 8.5f, -22, 27, 13.5f, BK); box(-46, 12, -13.5f, -22, 27, -8.5f, BK);
+        bias = 2; box(-44, 22, 13.3f, -24, 24, 13.9f, CH); box(-44, 22, -13.9f, -24, 24, -13.3f, CH); bias = 0;
+        // motor V-twin
+        box(-9, 6, -6, 14, 18, 6, 0xFF263238);
+        push(); rot(-22, 2, 16); box(-4, 16, -4, 3, 35, 4, CH2); box(-4.6f, 33, -4.6f, 3.6f, 36, 4.6f, 0xFF37474F); pop();
+        push(); rot(22, 2, 16); box(-4, 16, -4, 3, 35, 4, CH2); box(-4.6f, 33, -4.6f, 3.6f, 36, 4.6f, 0xFF37474F); pop();
+        // tanque, banco e para-lamas
+        box(-8, 30, -7, 18, 41, 7, BK); box(-4, 41, -5, 14, 44, 5, BK);
+        bias = 2; box(-8.2f, 35.5f, -7.4f, 18.2f, 37, 7.4f, CH); box(-1, 43.5f, -2.5f, 3, 44.6f, 2.5f, CH); bias = 0;
+        box(-32, 27, -8, -8, 32, 8, LE); box(-37, 27, -7, -32, 39, 7, LE);
+        box(-50, 24, -7.4f, -20, 28.5f, 7.4f, BK); box(-52, 18, -7.4f, -47, 28.5f, 7.4f, BK);
+        box(26, 28, -6.4f, 48, 32.5f, 6.4f, BK); box(42, 20, -6.4f, 48, 32.5f, 6.4f, BK);
+        bias = 2; box(-52.4f, 24, -2.5f, -51, 28, 2.5f, 0xFFD32F2F); bias = 0;
+        // garfo, guidão alto e farol
+        push(); rot(-18, 34, 38);
+        box(32, 8, -4.6f, 35, 48, -2.6f, CH); box(32, 8, 2.6f, 35, 48, 4.6f, CH);
+        box(30, 45, -5.5f, 38, 48.5f, 5.5f, CH2);
+        box(32, 48, -2, 35, 58, 2, CH);
+        box(31, 56, -19, 36, 59, 19, CH); box(31, 56, -22, 36.5f, 61, -17, BK); box(31, 56, 17, 36.5f, 61, 22, BK);
+        box(38, 34, -5.5f, 44, 44, 5.5f, CH); bias = 2; box(44, 35.5f, -4, 45, 42.5f, 4, 0xFFFFF59D); bias = 0;
+        pop();
+        // bandeira do Brasil hasteada na traseira
+        box(-50, 24, -1.2f, -48, 103, 1.2f, CH2); box(-50.8f, 103, -1.8f, -47.2f, 106, 1.8f, GOLD);
+        push();
+        rot((float) Math.sin(Draw.time * 7) * 5, -50, 86);
+        box(-92, 72, -0.8f, -50, 100, 0.8f, 0xFF009C3B);
+        bias = 2;
+        box(-74, 96.5f, -1.1f, -68, 98.5f, 1.1f, 0xFFFFDF00);
+        box(-80, 92.5f, -1.1f, -62, 96.5f, 1.1f, 0xFFFFDF00);
+        box(-86, 86, -1.1f, -56, 92.5f, 1.1f, 0xFFFFDF00);
+        box(-80, 79.5f, -1.1f, -62, 86, 1.1f, 0xFFFFDF00);
+        box(-74, 75.5f, -1.1f, -68, 79.5f, 1.1f, 0xFFFFDF00);
+        bias = 3;
+        box(-77, 83, -1.4f, -65, 91, 1.4f, 0xFF002776);
+        box(-78, 86.2f, -1.5f, -64, 87.6f, 1.5f, 0xFFFFFFFF);
+        bias = 0;
+        pop();
     }
 
     static void crate(Canvas c, float X, float Z, float flash, int theme) {

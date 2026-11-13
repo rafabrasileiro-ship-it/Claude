@@ -13,12 +13,12 @@ final class Data {
     static final int K_MANIF = 0, K_PIQUET = 1, K_CHEFAO = 2, K_PANDE = 3, K_FISCAL = 4, K_ATILA = 5,
             K_ESTUD = 6, K_CIRANDA = 7, K_MPB = 8, K_REITOR = 9, K_GREVISTA = 10, K_ABELIO = 11,
             K_GALA = 12, K_ATRIZ = 13, K_DANCA = 14, K_DOMINGAO = 15, K_EXBBB = 16, K_INFLU = 17,
-            K_CINE = 18, K_BONE = 19, K_GUARDA = 20, K_XEREX = 21, K_MULA = 22;
+            K_CINE = 18, K_BONE = 19, K_GUARDA = 20, K_XEREX = 21, K_MULA = 22, K_XANXA = 23;
 
     // acessórios (desenho)
     static final int AC_NONE = 0, AC_FLAG = 1, AC_MASK = 2, AC_VEST = 3, AC_BOOK = 4, AC_GUITAR = 5, AC_KNIFE = 6,
             AC_TROPHY = 7, AC_RING = 8, AC_TRIPOD = 9, AC_SUIT = 10, AC_TOGA = 11, AC_HAWAII = 12, AC_COAT = 13,
-            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19;
+            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19, AC_XANXA = 20;
 
     static final class Kind {
         String name;
@@ -41,7 +41,7 @@ final class Data {
 
     static final int SK1 = 0xFFF1C27D, SK2 = 0xFFD9A066, SK3 = 0xFF8D5524, SK4 = 0xFFFFDBB0;
 
-    static final Kind[] KINDS = new Kind[23];
+    static final Kind[] KINDS = new Kind[24];
 
     static {
         KINDS[K_MANIF] = new Kind("Manifestante", 24, 55, 6, 52, 0.45f, 1.6f, AT_MELEE, 100, SK2, 0xFFD62828, 0xFF3A3A3A, 0xFF222222, AC_FLAG, "Fascista!", "Ei, ei, ei!");
@@ -67,29 +67,32 @@ final class Data {
         KINDS[K_GUARDA] = new Kind("Guarda de Elite", 42, 66, 10, 58, 0.5f, 1.5f, AT_MELEE, 200, SK2, 0xFF101820, 0xFF101820, 0xFF111111, AC_SUIT, "Multado!", "Protocolo!");
         KINDS[K_XEREX] = new Kind("Xerxes de Moraes", 330, 60, 12, 95, 0.7f, 1.4f, AT_BOSS, 3000, SK4, 0xFF111111, 0xFF000000, 0xFF111111, AC_TOGA, "Canetada!", "Multa diária!").big(1.4f);
         KINDS[K_MULA] = new Kind("Mula", 430, 58, 12, 85, 0.6f, 1.3f, AT_BOSS, 4000, SK2, 0xFFD50000, 0xFF263238, 0xFFEEEEEE, AC_MULA, "Nunca antes na história!", "Uma pinga, companheiro!").big(1.4f);
+        KINDS[K_XANXA] = new Kind("Xanxa", 300, 62, 11, 85, 0.55f, 1.4f, AT_BOSS, 3500, SK4, 0xFF6D4C33, 0xFF111111, 0xFF2B2B2B, AC_XANXA, "Respeito!").big(1.35f);
     }
 
     // ---- heróis
-    static final String[] HERO_NAME = {"Jair Bonossauro", "Patriota do Caminhão", "Tiozão do Zap", "Véio da Havan-a"};
+    static final String[] HERO_NAME = {"Jair Bonossauro", "Patriota do Caminhão", "Tiozão do Zap", "Véio da Havan-a", "Michele Bonossauro"};
     static final String[] HERO_DESC = {
             "Herói de ação dos anos 80.\nEquilibrado. Especial: Motociata.",
             "Tanque lento, dano alto.\nEspecial: investida imparável.",
             "Ataca à distância com\nnotificações que confundem.",
-            "Ágil, terno verde-limão.\nBate com a Estátua da Liberdade."};
-    static final float[] HERO_HP = {100, 140, 90, 95};
-    static final float[] HERO_SPD = {1f, 0.8f, 0.95f, 1.3f};
-    static final float[] HERO_DMG = {1f, 1.5f, 1f, 1.15f};
+            "Ágil, terno verde-limão.\nBate com a Estátua da Liberdade.",
+            "Elegante, de branco.\nEspecial: Poder da Oração\n(cura a dupla)."};
+    static final float[] HERO_HP = {100, 140, 90, 95, 105};
+    static final float[] HERO_SPD = {1f, 0.8f, 0.95f, 1.3f, 1.1f};
+    static final float[] HERO_DMG = {1f, 1.5f, 1f, 1.15f, 1.05f};
     /** 0 moto, 1 caminhão, 2 rajada de notificações, 3 giro da estátua */
-    static final int[] HERO_SPEC = {0, 1, 2, 3};
+    static final int[] HERO_SPEC = {0, 1, 2, 3, 6};
     static final int[][] HERO_COL = { // pele, camisa, calça, cabelo
             {SK1, 0xFFFFD500, 0xFF2A4C8B, 0xFF4A2F1B},
             {SK3, 0xFF2E7D32, 0xFF5D4037, 0xFF222222},
             {SK4, 0xFFFFFFFF, 0xFF37474F, 0xFFCCCCCC},
-            {SK4, 0xFF9AE600, 0xFF9AE600, 0xFFEEEEEE}};
+            {SK4, 0xFF9AE600, 0xFF9AE600, 0xFFEEEEEE},
+            {SK4, 0xFFFFFFFF, 0xFFF3D2A8, 0xFF3E2723}};
 
-    static final String[] HERO_START = {"E daí? Lamento, quer que eu faça o quê?", "Bora pra cima, companheiro!", "Já mandei no grupo da família!", "Aqui é Brasil, meu amigo!"};
-    static final String[] HERO_FINISH = {"Tem que se fuder, porra!", "Toma essa!", "Vai ficar no vácuo!", "Pra cima deles!"};
-    static final String[] HERO_SPECIAL = {"Imbroxável!", "Acabou, porra!", "Corrente do bem!", "Acabou, porra!"};
+    static final String[] HERO_START = {"E daí? Lamento, quer que eu faça o quê?", "Bora pra cima, companheiro!", "Já mandei no grupo da família!", "Aqui é Brasil, meu amigo!", "Deus abençoe esta missão!"};
+    static final String[] HERO_FINISH = {"Tem que se fuder, porra!", "Toma essa!", "Vai ficar no vácuo!", "Pra cima deles!", "Em nome de Deus!"};
+    static final String[] HERO_SPECIAL = {"Imbroxável!", "Acabou, porra!", "Corrente do bem!", "Acabou, porra!", "Poder da oração!"};
 
     // ---- itens
     static final int IT_PAO = 0, IT_PASTEL = 1, IT_CAFE = 2, IT_PEN = 3, IT_CLORO = 4, IT_JBL = 5, IT_VUVU = 6, IT_GUARDA = 7, IT_FACA = 8;

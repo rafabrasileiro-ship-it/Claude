@@ -30,7 +30,7 @@ final class Game {
             PJ_NOTIF = 6, PJ_WATCH = 7;
 
     // especiais
-    static final int SP_RIDE = 0, SP_TRUCK = 1, SP_BURST = 2, SP_SPIN = 3, SP_LANCE = 4, SP_ROAR = 5;
+    static final int SP_RIDE = 0, SP_TRUCK = 1, SP_BURST = 2, SP_SPIN = 3, SP_LANCE = 4, SP_ROAR = 5, SP_PRAY = 6;
 
     // botões
     static final int BA = 0, BB = 1, BC = 2, BD = 3;
@@ -383,6 +383,8 @@ final class Game {
             sps.add(q);
             // dupla: o dobro de inimigos comuns (chegando um pouco depois, do lado oposto)
             if (np == 2 && !Data.KINDS[q.kind].boss) sps.add(new Data.Sp(q.kind, -q.side, q.delay + 0.7f));
+            // dupla na fase final: a Xanxa, esposa do Mula, entra junto com ele
+            if (np == 2 && q.kind == Data.K_MULA) sps.add(new Data.Sp(Data.K_XANXA, -1, q.delay));
         }
         segActive = true; segT = 0; spDone = new boolean[sps.size()];
         camMin = camMax = lockX(segIdx); camX = camMax;
@@ -421,7 +423,10 @@ final class Game {
         e.face = -side; e.st = S_IDLE; e.cd = 0.6f + rnd.nextFloat();
         e.slot = rnd.nextBoolean() ? 1 : -1;
         if (kind == Data.K_ABELIO) e.aux = side; // lado de flanco
-        if (k.boss) {
+        if (kind == Data.K_XANXA) {
+            e.x = camX + 130; e.y = 320; e.face = 1; e.cd = 2.0f;
+            pop("XANXA, a esposa do Mula, entrou na luta!", e.x, e.y - 160, 2.4f, 0xFFFFCC80);
+        } else if (k.boss) {
             bossRef = e;
             e.x = camX + W - 100; e.y = 350; e.face = -1;
             if (kind == Data.K_BONE) {
@@ -904,6 +909,8 @@ final class Game {
                 spDur = 1.2f; break;
             case SP_ROAR:
                 spDur = 1.1f; break;
+            case SP_PRAY:
+                spDur = 1.0f; break;
             default: spDur = 0.8f; break;
         }
         voice(mounted ? "Acabou, porra!" : Data.HERO_SPECIAL[hero], true);
@@ -934,6 +941,27 @@ final class Game {
                 }
                 o.x += jx * 90 * dt;
                 for (Ent t : targets(o.x - 100, o.x + 100, 50, 90)) if (!o.hit.contains(t)) { o.hit.add(t); landHit(t, 10 * dmgMul(), 1, t.x >= o.x ? 1 : -1, true); }
+                if (o.t >= spDur) endSpecial();
+                break;
+            }
+            case SP_PRAY: {
+                if (!roared && o.t >= 0.3f) {
+                    roared = true; shake = 8; L.sfx(SFX_ROAR);
+                    fxs.add(new Fx(FX_RING, o.x, o.y, 0, 0.7f, 170, 0xFFFFFFFF));
+                    fxs.add(new Fx(FX_RING, o.x, o.y, 0, 0.9f, 110, 0xFFFFE082));
+                    for (int i = 0; i < np; i++) {
+                        Ent q = ps[i].p;
+                        if (isDown(q)) continue;
+                        q.hp = Math.min(q.maxHp, q.hp + q.maxHp * 0.35f);
+                        pop("+35% VIDA", q.x, q.y - 100, 1.2f, 0xFFFFFFFF);
+                    }
+                    for (Ent t : targets(o.x - 170, o.x + 170, 80, 90)) {
+                        if (t.type == Ent.ENEMY) {
+                            landHit(t, 6 * dmgMul(), 1, t.x >= o.x ? 1 : -1, true);
+                            if (t.alive && !t.dying && !Data.KINDS[t.kind].boss) { t.st = S_HURT; t.t = 0; t.stunT = 1.6f; }
+                        }
+                    }
+                }
                 if (o.t >= spDur) endSpecial();
                 break;
             }
@@ -1496,6 +1524,11 @@ final class Game {
                 else if (r < 0.7f) setBossAtk(e, 2, 0.5f, 0.5f);
                 else setBossAtk(e, 0, 0.8f, 0.7f);
                 break;
+            case Data.K_XANXA:
+                if (adx < 95) setBossAtk(e, 0, 0.5f, 0.5f);
+                else if (r < 0.55f) setBossAtk(e, 1, 0.6f, 0.7f);
+                else e.cd = 0.4f;
+                break;
             case Data.K_MULA:
                 if (e.hp < e.maxHp * 0.75f && e.aux <= 0 && e.shield <= 0) { e.aux = 14; setBossAtk(e, 0, 1.8f, 0.3f); pop("Glub glub glub...", e.x, e.y - 130, 1.6f, 0xFFFFE082); }
                 else if (adx < 90) { if (r < 0.5f) setBossAtk(e, 3, 0.55f, 0.5f); else setBossAtk(e, 2, 0.7f, 0.7f); }
@@ -1568,6 +1601,13 @@ final class Game {
                     for (int i = -1; i <= 1; i += 2) spawnProj(PJ_MULTA, e.x + f * 30, e.y, 45, f * 330, (p.y - e.y) * 0.4f + i * 25, 0, 4, false, 3f, false, false, 12);
                     pop("MULTA DIÁRIA!", e.x, e.y - 140, 1f, 0xFFFF5252); L.sfx(SFX_THROW);
                 } else { e.vx = f * 360; e.life = 0.4f; e.dmg = 12; L.sfx(SFX_THROW); }
+                break;
+            case Data.K_XANXA:
+                if (e.atk == 0) { meleeBox(e, 85, 11, 1); L.sfx(SFX_HEAVY); }
+                else {
+                    for (int i = -1; i <= 1; i++) spawnProj(PJ_BOOK, e.x + f * 30, e.y, 50, f * 300, (p.y - e.y) * 0.35f + i * 30, 0, 6, false, 3f, false, false, 12);
+                    pop("BOLSA VOADORA!", e.x, e.y - 140, 1f, 0xFFFFCC80); L.sfx(SFX_THROW);
+                }
                 break;
             case Data.K_MULA:
                 if (e.atk == 0) {
