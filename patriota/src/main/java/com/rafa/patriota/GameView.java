@@ -170,6 +170,7 @@ final class GameView extends View {
         last = now;
         if (!running) return;
         screenT += dt;
+        Draw.time += dt;
         c.drawColor(0xFF000000);
         btnN = 0;
 

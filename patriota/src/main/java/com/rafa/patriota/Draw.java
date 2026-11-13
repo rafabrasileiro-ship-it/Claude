@@ -122,6 +122,44 @@ final class Draw {
         P.setFakeBoldText(false);
     }
 
+    /** Relógio global para animações de respiração/tecido. */
+    static float time;
+    private static final float[] J = new float[2];
+
+    /** Cinemática inversa de 2 ossos: calcula a articulação (joelho/cotovelo) em J. */
+    private static void joint(float x1, float y1, float x2, float y2, float l1, float l2, float bend) {
+        float dx = x2 - x1, dy = y2 - y1;
+        float d = (float) Math.sqrt(dx * dx + dy * dy);
+        if (d < 0.01f) { J[0] = x1; J[1] = y1 + l1; return; }
+        if (d >= l1 + l2) { J[0] = x1 + dx * 0.5f; J[1] = y1 + dy * 0.5f; return; }
+        float a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+        float hh = (float) Math.sqrt(Math.max(0f, l1 * l1 - a * a));
+        float mx = x1 + dx * a / d, my = y1 + dy * a / d;
+        J[0] = mx + bend * hh * (-dy / d);
+        J[1] = my + bend * hh * (dx / d);
+    }
+
+    /** Membro arredondado com contorno e brilho (volume). */
+    private static void limb(Canvas c, int col, float x1, float y1, float x2, float y2, float w) {
+        line(c, shade(col, -0.5f), x1, y1, x2, y2, w + 2f);
+        line(c, col, x1, y1, x2, y2, w);
+        if (q >= 2) line(c, shade(col, 0.22f), x1 + 0.8f, y1 - 0.6f, x2 + 0.8f, y2 - 0.6f, w * 0.3f);
+    }
+
+    private static void limb2(Canvas c, int colA, int colB, float x1, float y1, float x2, float y2, float l1, float l2, float bend, float w) {
+        joint(x1, y1, x2, y2, l1, l2, bend);
+        float jx = J[0], jy = J[1];
+        limb(c, colA, x1, y1, jx, jy, w);
+        limb(c, colB, jx, jy, x2, y2, w * 0.88f);
+    }
+
+    private static void shoeR(Canvas c, int col, float x, float y) {
+        oval(c, shade(col, -0.4f), x + 3, y - 3, 8.5f, 4.6f);
+        oval(c, col, x + 3, y - 3.5f, 7.5f, 3.8f);
+        if (q >= 2) oval(c, shade(col, 0.3f), x + 5, y - 5, 3, 1.2f);
+        rect(c, 0xFF0A0A0A, x - 4.5f, y - 1.2f, x + 10.5f, y);
+    }
+
     // ---------------------------------------------------------------- pessoa
     /**
      * Desenha uma pessoa low poly. (x,y) = pés no chão; h = altura do pulo.
@@ -147,45 +185,104 @@ final class Draw {
         boolean fem = lk.acc == Data.AC_DRESS || lk.acc == Data.AC_DANCER;
         boolean toga = lk.acc == Data.AC_TOGA, reitor = lk.acc == Data.AC_REITOR;
 
+        float ph = walk * 0.12f;
+        float bob = q >= 1 ? -Math.abs((float) Math.sin(ph)) * 1.6f * mv + (float) Math.sin(time * 2.4f + x * 0.01f) * 0.5f : 0f;
+        if (q == 0) {
         // ---- pernas
-        float lf = pose == P_JUMP || pose == P_JKICK ? 6 : sw;
-        float lb = pose == P_JUMP ? -6 : -sw;
-        boolean kick = pose == P_KICK || pose == P_JKICK;
-        if (!toga && !reitor) {
-            // perna de trás
-            poly(c, shade(pants, -0.2f), -9 * g, -40, -3 * g, -40, -3 * g + lb, -6, -10 * g + lb, -6);
-            poly(c, shoe, -12 * g + lb, -6, -3 * g + lb, -6, -2 * g + lb, 0, -13 * g + lb, 0);
-            // perna da frente (chuta)
-            if (kick) {
-                poly(c, pants, -2 * g, -42, 6 * g, -42, 38, -50, 32, -58);
-                poly(c, shoe, 32, -58, 38, -50, 46, -52, 42, -62);
-            } else {
-                poly(c, pants, -3 * g, -40, 5 * g, -40, 6 * g + lf, -6, -2 * g + lf, -6);
-                poly(c, shoe, -3 * g + lf, -6, 7 * g + lf, -6, 10 * g + lf, 0, -3 * g + lf, 0);
+            float lf = pose == P_JUMP || pose == P_JKICK ? 6 : sw;
+            float lb = pose == P_JUMP ? -6 : -sw;
+            boolean kick = pose == P_KICK || pose == P_JKICK;
+            if (!toga && !reitor) {
+                // perna de trás
+                poly(c, shade(pants, -0.2f), -9 * g, -40, -3 * g, -40, -3 * g + lb, -6, -10 * g + lb, -6);
+                poly(c, shoe, -12 * g + lb, -6, -3 * g + lb, -6, -2 * g + lb, 0, -13 * g + lb, 0);
+                // perna da frente (chuta)
+                if (kick) {
+                    poly(c, pants, -2 * g, -42, 6 * g, -42, 38, -50, 32, -58);
+                    poly(c, shoe, 32, -58, 38, -50, 46, -52, 42, -62);
+                } else {
+                    poly(c, pants, -3 * g, -40, 5 * g, -40, 6 * g + lf, -6, -2 * g + lf, -6);
+                    poly(c, shoe, -3 * g + lf, -6, 7 * g + lf, -6, 10 * g + lf, 0, -3 * g + lf, 0);
+                }
             }
-        }
-        if (q >= 1 && !toga && !reitor) { line(c, shade(pants, -0.3f), -1 * g, -34, 0, -16, 1.2f); }
-        if (fem) {
-            poly(c, shirt, -14, -62, 14, -62, 20, -26, -20, -26);
-        }
-        if (toga) {
-            poly(c, 0xFF0A0A0A, -16, -70, 16, -70, 22, 0, -22, 0);
-            poly(c, 0xFF1C1C1C, -4, -70, 16, -70, 22, 0, 4, 0);
-        }
-        if (reitor) {
-            poly(c, lk.shirt, -16, -70, 16, -70, 20, -8, -20, -8);
-            poly(c, shade(lk.shirt, 0.15f), -6, -70, 16, -70, 20, -8, 0, -8);
-        }
+            if (q >= 1 && !toga && !reitor) { line(c, shade(pants, -0.3f), -1 * g, -34, 0, -16, 1.2f); }
+            if (fem) {
+                poly(c, shirt, -14, -62, 14, -62, 20, -26, -20, -26);
+            }
+            if (toga) {
+                poly(c, 0xFF0A0A0A, -16, -70, 16, -70, 22, 0, -22, 0);
+                poly(c, 0xFF1C1C1C, -4, -70, 16, -70, 22, 0, 4, 0);
+            }
+            if (reitor) {
+                poly(c, lk.shirt, -16, -70, 16, -70, 20, -8, -20, -8);
+                poly(c, shade(lk.shirt, 0.15f), -6, -70, 16, -70, 20, -8, 0, -8);
+            }
 
-        // ---- tronco
-        if (!toga && !reitor && !fem) {
-            poly(c, shirt, -13 * g, -70, 13 * g, -70, 10 * g, -38, -10 * g, -38);
-            poly(c, shade(shirt, -0.12f), -13 * g, -70, -4 * g, -70, -4 * g, -38, -10 * g, -38);
-        }
-        if (q >= 1 && !toga && !reitor && !fem) { // luz: lado da frente mais claro, costas escuras, dobras
-            poly(c, shade(shirt, 0.16f), 3 * g, -70, 13 * g, -70, 10 * g, -38, 2 * g, -38);
-            line(c, shade(shirt, -0.3f), -2 * g, -60, 1 * g, -44, 1.2f);
-            line(c, shade(shirt, -0.25f), 4 * g, -56, 6 * g, -42, 1.0f);
+            // ---- tronco
+            if (!toga && !reitor && !fem) {
+                poly(c, shirt, -13 * g, -70, 13 * g, -70, 10 * g, -38, -10 * g, -38);
+                poly(c, shade(shirt, -0.12f), -13 * g, -70, -4 * g, -70, -4 * g, -38, -10 * g, -38);
+            }
+            if (q >= 1 && !toga && !reitor && !fem) { // luz: lado da frente mais claro, costas escuras, dobras
+                poly(c, shade(shirt, 0.16f), 3 * g, -70, 13 * g, -70, 10 * g, -38, 2 * g, -38);
+                line(c, shade(shirt, -0.3f), -2 * g, -60, 1 * g, -44, 1.2f);
+                line(c, shade(shirt, -0.25f), 4 * g, -56, 6 * g, -42, 1.0f);
+            }
+        } else {
+            boolean kickR = pose == P_KICK || pose == P_JKICK;
+            float hipY = -40 + bob;
+            float fF = sw * 1.5f, fB = -sw * 1.5f;
+            float liftF = Math.max(0f, (float) Math.cos(ph)) * 5f * mv, liftB = Math.max(0f, -(float) Math.cos(ph)) * 5f * mv;
+            float ffx = 2 * g + fF, ffy = -4 - liftF, bfx = -6 * g + fB, bfy = -4 - liftB;
+            if (pose == P_JUMP) { ffx = 9; ffy = -16; bfx = -8; bfy = -10; }
+            if (pose == P_HURT) { ffx = 6; bfx = -9; }
+            if (!toga && !reitor) {
+                int pb = shade(pants, -0.22f);
+                limb2(c, pb, pb, -5 * g, hipY, bfx, bfy, 19, 19, -1, 8.5f * g);
+                shoeR(c, shoe, bfx - 3, bfy + 4);
+                if (kickR) {
+                    limb2(c, pants, pants, 2 * g, hipY - 2, 40, -54, 22, 22, -1, 9f * g);
+                    c.save(); c.translate(42, -56); c.rotate(-20); shoeR(c, shoe, -2, 3); c.restore();
+                } else {
+                    limb2(c, pants, pants, 2 * g, hipY, ffx, ffy, 19, 19, -1, 9f * g);
+                    shoeR(c, shoe, ffx - 3, ffy + 4);
+                }
+            }
+            c.translate(0, bob);
+            if (fem) {
+                poly(c, shade(shirt, -0.2f), -14, -62, 14, -62, 21, -25, -21, -25);
+                poly(c, shirt, -6, -62, 14, -62, 21, -25, -2, -25);
+            }
+            if (toga) {
+                poly(c, 0xFF0A0A0A, -16, -70, 16, -70, 22, 0, -22, 0);
+                poly(c, 0xFF1C1C1C, -4, -70, 16, -70, 22, 0, 4, 0);
+                line(c, 0xFF2A2A2A, 6, -60, 10, -4, 1.2f); line(c, 0xFF000000, -6, -60, -10, -4, 1.2f);
+            }
+            if (reitor) {
+                poly(c, shade(lk.shirt, -0.2f), -16, -70, 16, -70, 20, -8, -20, -8);
+                poly(c, lk.shirt, -6, -70, 16, -70, 20, -8, 0, -8);
+                line(c, shade(lk.shirt, 0.25f), 8, -62, 12, -12, 1.2f);
+            }
+            // pescoço
+            rect(c, shade(skin, -0.25f), -3, -74, 6, -66);
+            if (!toga && !reitor && !fem) {
+                // tronco com volume: base escura, corpo, faixa de luz
+                circle(c, shade(shirt, -0.35f), -10.5f * g, -65, 5.2f);
+                circle(c, shade(shirt, -0.35f), 10.5f * g, -65, 5.2f);
+                poly(c, shade(shirt, -0.28f), -13.5f * g, -68, -9 * g, -71, 9 * g, -71, 13.5f * g, -68, 11 * g, -38, -11 * g, -38);
+                poly(c, shirt, -7 * g, -70.5f, 9 * g, -70.5f, 13 * g, -67, 10.5f * g, -39, -6 * g, -39);
+                if (q >= 2) {
+                    poly(c, shade(shirt, 0.18f), 4 * g, -69, 9 * g, -70, 12 * g, -66, 10 * g, -46, 6 * g, -46);
+                    line(c, shade(shirt, -0.32f), -3 * g, -58, 0, -44, 1.1f);
+                    line(c, shade(shirt, -0.26f), 3 * g, -52, 5 * g, -42, 1.0f);
+                    line(c, shade(shirt, -0.2f), -8 * g, -50, -5 * g, -42, 1.0f);
+                }
+                circle(c, shirt, -10 * g, -65.5f, 4.2f);
+                circle(c, shade(shirt, 0.1f), 10 * g, -65.5f, 4.2f);
+                // cinto
+                rect(c, 0xFF1A1A1A, -10.5f * g, -41, 10.5f * g, -37.5f);
+                rect(c, 0xFFBDBDBD, 1 * g, -41, 4 * g, -37.5f);
+            }
         }
         if (lk.hero == 0) { // camisa da seleção: gola verde e escudo
             poly(c, 0xFF1B8F3A, -6, -70, 6, -70, 0, -62);
@@ -211,11 +308,17 @@ final class Draw {
         // ---- cabeça
         float hx = 2;
         if (pose == P_HURT) hx = -2;
-        poly(c, skin, hx - 10, -92, hx + 6, -94, hx + 12, -84, hx + 10, -74, hx - 2, -70, hx - 11, -76);
-        if (q >= 1) { // volume da cabeça
-            poly(c, shade(skin, -0.2f), hx - 10, -90, hx - 3, -92, hx - 4, -72, hx - 11, -76);
-            poly(c, shade(skin, 0.12f), hx + 6, -90, hx + 11, -86, hx + 9, -78, hx + 5, -80);
-            poly(c, shade(skin, -0.28f), hx - 4, -72, hx + 6, -72, hx + 5, -67, hx - 3, -67);
+        if (q == 0) {
+            poly(c, skin, hx - 10, -92, hx + 6, -94, hx + 12, -84, hx + 10, -74, hx - 2, -70, hx - 11, -76);
+        } else {
+            oval(c, shade(skin, -0.5f), hx + 0.5f, -82, 12, 13.2f);
+            oval(c, shade(skin, -0.2f), hx + 0.5f, -82, 11, 12.2f);
+            oval(c, skin, hx + 2.2f, -82.5f, 9.2f, 11.2f);
+            if (q >= 2) oval(c, shade(skin, 0.14f), hx + 5.5f, -85, 4.2f, 5.5f);
+            oval(c, shade(skin, -0.3f), hx - 4.5f, -81, 2.4f, 3.4f); // orelha
+            poly(c, shade(skin, -0.12f), hx + 10.5f, -84, hx + 14.5f, -78.5f, hx + 10, -77.5f); // nariz
+            line(c, shade(skin, -0.55f), hx + 5.5f, -74, hx + 10.5f, -74.6f, 1.3f); // boca
+            oval(c, shade(skin, -0.3f), hx + 1, -70.5f, 6, 1.6f); // sombra do queixo
         }
         // cabelo
         if (lk.acc == Data.AC_MULA || lk.acc == Data.AC_COAT || lk.acc == Data.AC_ANCHOR || lk.hero == 3 || lk.hero == 2) {
@@ -261,28 +364,51 @@ final class Draw {
         float ext = punching ? (pt < 0.5f ? pt * 2 : 1f) : 0;
         int armCol = lk.hero == 0 || fem ? skin : shirt;
         if (lk.acc == Data.AC_TOGA) armCol = 0xFF111111;
+        if (q == 0) {
         // braço de trás
-        poly(c, shade(armCol, -0.15f), -10, ay, -5, ay, -9 - sa, ay + 24, -14 - sa, ay + 24);
-        // braço da frente
-        if (punching) {
-            float fx = 20 + 18 * ext;
-            poly(c, armCol, 4, ay - 2, 10, ay + 4, fx + 6, ay + 8 - 4 * ext, fx, ay + 2 - 4 * ext);
-            circle(c, skin, fx + 5, ay + 4 - 4 * ext, 5);
-        } else if (pose == P_WIND || pose == P_JKICK || pose == P_CHARGE) {
-            float up = pose == P_CHARGE ? -28 : -18;
-            poly(c, armCol, 4, ay - 2, 10, ay + 4, 20, ay + up + 6, 14, ay + up);
-            circle(c, skin, 19, ay + up + 2, 5);
-        } else if (pose == P_GRAB) {
-            poly(c, armCol, 4, ay - 2, 10, ay + 4, 32, ay + 6, 30, ay - 1);
-            circle(c, skin, 34, ay + 3, 5);
-        } else if (pose == P_SPIN) {
-            float a = (walk * 0.6f);
-            float fx = (float) Math.cos(a) * 30, fy = (float) Math.sin(a) * 8;
-            poly(c, armCol, 4, ay - 2, 10, ay + 4, fx + 6, ay + fy + 4, fx, ay + fy - 2);
-            circle(c, skin, fx + 3, ay + fy + 1, 5);
+            poly(c, shade(armCol, -0.15f), -10, ay, -5, ay, -9 - sa, ay + 24, -14 - sa, ay + 24);
+            // braço da frente
+            if (punching) {
+                float fx = 20 + 18 * ext;
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, fx + 6, ay + 8 - 4 * ext, fx, ay + 2 - 4 * ext);
+                circle(c, skin, fx + 5, ay + 4 - 4 * ext, 5);
+            } else if (pose == P_WIND || pose == P_JKICK || pose == P_CHARGE) {
+                float up = pose == P_CHARGE ? -28 : -18;
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, 20, ay + up + 6, 14, ay + up);
+                circle(c, skin, 19, ay + up + 2, 5);
+            } else if (pose == P_GRAB) {
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, 32, ay + 6, 30, ay - 1);
+                circle(c, skin, 34, ay + 3, 5);
+            } else if (pose == P_SPIN) {
+                float a = (walk * 0.6f);
+                float fx = (float) Math.cos(a) * 30, fy = (float) Math.sin(a) * 8;
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, fx + 6, ay + fy + 4, fx, ay + fy - 2);
+                circle(c, skin, fx + 3, ay + fy + 1, 5);
+            } else {
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, 12 + sa, ay + 26, 6 + sa, ay + 26);
+                circle(c, skin, 10 + sa, ay + 28, 4.5f);
+            }
         } else {
-            poly(c, armCol, 4, ay - 2, 10, ay + 4, 12 + sa, ay + 26, 6 + sa, ay + 26);
-            circle(c, skin, 10 + sa, ay + 28, 4.5f);
+            boolean longS = lk.acc == Data.AC_SUIT || lk.acc == Data.AC_ANCHOR || lk.acc == Data.AC_COAT || toga || reitor
+                    || lk.acc == Data.AC_KNIFE || lk.hero == 3 || lk.acc == Data.AC_MULA;
+            int up = fem ? skin : (lk.acc == Data.AC_COAT ? (flash > 0 ? 0xFFFFFFFF : 0xFFF2F2F2) : lk.acc == Data.AC_MULA ? shade(shirt, -0.3f) : armCol == skin && !fem ? shirt : armCol);
+            if (toga) up = 0xFF151515;
+            int fo = longS ? up : skin;
+            float hxT, hyT;
+            if (punching) { hxT = 25 + 18 * ext; hyT = ay + 4 - 4 * ext; }
+            else if (pose == P_WIND || pose == P_JKICK || pose == P_CHARGE) { hxT = 19; hyT = ay + (pose == P_CHARGE ? -28 : -18) + 2; }
+            else if (pose == P_GRAB) { hxT = 34; hyT = ay + 3; }
+            else if (pose == P_SPIN) { float a2 = walk * 0.6f; hxT = (float) Math.cos(a2) * 30 + 3; hyT = ay + (float) Math.sin(a2) * 8 + 1; }
+            else { hxT = 10 + sa; hyT = ay + 27; }
+            // braço de trás (guarda alta ao socar)
+            float bhx = punching || pose == P_GRAB ? 12 : -11 - sa, bhy = punching || pose == P_GRAB ? ay + 4 : ay + 26;
+            limb2(c, shade(up, -0.25f), shade(fo, -0.25f), -8 * g, ay - 1, bhx, bhy, 13.5f, 13.5f, 1, 6.5f);
+            circle(c, shade(skin, -0.5f), bhx, bhy + 1, 5f); circle(c, shade(skin, -0.2f), bhx, bhy + 1, 4f);
+            // braço da frente
+            limb2(c, up, fo, 8 * g, ay - 1, hxT, hyT, 13.5f, 13.5f, 1, 7f);
+            circle(c, shade(skin, -0.5f), hxT + 0.5f, hyT + 0.5f, 5.6f);
+            circle(c, skin, hxT + 0.5f, hyT + 0.5f, 4.6f);
+            if (q >= 2) circle(c, shade(skin, 0.2f), hxT + 1.8f, hyT - 1, 1.8f);
         }
 
         // ---- acessórios de mão

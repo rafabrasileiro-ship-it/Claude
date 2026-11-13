@@ -91,7 +91,9 @@ final class Game {
     float lastHurtT;
 
     // controle interno
-    private boolean qA, qB, qC, qD;
+    private static final float BUF = 0.2f;
+    private float bufA, bufB, bufC, bufD;
+    private float pvx, pvy, hitStop, camLead, ambT;
     int comboStep;
     private boolean comboQueued;
     private float comboT;
@@ -109,10 +111,11 @@ final class Game {
     void setMove(float x, float y) { jx = x; jy = y; }
 
     void press(int b) {
-        if (b == BA) { qA = true; heldA = true; aHold = 0; charged = false; }
-        else if (b == BB) qB = true;
-        else if (b == BC) qC = true;
-        else if (b == BD) qD = true;
+        // os toques ficam "na fila" por um instante, para não se perderem no meio de outra animação
+        if (b == BA) { bufA = BUF; heldA = true; aHold = 0; charged = false; }
+        else if (b == BB) bufB = BUF;
+        else if (b == BC) bufC = BUF;
+        else if (b == BD) bufD = BUF;
     }
 
     void release(int b) {
@@ -134,10 +137,10 @@ final class Game {
         coffeeT = penT = blurT = slowT = rootT = 0; cloroImmune = false;
         score = 0; result = 0; endT = 0; radio = ""; radioT = 0; bossRef = null; mountT = 0;
         segIdx = 0; segActive = false; cur = null; camX = 0; camMin = 0; camMax = LOCK0; shake = 0; time = 0;
-        comboStep = 0; comboT = 0; grabbed = null; qA = qB = qC = qD = false; heldA = false; charged = false;
+        comboStep = 0; comboT = 0; grabbed = null; bufA = bufB = bufC = bufD = 0; pvx = pvy = 0; hitStop = 0; camLead = 0; ambT = 5f; heldA = false; charged = false;
         voiceCd = 0; goT = 0; auraT = 0;
         p.inv = 1f;
-        voice(Data.HERO_START[hero], true);
+        voice(stageIdx == 2 && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
     }
 
     /** Continua depois do game over: reinicia o bloco atual com vida cheia. */
@@ -175,6 +178,12 @@ final class Game {
         if (voiceCd > 0) voiceCd -= dt;
         if (radioT > 0) radioT -= dt;
         if (goT > 0) goT -= dt;
+        if (hitStop > 0) { // micro-pausa no impacto: dá peso aos golpes
+            hitStop -= dt;
+            for (int i = fxs.size() - 1; i >= 0; i--) { Fx f = fxs.get(i); f.t += dt; if (f.t > f.life) fxs.remove(i); }
+            return;
+        }
+        updateAmbient(dt);
 
         updatePlayer(dt);
         updateSeg(dt);
@@ -209,8 +218,9 @@ final class Game {
     }
 
     private void updateCamera(float dt) {
-        float target = p.x - 320;
-        camX += (target - camX) * Math.min(1f, 6f * dt);
+        camLead += (p.face * 45 - camLead) * Math.min(1f, 2.5f * dt);
+        float target = p.x - 350 + camLead;
+        camX += (target - camX) * Math.min(1f, 5f * dt);
         if (camX < camMin) camX = camMin;
         if (camX > camMax) camX = camMax;
         if (!segActive && camX > camMin) camMin = camX;
@@ -291,7 +301,7 @@ final class Game {
                 ents.add(d);
             }
             if (kind == Data.K_REITOR) { e.aux = 34; }
-            if (kind == Data.K_MULA) { e.cd = 1.5f; bossSay(e, "O Brasil vai acabar"); }
+            if (kind == Data.K_MULA) { e.cd = 1.5f; bossSay(e, "O Brasil acabou!"); }
         }
         ents.add(e);
         return e;
@@ -345,10 +355,46 @@ final class Game {
     private void bossSay(Ent e, String s) {
         if (!L.hasClip(s)) return;
         pop("\u201C" + s + "\u201D", e.x, e.y - 160, 2.2f, 0xFFFFE082);
-        if (time - bossVoiceCd > 6f || bossVoiceCd == 0) { bossVoiceCd = time; L.voice(s); }
+        if (time - bossVoiceCd > 8f || bossVoiceCd == 0) { bossVoiceCd = time; ambT = Math.max(ambT, clipLen(s) + 6f); L.voice(s); }
     }
 
-    private static final String[] GROBO = {"Não tem credibilidade!", "Canalhas!"};
+    private static final String[] GROBO = {"Não tem credibilidade!", "Canalhas!", "Hahahaha!"};
+    private static final String[] QUARENTENA = {"Jacaré!"};
+    private static final String[] CONTRA_MULA = {"Para de mentir, Lula!"};
+    // falas "de fundo" (alto-falante) por fase
+    private static final String[] AMB_MANIF = {"Bora pra rua, gente!", "(Mula sobre a fome)", "(Mula no alto-falante)"};
+    private static final String[] AMB_UNIV = {"(Mula sobre a fome)"};
+    private static final String[] AMB_FINAL = {"(Mula no alto-falante)", "O Brasil acabou!"};
+
+    /** Duração aproximada de cada gravação (s), para não cortar uma fala com a seguinte. */
+    private static float clipLen(String s) {
+        switch (s) {
+            case "A maioria ali é militante.": return 7.8f;
+            case "Hahahaha!": return 6.0f;
+            case "Para de mentir, Lula!": return 4.6f;
+            case "São uns idiotas úteis!": return 5.5f;
+            case "Canalhas!": return 4.3f;
+            case "Não tem credibilidade!": case "São vagabundos!": return 2.9f;
+            case "(Mula no alto-falante)": return 6.4f;
+            case "O Brasil acabou!": return 4.3f;
+            case "(Mula sobre a fome)": return 3.4f;
+            case "Bora pra rua, gente!": return 1.8f;
+            default: return 1.4f;
+        }
+    }
+
+    private void updateAmbient(float dt) {
+        ambT -= dt;
+        if (ambT > 0 || p.st == S_DEAD) return;
+        String[] pool = stageIdx == 0 ? AMB_MANIF : stageIdx == 2 ? AMB_UNIV : stageIdx == 7 ? AMB_FINAL : null;
+        if (pool == null) { ambT = 30f; return; }
+        String s = pool[rnd.nextInt(pool.length)];
+        if (!L.hasClip(s)) { ambT = 5f; return; }
+        L.voice(s);
+        pop("\uD83D\uDD0A " + s, camX + W / 2f, 150, Math.min(4f, clipLen(s)), 0xFFFFE082);
+        ambT = clipLen(s) + 7f + rnd.nextFloat() * 7f;
+        bossVoiceCd = time;
+    }
     private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!"};
     private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!"};
 
@@ -357,7 +403,9 @@ final class Game {
         if (hero != 0 || voiceCd > 0) return;
         String[] pool = BRIGA;
         // falas específicas por fase: estúdios da Grobo (4.1 a 4.4) e universidade (fase 3)
-        if (stageIdx >= 3 && stageIdx <= 6 && rnd.nextFloat() < 0.7f) pool = GROBO;
+        if (bossRef != null && bossRef.kind == Data.K_MULA && rnd.nextFloat() < 0.6f) pool = CONTRA_MULA;
+        else if (stageIdx == 1 && rnd.nextFloat() < 0.5f) pool = QUARENTENA;
+        else if (stageIdx >= 3 && stageIdx <= 6 && rnd.nextFloat() < 0.7f) pool = GROBO;
         else if (stageIdx == 2 && rnd.nextFloat() < 0.7f) pool = UNIVERSIDADE;
         voice(pool[rnd.nextInt(pool.length)], false);
     }
@@ -365,7 +413,7 @@ final class Game {
     private void voice(String s, boolean force) {
         if (!L.hasClip(s)) return;
         pop(s, p.x, p.y - 110, 1.8f, 0xFFFFFFFF);
-        if (force || voiceCd <= 0) { L.voice(s); voiceCd = 3.2f; }
+        if (force || voiceCd <= 0) { L.voice(s); voiceCd = clipLen(s) + 2f; }
     }
 
     // ---------------------------------------------------------------- jogador
@@ -386,30 +434,31 @@ final class Game {
         if (comboT > 0) comboT -= dt;
         if (heldA) { aHold += dt; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
 
-        final boolean pA = qA, pB = qB, pC = qC, pD = qD;
-        qA = qB = qC = qD = false;
+        final boolean pA = bufA > 0, pB = bufB > 0, pC = bufC > 0, pD = bufD > 0;
+        bufA -= dt; bufB -= dt; bufC -= dt; bufD -= dt;
 
         float spd = Data.HERO_SPD[hero] * (mounted ? 1.3f : 1f) * (slowT > 0 ? 0.5f : 1f) * (coffeeT > 0 ? 1.1f : 1f);
         float ad = dt * atkSpeed();
 
         switch (o.st) {
             case S_IDLE: {
-                if (rootT <= 0) {
-                    o.x += jx * 150 * spd * dt; o.y += jy * 90 * spd * dt;
-                    o.walk += (Math.abs(jx) * 150 + Math.abs(jy) * 90) * spd * dt;
-                }
+                float tvx = rootT <= 0 ? jx * 168 * spd : 0, tvy = rootT <= 0 ? jy * 104 * spd : 0;
+                float kk = Math.min(1f, 18f * dt); // aceleração suave
+                pvx += (tvx - pvx) * kk; pvy += (tvy - pvy) * kk;
+                o.x += pvx * dt; o.y += pvy * dt;
+                o.walk += (Math.abs(pvx) + Math.abs(pvy)) * dt;
                 if (Math.abs(jx) > 0.2f) o.face = jx > 0 ? 1 : -1;
-                if (pB) { o.st = S_JUMP; o.vh = mounted ? 380 : 340; o.t = 0; L.sfx(SFX_JUMP); }
-                else if (pD) startSpecial();
-                else if (pC) pressC();
-                else if (pA) pressA();
+                if (pB) { bufB = 0; o.st = S_JUMP; o.vh = mounted ? 380 : 340; o.t = 0; L.sfx(SFX_JUMP); }
+                else if (pD) { bufD = 0; startSpecial(); }
+                else if (pC) { bufC = 0; pressC(); }
+                else if (pA) { bufA = 0; pressA(); }
                 break;
             }
             case S_JUMP: {
                 o.x += jx * 110 * spd * dt; o.y += jy * 40 * dt;
                 if (Math.abs(jx) > 0.2f) o.face = jx > 0 ? 1 : -1;
                 o.vh -= GRAV * dt; o.h += o.vh * dt;
-                if (pA) { o.st = S_JKICK; o.t = 0; o.hit.clear(); spTick = 0; L.sfx(SFX_THROW); }
+                if (pA) { bufA = 0; o.st = S_JKICK; o.t = 0; o.hit.clear(); spTick = 0; L.sfx(SFX_THROW); }
                 if (o.h <= 0) { o.h = 0; o.vh = 0; o.st = S_IDLE; o.t = 0; }
                 break;
             }
@@ -433,7 +482,12 @@ final class Game {
                 float act = dur * 0.35f;
                 if (o.t < act) o.x += o.face * 70 * dt;
                 if (!o.did && o.t >= act) { o.did = true; doAttackHit(); }
-                if (pA && o.t >= dur * 0.3f) comboQueued = true;
+                if (pA && o.t >= dur * 0.3f) { comboQueued = true; bufA = 0; }
+                // cancelamentos: depois do golpe conectar dá para emendar pulo ou especial
+                if (o.did && o.t >= act + 0.04f && weapon < 0) {
+                    if (pB) { bufB = 0; pvx = o.face * 60; o.st = S_JUMP; o.vh = mounted ? 380 : 340; o.t = 0; comboStep = 0; L.sfx(SFX_JUMP); break; }
+                    if (pD && meter >= 50) { bufD = 0; comboStep = 0; startSpecial(); break; }
+                }
                 if (o.t >= dur) {
                     if (comboQueued && weapon < 0 && !(hero == 2 && !mounted) && comboStep < n) startAttack(true);
                     else { o.st = S_IDLE; o.t = 0; comboT = comboStep >= n ? 0 : 0.4f; if (comboStep >= n) comboStep = 0; }
@@ -457,6 +511,7 @@ final class Game {
             }
             case S_GRAB: {
                 updateGrab(dt, pA);
+                if (pA) bufA = 0;
                 break;
             }
             case S_SPECIAL: {
@@ -853,6 +908,7 @@ final class Game {
         if (rnd.nextFloat() < 0.12f) brawlVoice();
         fxs.add(new Fx(FX_SPARK, t.x, t.y, 40 + t.h, 0.25f, 16, 0xFFFFFFFF));
         L.vibrate(10);
+        if (p.st != S_SPECIAL) hitStop = Math.max(hitStop, knock > 0 ? 0.075f : 0.035f);
         if (t.hp <= 0) { killEnemy(t, dir); return true; }
         if (k.boss) {
             t.poise += dmg;
@@ -1379,7 +1435,7 @@ final class Game {
                 } else if (e.atk == 2) {
                     fxs.add(new Fx(FX_RING, e.x, e.y, 30, 0.6f, 115, 0xFFFF5252));
                     pop("DISCURSO!", e.x, e.y - 140, 1f, 0xFFFF5252);
-                    bossSay(e, "O Brasil vai acabar");
+                    bossSay(e, "O Brasil acabou!");
                     if (Math.abs(p.x - e.x) < 115 && Math.abs(p.y - e.y) < 55 && p.h < 40) hurtPlayer(10, p.x >= e.x ? 1 : -1, 1);
                     L.sfx(SFX_ROAR);
                 } else { meleeBox(e, 90, 12, 1); L.sfx(SFX_HEAVY); }

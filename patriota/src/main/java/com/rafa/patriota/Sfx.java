@@ -16,7 +16,7 @@ final class Sfx implements Game.Listener {
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
     private Context ctx;
-    private MediaPlayer mp;
+    private MediaPlayer mp, mpAmb;
     /** frase -> nome do arquivo em res/raw (sem extensão). Se o arquivo existir, toca a gravação. */
     private static final java.util.HashMap<String, String> CLIPS = new java.util.HashMap<>();
     static {
@@ -25,7 +25,14 @@ final class Sfx implements Game.Listener {
         CLIPS.put("Acabou, porra!", "voz_acabou");
         CLIPS.put("Imbroxável!", "voz_imbroxavel");
         CLIPS.put("Isso aqui é uma maravilha, pô!", "voz_maravilha");
-        CLIPS.put("O Brasil vai acabar", "voz_mula_brasil");
+        CLIPS.put("O Brasil acabou!", "voz_lula_brasil_acabou");
+        CLIPS.put("A maioria ali é militante.", "voz_maioria_militante");
+        CLIPS.put("Jacaré!", "voz_jacare");
+        CLIPS.put("Para de mentir, Lula!", "voz_para_de_mentir");
+        CLIPS.put("Hahahaha!", "voz_risada");
+        CLIPS.put("Bora pra rua, gente!", "voz_lula_bora_pra_rua");
+        CLIPS.put("(Mula sobre a fome)", "voz_lula_fome");
+        CLIPS.put("(Mula no alto-falante)", "voz_lula_game");
         CLIPS.put("Filho da puta!", "voz_filho_da_puta_1,voz_filho_da_puta_2");
         CLIPS.put("Vagabundo!", "voz_vagabundo");
         CLIPS.put("Escrota!", "voz_escrota");
@@ -96,12 +103,15 @@ final class Sfx implements Game.Listener {
         try {
             int id = ctx.getResources().getIdentifier(name, "raw", ctx.getPackageName());
             if (id == 0) return false;
-            if (mp != null) { try { mp.release(); } catch (Throwable ignored) { } mp = null; }
+            final boolean amb = name.startsWith("voz_lula");
+            MediaPlayer oldP = amb ? mpAmb : mp;
+            if (oldP != null) { try { oldP.release(); } catch (Throwable ignored) { } }
             MediaPlayer m = MediaPlayer.create(ctx, id);
+            if (amb) mpAmb = m; else mp = m;
             if (m == null) return false;
-            m.setVolume(voiceVol, voiceVol);
-            m.setOnCompletionListener(x -> { try { x.release(); } catch (Throwable ignored) { } if (mp == x) mp = null; });
-            mp = m;
+            float v = amb ? voiceVol * 0.8f : voiceVol;
+            m.setVolume(v, v);
+            m.setOnCompletionListener(x -> { try { x.release(); } catch (Throwable ignored) { } if (mp == x) mp = null; if (mpAmb == x) mpAmb = null; });
             m.start();
             return true;
         } catch (Throwable t) { return false; }
@@ -128,6 +138,7 @@ final class Sfx implements Game.Listener {
     void pauseAll() {
         try { if (currentMusic != null) currentMusic.pause(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.pause(); } catch (Throwable ignored) { }
+        try { if (mpAmb != null) mpAmb.pause(); } catch (Throwable ignored) { }
     }
 
     void resumeAll() {
@@ -145,6 +156,7 @@ final class Sfx implements Game.Listener {
         try { for (AudioTrack t : fx) if (t != null) t.release(); } catch (Throwable ignored) { }
         try { if (musicBattle != null) musicBattle.release(); if (musicTriumph != null) musicTriumph.release(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.release(); } catch (Throwable ignored) { }
+        try { if (mpAmb != null) mpAmb.release(); } catch (Throwable ignored) { }
     }
 
     // ---------------------------------------------------------------- síntese
