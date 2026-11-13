@@ -40,11 +40,16 @@ jobs:
         with:
           name: jogo-do-dino-apk
           path: app/build/outputs/apk/release/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: operacao-patriota-apk
+          path: patriota/build/outputs/apk/release/*.apk
       - name: Salvar APK no repositório
         run: |
           git rm -q --ignore-unmatch dist/*.apk
           mkdir -p dist
           cp app/build/outputs/apk/release/*.apk dist/jogo-do-dino-v${{ github.run_number }}.apk
+          cp patriota/build/outputs/apk/release/*.apk dist/operacao-patriota-v${{ github.run_number }}.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f dist/

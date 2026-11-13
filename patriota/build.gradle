@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+def ciKeystore = System.getenv('DINO_KEYSTORE')
+
+android {
+    namespace 'com.rafa.patriota'
+    compileSdk 34
+
+    signingConfigs {
+        if (ciKeystore) {
+            release {
+                storeFile file(ciKeystore)
+                storePassword System.getenv('DINO_STORE_PASS')
+                keyAlias 'dino'
+                keyPassword System.getenv('DINO_STORE_PASS')
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.rafa.patriota.operacao'
+        minSdk 21
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.0.${buildNumber}"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ciKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
