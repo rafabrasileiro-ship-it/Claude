@@ -314,7 +314,7 @@ final class Jet {
         if (L.hasClip(Data.HERO_SPECIAL[hero])) L.voice(Data.HERO_SPECIAL[hero]);
         pop("AVANTE, PATRIOTAS!", x, y - 110, 1.8f, 0xFFFFD400);
         fxs.add(new Game.Fx(Game.FX_RING, x, y, 0, 0.9f, 260, 0xFFFFD400));
-        int n = np == 2 ? 3 : 6;
+        int n = 3;
         for (int i = 0; i < n; i++) {
             Patriot p = new Patriot();
             p.x = camX - 120 - i * 40;
