@@ -24,6 +24,9 @@ h1 span{color:var(--t0)}
 .sub{color:var(--mut);margin:0 0 10px}
 .center input{font:inherit;font-size:24px;text-align:center;letter-spacing:8px;width:220px;padding:12px;border-radius:12px;border:2px solid var(--panel2);background:var(--panel);color:var(--ink)}
 .center button{min-width:220px;font-size:18px}
+.lvl{display:flex;gap:8px}
+.center .lvl button{min-width:0;font-size:15px;padding:9px 16px}
+.lvl button.on{background:var(--t1)}
 .code{font-size:64px;font-weight:900;letter-spacing:10px;color:var(--gold)}
 .url{font-size:15px;color:#9cc4ff;word-break:break-all}
 .err{color:#ff8a8a;min-height:1.3em}
@@ -87,7 +90,10 @@ footer{background:var(--panel);padding:8px 10px 10px;display:flex;flex-direction
 <section id="lobby" class="screen center">
   <h1>COMB<span>A</span>TE</h1>
   <p class="sub">Jogo de estratégia para 2 jogadores<br>(cada um no seu celular)</p>
-  <button class="pri" id="createBtn">Criar partida</button>
+  <button class="pri" id="aiBtn">🤖 Jogar contra a máquina</button>
+  <div class="lvl" id="lvl"><button data-l="0">Fácil</button><button data-l="1">Médio</button><button data-l="2">Difícil</button></div>
+  <div style="color:var(--mut)">ou jogue com um amigo (2 celulares)</div>
+  <button id="createBtn">Criar partida</button>
   <div style="color:var(--mut)">ou entre numa sala</div>
   <input id="codeIn" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" autocomplete="off">
   <button id="joinBtn">Entrar</button>
@@ -124,7 +130,8 @@ const TEAM=['Vermelho','Azul'];
 const TCOL=['var(--t0)','var(--t1)'];
 const lake=(r,c)=>(r===4||r===5)&&(c===2||c===3||c===6||c===7);
 
-let S=null, es=null, sel=null, lastSeq=null, lastTurnKey=null, battleT, toastT;
+let S=null, es=null, eng=null, sel=null, lastSeq=null, lastTurnKey=null, battleT, toastT;
+let level=1; try{const v=localStorage.getItem('combate-level'); level=v===null?1:+v; if(![0,1,2].includes(level))level=1}catch(e){}
 let session=null; try{session=JSON.parse(localStorage.getItem('combate-session')||'null')}catch(e){}
 let local=Array.from({length:10},()=>Array(10).fill(null));
 
@@ -135,6 +142,7 @@ function saveLocal(){try{sessionStorage.setItem('combate-setup-'+session.code,JS
 function loadLocal(){try{const v=JSON.parse(sessionStorage.getItem('combate-setup-'+session.code)||'null');if(v)local=v}catch(e){}}
 function vib(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
 async function api(name,body){
+  if(eng){const r=eng.action(name,body||{});return r}
   const r=await fetch('/api/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:session&&session.code,token:session&&session.token,...body})});
   const j=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(j.error||'Erro de conexão');
@@ -155,6 +163,7 @@ function em(n){const e=document.createElement('em');e.textContent=n;return e}
 // ---------- screens ----------
 function show(id){for(const s of['lobby','waiting','game'])$(s).classList.toggle('hidden',s!==id)}
 function showLobby(msg){
+  if(eng){eng.dead=true;eng=null}
   if(es){es.close();es=null}
   S=null;session=null;saveSession();show('lobby');$('lobbyErr').textContent=msg||'';
 }
@@ -177,7 +186,7 @@ function connect(){
     try{const r=await fetch('/api/check?code='+session.code+'&token='+session.token);if(r.status===404){showLobby('A sala não existe mais (o servidor foi reiniciado?)')}}catch(e){}
   };
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session&&(!es||es.readyState===2))connect()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session&&!session.local&&(!es||es.readyState===2))connect()});
 
 // ---------- state ----------
 function onState(){
@@ -284,10 +293,10 @@ function renderStatus(){
   const dot='<span class="dot" style="background:'+TCOL[S.you]+'"></span>';
   let main='',sub='';
   if(S.phase==='setup'){
-    if(!S.meReady){main='Posicione suas peças';sub=placedCount()+'/40 · '+(S.opp.ready?'adversário pronto':'adversário montando')}
+    if(!S.meReady){main='Posicione suas peças';sub=placedCount()+'/40'+(S.ai?'':' · '+(S.opp.ready?'adversário pronto':'adversário montando'))}
     else{main='Aguardando adversário…';sub='Você está pronto ✔'}
   }else if(S.phase==='play'){
-    main=S.turn===S.you?'Sua vez':'Vez do adversário';sub='Você é '+TEAM[S.you]+(S.opp.connected?'':' · adversário desconectado');
+    main=S.turn===S.you?'Sua vez':(S.ai?'Máquina pensando…':'Vez do adversário');sub='Você é '+TEAM[S.you]+(S.ai?' · máquina: '+['fácil','média','difícil'][level]:'')+(S.opp.connected?'':' · adversário desconectado');
   }else{
     main=S.winner===S.you?'Você venceu! 🏆':'Você perdeu';sub=reasonText();
   }
@@ -383,8 +392,241 @@ function fit(){const w=$('boardWrap');const s=Math.floor(Math.min((w.clientWidth
 new ResizeObserver(fit).observe($('boardWrap'));
 addEventListener('resize',fit);
 
+// ---------- modo contra a máquina (motor local, funciona sem servidor) ----------
+const CNT=[1,1,8,5,4,4,4,3,2,1,1,6];
+const VAL=[1000,30,6,20,12,18,25,35,50,80,100,15];
+const inb=(r,c)=>r>=0&&r<10&&c>=0&&c<10;
+const sameP=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+function outcome(a,d){
+  if(d===0)return 1000;
+  if(d===11)return a===3?25:-VAL[a];
+  if(a===1&&d===10)return VAL[10];
+  if(a>d)return VAL[d];
+  if(a===d)return VAL[d]-VAL[a];
+  return -VAL[a];
+}
+class Local{
+  constructor(level,emit){this.level=level;this.emit=emit;this.first=0;this.seq=0;this.aiDelay=750;this.dead=false;this.reset()}
+  reset(){
+    this.phase='setup';this.board=null;this.turn=this.first;this.lost=[[],[]];this.hist=[[],[]];
+    this.lastBattle=null;this.lastMove=null;this.winner=null;this.reason=null;this.nextId=1;
+    this.humanSetup=null;this.aiSetup=this.makeAISetup();
+  }
+  makeAISetup(){
+    const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+    const grid=Array.from({length:10},()=>Array(10).fill(null));
+    const fc=Math.floor(Math.random()*10);grid[0][fc]=0;
+    let bombs=6;
+    for(const [r,c] of [[0,fc-1],[0,fc+1],[1,fc]])if(inb(r,c)&&bombs>0){grid[r][c]=11;bombs--}
+    const free=[];for(let r=0;r<4;r++)for(let c=0;c<10;c++)if(grid[r][c]==null)free.push([r,c]);
+    shuffle(free);
+    for(let i=0;i<free.length&&bombs>0;i++){const [r,c]=free[i];if(r<=1){grid[r][c]=11;bombs--;free.splice(i,1);i--}}
+    const rest=[];for(let k=1;k<=10;k++)for(let n=0;n<CNT[k];n++)rest.push(k);
+    const front=free.filter(([r])=>r>=2),back=free.filter(([r])=>r<2);
+    shuffle(rest);
+    const scouts=rest.filter(k=>k===2),others=rest.filter(k=>k!==2);
+    // soldados na frente; o resto nas demais casas
+    const cells=shuffle(front.slice()).concat(shuffle(back.slice()));
+    const fill=[];let i=0;
+    for(const k of scouts){fill.push([cells[i++],k])}
+    const remCells=shuffle(cells.slice(i));
+    others.forEach((k,j)=>fill.push([remCells[j],k]));
+    const out=[];
+    for(let r=0;r<4;r++)for(let c=0;c<10;c++)if(grid[r][c]!=null)out.push({r,c,rank:grid[r][c]});
+    for(const [cell,k] of fill)out.push({r:cell[0],c:cell[1],rank:k});
+    return out;
+  }
+  inb(r,c){return inb(r,c)}
+  pieceMoves(r,c,board=this.board){
+    const pc=board[r][c],out=[];
+    if(!pc||pc.rank===0||pc.rank===11)return out;
+    for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      let rr=r+dr,cc=c+dc;
+      while(inb(rr,cc)&&!lake(rr,cc)){
+        const t=board[rr][cc];
+        if(t){if(t.owner!==pc.owner)out.push([rr,cc]);break}
+        out.push([rr,cc]);
+        if(pc.rank!==2)break;
+        rr+=dr;cc+=dc;
+      }
+    }
+    return out.filter(([a,b])=>!this.repeat(pc,[r,c],[a,b]));
+  }
+  repeat(pc,from,to){
+    const h=this.hist[pc.owner];if(h.length<3)return false;
+    const [a,b,c]=h.slice(-3);
+    if(a.id!==pc.id||b.id!==pc.id||c.id!==pc.id)return false;
+    return sameP(c.to,from)&&sameP(c.from,to)&&sameP(b.to,c.from)&&sameP(b.from,c.to)&&sameP(a.to,b.from)&&sameP(a.from,b.to);
+  }
+  hasMoves(p){
+    for(let r=0;r<10;r++)for(let c=0;c<10;c++){const pc=this.board[r][c];if(pc&&pc.owner===p&&this.pieceMoves(r,c).length)return true}
+    return false;
+  }
+  startGame(){
+    this.board=Array.from({length:10},()=>Array(10).fill(null));
+    for(const x of this.humanSetup)this.board[x.r][x.c]={id:this.nextId++,owner:0,rank:x.rank,known:false,moved:false};
+    for(const x of this.aiSetup)this.board[x.r][x.c]={id:this.nextId++,owner:1,rank:x.rank,known:false,moved:false};
+    this.phase='play';this.turn=this.first;this.scheduleAI();
+  }
+  finish(w,reason){this.phase='over';this.winner=w;this.reason=reason}
+  doMove(p,from,to){
+    const [fr,fc]=from,[tr,tc]=to;
+    const att=this.board[fr][fc];
+    if(this.phase!=='play')throw new Error('A partida não está em andamento');
+    if(this.turn!==p)throw new Error('Não é a sua vez');
+    if(!att||att.owner!==p||!this.pieceMoves(fr,fc).some(m=>m[0]===tr&&m[1]===tc))throw new Error('Movimento não permitido');
+    const def=this.board[tr][tc];
+    this.lastMove={from:[fr,fc],to:[tr,tc]};
+    att.moved=true;
+    if(!def){
+      this.board[fr][fc]=null;this.board[tr][tc]=att;
+      const h=this.hist[p];h.push({id:att.id,from:[fr,fc],to:[tr,tc]});if(h.length>6)h.shift();
+      if(Math.abs(fr-tr)+Math.abs(fc-tc)>1)att.known=true;
+    }else{
+      this.hist=[[],[]];
+      let res;
+      if(def.rank===0)res='att';
+      else if(def.rank===11)res=att.rank===3?'att':'def';
+      else if(att.rank===1&&def.rank===10)res='att';
+      else if(att.rank>def.rank)res='att';
+      else if(att.rank===def.rank)res='both';
+      else res='def';
+      this.board[fr][fc]=null;
+      if(res==='att'){this.board[tr][tc]=att;att.known=true;this.lost[def.owner].push(def.rank)}
+      else if(res==='def'){def.known=true;this.lost[p].push(att.rank)}
+      else{this.board[tr][tc]=null;this.lost[def.owner].push(def.rank);this.lost[p].push(att.rank)}
+      this.lastBattle={seq:++this.seq,attacker:p,att:att.rank,def:def.rank,from:[fr,fc],to:[tr,tc],result:res};
+      if(def.rank===0){this.finish(p,'flag');return}
+    }
+    this.turn=1-p;
+    if(!this.hasMoves(this.turn)){this.finish(p,'nomoves');return}
+    this.scheduleAI();
+  }
+  // ---- IA (só usa informação que um jogador humano teria) ----
+  scheduleAI(){
+    if(this.phase!=='play'||this.turn!==1)return;
+    setTimeout(()=>{if(this.dead||this.phase!=='play'||this.turn!==1)return;this.aiMove();this.emit()},this.aiDelay+Math.random()*this.aiDelay*.6);
+  }
+  pool(){
+    const pool=CNT.slice();
+    for(const k of this.lost[0])pool[k]--;
+    for(let r=0;r<10;r++)for(let c=0;c<10;c++){const pc=this.board[r][c];if(pc&&pc.owner===0&&pc.known)pool[pc.rank]--}
+    return pool.map(v=>Math.max(0,v));
+  }
+  aiMove(){
+    const lv=this.level,pool=this.pool();
+    const noise=[28,9,3][lv],safety=[0,.5,1][lv];
+    const humans=[];
+    for(let r=0;r<10;r++)for(let c=0;c<10;c++){const pc=this.board[r][c];if(pc&&pc.owner===0)humans.push([r,c])}
+    const minDist=(r,c)=>{let m=99;for(const [a,b] of humans)m=Math.min(m,Math.abs(a-r)+Math.abs(b-c));return m};
+    // chance de uma peça humana desconhecida capturar uma peça de patente a
+    const threat=(h,a)=>{
+      if(h.known)return(h.rank>=1&&h.rank<=10&&outcome(h.rank,a)>0)?1:0;
+      let tot=0,w=0;for(let d=1;d<=10;d++){tot+=pool[d];if(outcome(d,a)>0)w+=pool[d]}
+      return tot?w/tot:0;
+    };
+    const cand=[];
+    for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+      const pc=this.board[r][c];if(!pc||pc.owner!==1)continue;
+      for(const [tr,tc] of this.pieceMoves(r,c)){
+        const t=this.board[tr][tc];let sc=0;
+        if(t){
+          if(t.known)sc=outcome(pc.rank,t.rank);
+          else{
+            const lo=t.moved?1:0,hi=t.moved?10:11;
+            let tot=0,e=0;
+            for(let d=lo;d<=hi;d++){tot+=pool[d];e+=pool[d]*outcome(pc.rank,d)}
+            sc=tot?e/tot:0;
+            if(pc.rank===2)sc+=4; // soldado explora
+          }
+        }else{
+          sc+=(minDist(r,c)-minDist(tr,tc))*.8;
+          // perigo no destino
+          let danger=0;
+          for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+            const h=inb(tr+dr,tc+dc)&&this.board[tr+dr][tc+dc];
+            if(h&&h.owner===0)danger+=threat(h,pc.rank)*(h.known?1:.5);
+          }
+          sc-=VAL[pc.rank]*Math.min(1,danger)*safety;
+        }
+        sc+=(Math.random()-.5)*noise;
+        cand.push({r,c,tr,tc,sc});
+      }
+    }
+    if(!cand.length)return;
+    let pick;
+    if(lv===0&&Math.random()<.25)pick=cand[Math.floor(Math.random()*cand.length)];
+    else pick=cand.reduce((a,b)=>b.sc>a.sc?b:a);
+    this.doMove(1,[pick.r,pick.c],[pick.tr,pick.tc]);
+  }
+  // ---- interface igual à do servidor ----
+  view(){
+    const over=this.phase==='over';
+    const board=Array.from({length:10},()=>Array(10).fill(null));
+    if(this.board){
+      for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+        const pc=this.board[r][c];if(!pc)continue;
+        const mine=pc.owner===0;
+        board[r][c]=(mine||pc.known||over)?{o:mine?1:0,r:pc.rank,k:pc.known?1:0}:{o:0};
+      }
+    }else if(this.humanSetup){for(const x of this.humanSetup)board[x.r][x.c]={o:1,r:x.rank,k:0}}
+    let moves=null;
+    if(this.phase==='play'&&this.turn===0){
+      moves={};
+      for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+        const pc=this.board[r][c];if(!pc||pc.owner!==0)continue;
+        const m=this.pieceMoves(r,c);if(m.length)moves[r+','+c]=m;
+      }
+    }
+    const lb=this.lastBattle;
+    return{code:'IA',you:0,phase:this.phase,turn:this.turn,meReady:!!this.humanSetup,
+      opp:{joined:true,connected:true,ready:true},board,moves,lost:this.lost,winner:this.winner,reason:this.reason,
+      lastMove:this.lastMove,lastBattle:lb&&{seq:lb.seq,mine:lb.attacker===0,att:lb.att,def:lb.def,result:lb.result,from:lb.from,to:lb.to},
+      rematch:{me:false,opp:true},ai:true};
+  }
+  action(name,b){
+    if(name==='ready'){
+      if(this.phase!=='setup')throw new Error('Fase inválida');
+      const pl=b.placement,seen=new Set(),cnt=Array(12).fill(0);
+      let ok=Array.isArray(pl)&&pl.length===40;
+      if(ok)for(const x of pl){
+        if(!(x&&Number.isInteger(x.r)&&Number.isInteger(x.c)&&Number.isInteger(x.rank)&&x.r>=6&&x.r<=9&&x.c>=0&&x.c<=9&&x.rank>=0&&x.rank<=11)){ok=false;break}
+        const k=x.r*10+x.c;if(seen.has(k)){ok=false;break}seen.add(k);cnt[x.rank]++;
+      }
+      if(!ok||cnt.some((n,i)=>n!==CNT[i]))throw new Error('Posicionamento inválido');
+      this.humanSetup=pl.map(x=>({r:x.r,c:x.c,rank:x.rank}));
+      this.startGame();
+    }else if(name==='move'){
+      this.doMove(0,b.from,b.to);
+    }else if(name==='resign'){
+      if(this.phase!=='play')throw new Error('Nada para desistir');
+      this.finish(1,'resign');
+    }else if(name==='rematch'){
+      this.first=1-this.first;this.reset();
+    }
+    queueMicrotask(()=>this.emit());
+    return{};
+  }
+}
+window.Combate={Local};
+
+function startVsAI(){
+  if(es){es.close();es=null}
+  if(eng)eng.dead=true;
+  session={local:true,code:'IA'};
+  try{sessionStorage.removeItem('combate-setup-IA')}catch(e){}
+  local=Array.from({length:10},()=>Array(10).fill(null));
+  sel=null;lastSeq=null;lastTurnKey=null;
+  eng=new Local(level,()=>{S=eng.view();onState()});
+  S=eng.view();onState();
+}
+function paintLevel(){document.querySelectorAll('#lvl button').forEach(b=>b.classList.toggle('on',+b.dataset.l===level))}
+document.querySelectorAll('#lvl button').forEach(b=>b.onclick=()=>{level=+b.dataset.l;try{localStorage.setItem('combate-level',level)}catch(e){}paintLevel()});
+$('aiBtn').onclick=startVsAI;
+paintLevel();
+
 // ---------- boot ----------
-if(session)connect();else show('lobby');
+if(session&&!session.local)connect();else{session=null;show('lobby')}
 })();
 </script>
 </body>

@@ -18,3 +18,6 @@ Se não conectar: confira que os celulares estão no mesmo Wi-Fi (sem "isolament
 
 ## Regras implementadas
 Tabuleiro 10×10 com 2 lagos, 40 peças por jogador, soldado (2) anda várias casas, cabo (3) desarma bombas, espião (1) vence o marechal ao atacar, peças que lutaram ficam reveladas, regra de não repetir movimento mais de 3 vezes, vitória por captura da bandeira ou falta de movimentos, desistência e revanche (alterna quem começa). O servidor valida todas as jogadas e nunca envia ao adversário o valor das suas peças ocultas.
+
+## Modo contra a máquina
+Na tela inicial, escolha **Fácil / Médio / Difícil** e toque em **🤖 Jogar contra a máquina**. Roda inteiramente no aparelho (sem servidor e sem Wi-Fi). A máquina só usa a informação que um jogador humano teria: calcula probabilidades com base nas peças que ainda restam e nas que já se moveram, usa soldados para explorar e evita ficar ao lado de peças que possam capturá-la.
