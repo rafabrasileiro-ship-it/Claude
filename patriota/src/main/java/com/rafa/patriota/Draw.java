@@ -30,7 +30,7 @@ final class Draw {
     /** braço que soca: 0 = da frente, 1 = de trás (alterna a cada golpe do combo). */
     static int atkArm = 0;
     static final int P_IDLE = 0, P_PUNCH = 1, P_KICK = 2, P_HURT = 3, P_DOWN = 4, P_JUMP = 5, P_WIND = 6, P_GRAB = 7,
-            P_SPIN = 8, P_SPEC = 9, P_JKICK = 10, P_CHARGE = 11;
+            P_SPIN = 8, P_SPEC = 9, P_JKICK = 10, P_CHARGE = 11, P_GUARD = 12;
 
     // ---------------------------------------------------------------- primitivas
     static int mix(int a, int b, float t) {
@@ -124,6 +124,21 @@ final class Draw {
         P.setFakeBoldText(false);
     }
 
+    /** Texto com quebra de linha automática na largura w. */
+    static void wrapText(Canvas c, String s, float x, float y, float w, float size, int color) {
+        P.setTextSize(size);
+        P.setFakeBoldText(true);
+        StringBuilder line = new StringBuilder();
+        for (String word : s.split(" ")) {
+            String t = line.length() == 0 ? word : line + " " + word;
+            if (P.measureText(t) > w && line.length() > 0) {
+                text(c, line.toString(), x, y, size, color, Paint.Align.LEFT);
+                y += size * 1.25f; line.setLength(0); line.append(word);
+            } else { line.setLength(0); line.append(t); }
+        }
+        if (line.length() > 0) text(c, line.toString(), x, y, size, color, Paint.Align.LEFT);
+    }
+
     /** Relógio global para animações de respiração/tecido. */
     static float time;
     private static final float[] J = new float[2];
@@ -199,14 +214,20 @@ final class Draw {
                 poly(c, shade(pants, -0.2f), -9 * g, -40, -3 * g, -40, -3 * g + lb, -6, -10 * g + lb, -6);
                 poly(c, shoe, -12 * g + lb, -6, -3 * g + lb, -6, -2 * g + lb, 0, -13 * g + lb, 0);
                 // perna da frente (chuta)
-                if (kick) {
-                    poly(c, pants, -2 * g, -42, 6 * g, -42, 38, -50, 32, -58);
-                    poly(c, shoe, 32, -58, 38, -50, 46, -52, 42, -62);
+                if (kick && pose == P_KICK) { // chute baixo de lado: na altura da metade da coxa
+                    poly(c, pants, -2 * g, -42, 6 * g, -40, 40, -22, 38, -32);
+                    poly(c, shoe, 38, -32, 40, -22, 48, -24, 46, -34);
+                } else if (kick) { // voadora de lado ("losango aberto"): perna estendida + perna de trás dobrada
+                    poly(c, pants, -2 * g, -42, 6 * g, -42, 44, -50, 40, -58);
+                    poly(c, shoe, 40, -58, 44, -50, 52, -52, 48, -62);
+                    poly(c, shade(pants, -0.2f), -9 * g, -40, -3 * g, -40, -16, -22, -22, -22);
+                    poly(c, shade(pants, -0.2f), -22, -22, -16, -22, -2, -10, -8, -6);
                 } else {
                     poly(c, pants, -3 * g, -40, 5 * g, -40, 6 * g + lf, -6, -2 * g + lf, -6);
                     poly(c, shoe, -3 * g + lf, -6, 7 * g + lf, -6, 10 * g + lf, 0, -3 * g + lf, 0);
                 }
             }
+            if (kick) { c.translate(0, -40); c.rotate(pose == P_JKICK ? -22 : -9); c.translate(0, 40); }
             if (q >= 1 && !toga && !reitor) { line(c, shade(pants, -0.3f), -1 * g, -34, 0, -16, 1.2f); }
             if (fem) {
                 poly(c, shirt, -14, -62, 14, -62, 20, -26, -20, -26);
@@ -238,18 +259,24 @@ final class Draw {
             float ffx = 2 * g + fF, ffy = -4 - liftF, bfx = -6 * g + fB, bfy = -4 - liftB;
             if (pose == P_JUMP) { ffx = 9; ffy = -16; bfx = -8; bfy = -10; }
             if (pose == P_HURT) { ffx = 6; bfx = -9; }
+            if (pose == P_JKICK) { bfx = 2; bfy = -12; } // perna de apoio dobrada, joelho para trás
+            if (pose == P_GUARD) { ffx = 12 + sw * 0.4f; bfx = -12 - sw * 0.4f; }
             if (!toga && !reitor) {
                 int pb = shade(pants, -0.22f);
-                limb2(c, pb, pb, -5 * g, hipY, bfx, bfy, 19, 19, -1, 8.5f * g);
+                limb2(c, pb, pb, -5 * g, hipY, bfx, bfy, 19, 19, pose == P_JKICK ? 1 : -1, 8.5f * g);
                 shoeR(c, shoe, bfx - 3, bfy + 4);
-                if (kickR) {
-                    limb2(c, pants, pants, 2 * g, hipY - 2, 40, -54, 22, 22, -1, 9f * g);
-                    c.save(); c.translate(42, -56); c.rotate(-20); shoeR(c, shoe, -2, 3); c.restore();
+                if (kickR && pose == P_KICK) { // chute baixo de lado, na altura da metade da coxa
+                    limb2(c, pants, pants, 2 * g, hipY, 42, -27, 22, 22, -1, 9f * g);
+                    c.save(); c.translate(44, -28); c.rotate(-70); shoeR(c, shoe, -2, 3); c.restore();
+                } else if (kickR) { // voadora de lado ("losango aberto")
+                    limb2(c, pants, pants, 2 * g, hipY - 2, 46, -54, 22, 22, -1, 9f * g);
+                    c.save(); c.translate(48, -56); c.rotate(-80); shoeR(c, shoe, -2, 3); c.restore();
                 } else {
                     limb2(c, pants, pants, 2 * g, hipY, ffx, ffy, 19, 19, -1, 9f * g);
                     shoeR(c, shoe, ffx - 3, ffy + 4);
                 }
             }
+            if (kickR) { c.translate(0, -40); c.rotate(pose == P_JKICK ? -22 : -9); c.translate(0, 40); }
             c.translate(0, bob);
             if (fem) {
                 poly(c, shade(shirt, -0.2f), -14, -62, 14, -62, 21, -25, -21, -25);
@@ -372,6 +399,9 @@ final class Draw {
                 float bx = 20 + 18 * ext;
                 poly(c, shade(armCol, -0.15f), -8, ay - 2, -2, ay + 4, bx + 6, ay + 8 - 4 * ext, bx, ay + 2 - 4 * ext);
                 circle(c, skin, bx + 5, ay + 4 - 4 * ext, 5);
+            } else if (pose == P_GUARD) {
+                poly(c, shade(armCol, -0.15f), -8, ay - 2, -2, ay + 4, 20, ay - 4, 15, ay - 10);
+                circle(c, skin, 19, ay - 7, 5);
             } else poly(c, shade(armCol, -0.15f), -10, ay, -5, ay, -9 - sa, ay + 24, -14 - sa, ay + 24);
             // braço da frente
             if (punching && atkArm == 1) {
@@ -385,6 +415,9 @@ final class Draw {
                 float up = pose == P_CHARGE ? -28 : -18;
                 poly(c, armCol, 4, ay - 2, 10, ay + 4, 20, ay + up + 6, 14, ay + up);
                 circle(c, skin, 19, ay + up + 2, 5);
+            } else if (pose == P_GUARD) {
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, 28, ay - 4, 22, ay - 10);
+                circle(c, skin, 26, ay - 7, 5.5f);
             } else if (pose == P_GRAB) {
                 poly(c, armCol, 4, ay - 2, 10, ay + 4, 32, ay + 6, 30, ay - 1);
                 circle(c, skin, 34, ay + 3, 5);
@@ -406,12 +439,14 @@ final class Draw {
             float hxT, hyT;
             if (punching) { if (atkArm == 1) { hxT = 12; hyT = ay + 4; } else { hxT = 25 + 18 * ext; hyT = ay + 4 - 4 * ext; } }
             else if (pose == P_WIND || pose == P_JKICK || pose == P_CHARGE) { hxT = 19; hyT = ay + (pose == P_CHARGE ? -28 : -18) + 2; }
+            else if (pose == P_GUARD) { hxT = 25; hyT = ay - 8; }
             else if (pose == P_GRAB) { hxT = 34; hyT = ay + 3; }
             else if (pose == P_SPIN) { float a2 = walk * 0.6f; hxT = (float) Math.cos(a2) * 30 + 3; hyT = ay + (float) Math.sin(a2) * 8 + 1; }
             else { hxT = 10 + sa; hyT = ay + 27; }
             // braço de trás (guarda alta ao socar)
             float bhx = punching || pose == P_GRAB ? 12 : -11 - sa, bhy = punching || pose == P_GRAB ? ay + 4 : ay + 26;
             if (punching && atkArm == 1) { bhx = 25 + 18 * ext; bhy = ay + 4 - 4 * ext; }
+            if (pose == P_GUARD) { bhx = 18; bhy = ay - 13; }
             limb2(c, shade(up, -0.25f), shade(fo, -0.25f), -8 * g, ay - 1, bhx, bhy, 13.5f, 13.5f, 1, 6.5f);
             circle(c, shade(skin, -0.5f), bhx, bhy + 1, 5f); circle(c, shade(skin, -0.2f), bhx, bhy + 1, 4f);
             // braço da frente

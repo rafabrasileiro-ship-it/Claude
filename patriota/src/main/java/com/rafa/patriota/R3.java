@@ -716,6 +716,7 @@ final class R3 {
             case Game.S_DOWN: case Game.S_DEAD: pose = Draw.P_DOWN; break;
             case Game.S_GRAB: pose = Draw.P_GRAB; break;
             case Game.S_CHARGE: pose = Draw.P_CHARGE; break;
+            case Game.S_GUARD: pose = Draw.P_GUARD; mv = moving ? 0.5f : 0f; break;
             case Game.S_SPECIAL: pose = g.spK == Game.SP_SPIN ? Draw.P_SPIN : g.spK == Game.SP_BURST ? Draw.P_WIND : Draw.P_SPEC; break;
             default: break;
         }

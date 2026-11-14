@@ -16,10 +16,10 @@ import java.util.Random;
 /** Telas (menus, briefing, jogo, HUD), entrada por toque e laço principal. */
 final class GameView extends View {
     static final int SC_SPLASH = 0, SC_MENU = 1, SC_SELECT = 2, SC_STAGES = 3, SC_OPTIONS = 4, SC_CREDITS = 5,
-            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12;
+            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12, SC_HELP = 13;
 
     // ids de botões de menu
-    private static final int B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_NEXT = 6,
+    private static final int B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_HELP = 17, B_NEXT = 6,
             B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_HOSTW = 15, B_JOINW = 16, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
 
     private final Sfx sfx;
@@ -220,6 +220,7 @@ final class GameView extends View {
             case SC_STAGES: drawStages(c); break;
             case SC_OPTIONS: drawOptions(c); break;
             case SC_CREDITS: drawCredits(c); break;
+            case SC_HELP: drawHelp(c); break;
             case SC_COOP: drawCoop(c); break;
             case SC_WAIT: drawWait(c); break;
             case SC_BRIEF: drawBrief(c, dt); break;
@@ -470,14 +471,37 @@ final class GameView extends View {
         Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, 96, 16, 0xFFFFFFFF, Paint.Align.CENTER);
         R3.icon(c, heroLooks[hero], 150, 405, 1.9f, 0, Draw.P_IDLE);
         c.save(); c.translate(0, 0);
-        addBtn(c, B_PLAY, 290, 108, 560, 158, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
-        addBtn(c, B_COOP, 290, 166, 560, 216, "2 JOGADORES", true, 0xFFC62828);
-        addBtn(c, B_STAGES, 290, 224, 560, 274, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
-        addBtn(c, B_OPTIONS, 290, 282, 560, 332, "OPÇÕES", true, 0xFF6A4C93);
-        addBtn(c, B_CREDITS, 290, 340, 560, 390, "CRÉDITOS", true, 0xFFB35C00);
+        addBtn(c, B_PLAY, 290, 104, 560, 148, "JOGAR (MODO HISTÓRIA)", true, 0xFF1B8F3A);
+        addBtn(c, B_COOP, 290, 156, 560, 200, "2 JOGADORES", true, 0xFFC62828);
+        addBtn(c, B_STAGES, 290, 208, 560, 252, "SELEÇÃO DE FASES", true, 0xFF1D3E9A);
+        addBtn(c, B_HELP, 290, 260, 560, 304, "COMO JOGAR", true, 0xFF00838F);
+        addBtn(c, B_OPTIONS, 290, 312, 560, 356, "OPÇÕES", true, 0xFF6A4C93);
+        addBtn(c, B_CREDITS, 290, 364, 560, 408, "CRÉDITOS", true, 0xFFB35C00);
         if (netMsgT > 0) { Draw.text(c, netMsg, 400, 418, 15, 0xFFFFAB91, Paint.Align.CENTER); }
         c.restore();
         Draw.text(c, "Progresso: " + Math.min(cleared, Data.STAGES.size()) + "/" + Data.STAGES.size() + " fases", 790, 440, 14, 0xFFFFFFFF, Paint.Align.RIGHT);
+    }
+
+    private void drawHelp(Canvas c) {
+        panelBg(c, Data.TH_CAMPUS);
+        title(c, "COMO JOGAR", 44);
+        String[][] rows = {
+            {"ANALÓGICO", "Move o herói. Segure para o lado e aperte A para arremessar um inimigo agarrado."},
+            {"A", "Soco esquerdo, soco direito e, no 3º toque seguido, chute baixo de lado. Segure A por cerca de 1,3 s para a onda de choque."},
+            {"B", "Pula. No ar, aperte A para a voadora de lado (losango aberto)."},
+            {"C", "Toque: pega item ou agarra o inimigo. Segure: defesa de boxe, que bloqueia golpes de frente e anda devagar."},
+            {"D", "Especial: gasta 50 de Patriotismo e varre os inimigos da tela."},
+        };
+        float y = 82;
+        for (String[] r : rows) {
+            Draw.rect(c, 0xCC222222, 40, y, 760, y + 52);
+            Draw.rect(c, 0xFFFFD400, 40, y, 150, y + 52);
+            Draw.text(c, r[0], 95, y + 33, r[0].length() > 2 ? 17 : 28, 0xFF111111, Paint.Align.CENTER);
+            Draw.wrapText(c, r[1], 160, y + 20, 590, 14, 0xFFFFFFFF);
+            y += 58;
+        }
+        Draw.text(c, "No modo 2 jogadores, cada celular controla o seu herói.", 215, 424, 13, 0xFFFFE082, Paint.Align.LEFT);
+        addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
 
     private void drawSelect(Canvas c) {
@@ -1115,6 +1139,7 @@ final class GameView extends View {
             case B_JOIN: coopWifi = false; pendingBt = 2; if (btReady()) { pendingBt = 0; openDevices(); } break;
             case B_BTSET: { MainActivity a = act(); if (a != null) a.openBtSettings(); break; }
             case B_OPTIONS: screen = SC_OPTIONS; screenT = 0; break;
+            case B_HELP: screen = SC_HELP; screenT = 0; break;
             case B_CREDITS: screen = SC_CREDITS; screenT = 0; sfx.music(2); break;
             case B_BACK:
                 if (coop) {

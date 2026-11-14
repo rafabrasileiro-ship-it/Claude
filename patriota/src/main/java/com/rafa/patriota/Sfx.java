@@ -86,7 +86,10 @@ final class Sfx implements Game.Listener {
     }
 
     // ---------------------------------------------------------------- API
+    private MediaPlayer mpMoto;
+
     @Override public void sfx(int id) {
+        if (id == Game.SFX_MOTO) { playMoto(); return; }
         if (sfxVol <= 0 || id < 0 || id >= fx.length || fx[id] == null) return;
         try {
             AudioTrack t = fx[id];
@@ -94,6 +97,23 @@ final class Sfx implements Game.Listener {
             t.stop();
             t.setPlaybackHeadPosition(0);
             t.play();
+        } catch (Throwable ignored) { }
+    }
+
+    /** motor da moto no especial: tocado à parte para não cortar a voz do herói. */
+    private void playMoto() {
+        if (sfxVol <= 0) return;
+        try {
+            int rid = ctx.getResources().getIdentifier("sfx_moto", "raw", ctx.getPackageName());
+            if (rid == 0) return;
+            if (mpMoto != null) { try { mpMoto.release(); } catch (Throwable ignored) { } }
+            MediaPlayer m = MediaPlayer.create(ctx, rid);
+            mpMoto = m;
+            if (m == null) return;
+            float v = sfxVol * 0.8f;
+            m.setVolume(v, v);
+            m.setOnCompletionListener(x -> { try { x.release(); } catch (Throwable ignored) { } if (mpMoto == x) mpMoto = null; });
+            m.start();
         } catch (Throwable ignored) { }
     }
 
@@ -199,6 +219,7 @@ final class Sfx implements Game.Listener {
         try { if (musicBattle != null) musicBattle.release(); if (musicTriumph != null) musicTriumph.release(); } catch (Throwable ignored) { }
         try { if (mp != null) mp.release(); } catch (Throwable ignored) { }
         try { if (mpAmb != null) mpAmb.release(); } catch (Throwable ignored) { }
+        try { if (mpMoto != null) mpMoto.release(); } catch (Throwable ignored) { }
         stopStageMusic();
     }
 

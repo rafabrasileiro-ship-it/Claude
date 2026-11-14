@@ -19,11 +19,11 @@ final class Game {
     }
 
     static final int SFX_HIT = 0, SFX_HEAVY = 1, SFX_JUMP = 2, SFX_HURT = 3, SFX_SPECIAL = 4, SFX_ITEM = 5,
-            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10, SFX_PUNCH = 11, SFX_KICK = 12;
+            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10, SFX_PUNCH = 11, SFX_KICK = 12, SFX_MOTO = 13;
 
     // estados
     static final int S_IDLE = 0, S_ATK = 1, S_JUMP = 2, S_JKICK = 3, S_HURT = 4, S_DOWN = 5, S_GETUP = 6,
-            S_GRAB = 7, S_SPECIAL = 8, S_CHARGE = 9, S_DEAD = 10, S_WIND = 11, S_HELD = 12;
+            S_GRAB = 7, S_SPECIAL = 8, S_CHARGE = 9, S_DEAD = 10, S_WIND = 11, S_HELD = 12, S_GUARD = 13;
 
     // projéteis
     static final int PJ_SYRINGE = 0, PJ_WAVE = 1, PJ_TROPHY = 2, PJ_PAPER = 3, PJ_BOOK = 4, PJ_MULTA = 5,
@@ -45,7 +45,7 @@ final class Game {
     static final class PS {
         Ent p; int hero; float meter; boolean mounted; int weapon = -1, wUses;
         float coffeeT, penT, blurT, slowT, rootT; boolean cloroImmune;
-        float jx, jy; boolean heldA, charged; float aHold; int spK; float spDur;
+        float jx, jy; boolean heldA, heldC, charged; float cHold; float aHold; int spK; float spDur;
         float bufA, bufB, bufC, bufD, pvx, pvy; int comboStep; boolean comboQueued; float comboT;
         Ent grabbed; int grabHits; float grabT, spTick; boolean roared; float lastHurtT;
     }
@@ -90,7 +90,8 @@ final class Game {
     boolean cloroImmune;
     float jx, jy;
     boolean heldA;
-    boolean charged;
+    boolean charged, heldC;
+    float cHold;
     float aHold;
     int result;            // 0 jogando, 1 vitória, 2 derrota
     float endT;
@@ -127,7 +128,7 @@ final class Game {
     private void save(PS q) {
         q.p = p; q.hero = hero; q.meter = meter; q.mounted = mounted; q.weapon = weapon; q.wUses = wUses;
         q.coffeeT = coffeeT; q.penT = penT; q.blurT = blurT; q.slowT = slowT; q.rootT = rootT; q.cloroImmune = cloroImmune;
-        q.jx = jx; q.jy = jy; q.heldA = heldA; q.charged = charged; q.aHold = aHold; q.spK = spK; q.spDur = spDur;
+        q.jx = jx; q.jy = jy; q.heldA = heldA; q.heldC = heldC; q.cHold = cHold; q.charged = charged; q.aHold = aHold; q.spK = spK; q.spDur = spDur;
         q.bufA = bufA; q.bufB = bufB; q.bufC = bufC; q.bufD = bufD; q.pvx = pvx; q.pvy = pvy;
         q.comboStep = comboStep; q.comboQueued = comboQueued; q.comboT = comboT; q.grabbed = grabbed; q.grabHits = grabHits;
         q.grabT = grabT; q.spTick = spTick; q.roared = roared; q.lastHurtT = lastHurtT;
@@ -136,7 +137,7 @@ final class Game {
     private void load(PS q) {
         p = q.p; hero = q.hero; meter = q.meter; mounted = q.mounted; weapon = q.weapon; wUses = q.wUses;
         coffeeT = q.coffeeT; penT = q.penT; blurT = q.blurT; slowT = q.slowT; rootT = q.rootT; cloroImmune = q.cloroImmune;
-        jx = q.jx; jy = q.jy; heldA = q.heldA; charged = q.charged; aHold = q.aHold; spK = q.spK; spDur = q.spDur;
+        jx = q.jx; jy = q.jy; heldA = q.heldA; heldC = q.heldC; cHold = q.cHold; charged = q.charged; aHold = q.aHold; spK = q.spK; spDur = q.spDur;
         bufA = q.bufA; bufB = q.bufB; bufC = q.bufC; bufD = q.bufD; pvx = q.pvx; pvy = q.pvy;
         comboStep = q.comboStep; comboQueued = q.comboQueued; comboT = q.comboT; grabbed = q.grabbed; grabHits = q.grabHits;
         grabT = q.grabT; spTick = q.spTick; roared = q.roared; lastHurtT = q.lastHurtT;
@@ -194,7 +195,7 @@ final class Game {
         // os toques ficam "na fila" por um instante, para não se perderem no meio de outra animação
         if (b == BA) { bufA = BUF; heldA = true; aHold = 0; charged = false; }
         else if (b == BB) bufB = BUF;
-        else if (b == BC) bufC = BUF;
+        else if (b == BC) { bufC = BUF; heldC = true; cHold = 0; }
         else if (b == BD) bufD = BUF;
     }
 
@@ -203,7 +204,7 @@ final class Game {
             heldA = false;
             if (charged && result == 0 && p.st == S_IDLE) startCharge();
             charged = false; aHold = 0;
-        }
+        } else if (b == BC) heldC = false;
     }
 
     // ---------------------------------------------------------------- início
@@ -217,7 +218,7 @@ final class Game {
         meter = 25; mounted = false; weapon = -1; wUses = 0;
         coffeeT = penT = blurT = slowT = rootT = 0; cloroImmune = false;
         comboStep = 0; comboT = 0; comboQueued = false; grabbed = null; grabHits = 0; grabT = 0;
-        bufA = bufB = bufC = bufD = 0; pvx = pvy = 0; heldA = false; charged = false; aHold = 0;
+        bufA = bufB = bufC = bufD = 0; pvx = pvy = 0; heldA = false; heldC = false; cHold = 0; charged = false; aHold = 0;
         jx = jy = 0; spK = 0; spDur = 0; spTick = 0; roared = false;
     }
 
@@ -577,7 +578,8 @@ final class Game {
         if (slowT > 0) slowT -= dt;
         if (rootT > 0) rootT -= dt;
         if (comboT > 0) comboT -= dt;
-        if (heldA) { aHold += dt; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
+        if (heldC) cHold += dt;
+        if (heldA) { aHold += dt * 0.75f; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
 
         final boolean pA = bufA > 0, pB = bufB > 0, pC = bufC > 0, pD = bufD > 0;
         bufA -= dt; bufB -= dt; bufC -= dt; bufD -= dt;
@@ -601,6 +603,18 @@ final class Game {
                 else if (pD) { bufD = 0; startSpecial(); }
                 else if (pC) { bufC = 0; pressC(); }
                 else if (pA) { bufA = 0; pressA(); }
+                else if (heldC && cHold > 0.15f && weapon < 0 && !mounted && grabbed == null) { o.st = S_GUARD; o.t = 0; pvx = pvy = 0; }
+                break;
+            }
+            case S_GUARD: {
+                float gk = rootT <= 0 ? 0.35f : 0f;
+                o.x += jx * 168 * spd * gk * dt; o.y += jy * 104 * spd * gk * dt;
+                o.walk += (Math.abs(jx) + Math.abs(jy)) * 40 * dt;
+                if (Math.abs(jx) > 0.2f) o.face = jx > 0 ? 1 : -1;
+                if (pB) { bufB = 0; o.st = S_JUMP; o.vh = 340; o.t = 0; L.sfx(SFX_JUMP); }
+                else if (pD) { bufD = 0; startSpecial(); }
+                else if (pA) { bufA = 0; pressA(); }
+                else if (!heldC) { o.st = S_IDLE; o.t = 0; }
                 break;
             }
             case S_JUMP: {
@@ -896,6 +910,7 @@ final class Game {
         L.sfx(SFX_SPECIAL); punch = 1f;
         switch (sp) {
             case SP_RIDE:
+                L.sfx(SFX_MOTO);
                 spDur = 1.05f; o.x = o.face > 0 ? camX - 50 : camX + W + 50; o.vx = o.face * 900; break;
             case SP_TRUCK:
                 spDur = 1.45f; o.x = o.face > 0 ? camX - 80 : camX + W + 80; o.vx = o.face * 640; break;
@@ -1136,6 +1151,13 @@ final class Game {
         Ent o = p;
         if (o.inv > 0 || penT > 0 || o.st == S_DEAD || o.st == S_SPECIAL || o.st == S_DOWN || o.st == S_GETUP) return false;
         if (mounted) dmg *= 0.75f;
+        if (o.st == S_GUARD && fromDir == -o.face) { // defesa de boxe: bloqueia golpes de frente
+            o.hp -= dmg * 0.2f; lastHurtT = time; o.inv = 0.15f;
+            shake = Math.max(shake, 2); L.sfx(SFX_HIT);
+            fxs.add(new Fx(FX_SPARK, o.x + o.face * 18, o.y, 60, 0.2f, 12, 0xFFFFFFFF));
+            if (o.hp < 1) o.hp = 1;
+            return true;
+        }
         o.hp -= dmg; o.flash = 0.2f; lastHurtT = time;
         shake = Math.max(shake, 5);
         L.sfx(SFX_HURT); L.vibrate(25);
