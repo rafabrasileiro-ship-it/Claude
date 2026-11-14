@@ -1,0 +1,59 @@
+name: Gerar APK - Dedos Twister
+
+on:
+  push:
+    paths: ["dedos-twister/**", ".github/workflows/build-dedos-twister.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dedos-twister
+    env:
+      DEDOS_KEYSTORE: ${{ github.workspace }}/dedos-release.keystore
+      DEDOS_STORE_PASS: dedos-ci-chave
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Restaurar chave de assinatura
+        uses: actions/cache@v4
+        with:
+          path: dedos-release.keystore
+          key: dedos-keystore-v1
+      - name: Criar chave de assinatura (só na primeira vez)
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ ! -f dedos-release.keystore ]; then
+            keytool -genkeypair -keystore dedos-release.keystore -alias dedos \
+              -keyalg RSA -keysize 2048 -validity 36500 \
+              -storepass "$DEDOS_STORE_PASS" -keypass "$DEDOS_STORE_PASS" \
+              -dname "CN=Dedos Twister"
+          fi
+      - name: Compilar APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dedos-twister-apk
+          path: dedos-twister/app/build/outputs/apk/release/*.apk
+      - name: Salvar APK no repositório
+        working-directory: ${{ github.workspace }}
+        run: |
+          git rm -q --ignore-unmatch dist/dedos-twister-*.apk
+          mkdir -p dist
+          cp dedos-twister/app/build/outputs/apk/release/*.apk dist/dedos-twister-v${{ github.run_number }}.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/
+          git commit -m "Atualiza APK Dedos Twister v${{ github.run_number }} [skip ci]" || exit 0
+          git pull --rebase origin "${{ github.ref_name }}" || true
+          git push

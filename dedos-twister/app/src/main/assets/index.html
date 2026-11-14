@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>DEDOS TWISTER</title>
+<style>
+:root{
+  --bg:#12122a; --panel:#1d1d40; --txt:#fff; --mut:#9a9ac8;
+  --p1:#29d3ff; --p2:#ff5fa8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);overflow:hidden;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;touch-action:none}
+.hidden{display:none!important}
+
+/* ---------- palco do jogo ---------- */
+#stage{position:absolute;inset:0;display:flex;flex-direction:column}
+.zone{flex:1;min-height:0;display:flex;flex-direction:column;padding:6px 10px 8px;position:relative}
+.zone.flip{transform:rotate(180deg)}
+.zone::before{content:"";position:absolute;inset:3px;border-radius:18px;border:3px solid transparent;pointer-events:none;transition:.2s}
+.zone.active::before{border-color:var(--pc);box-shadow:0 0 18px var(--pc) inset,0 0 14px var(--pc)}
+#z1{--pc:var(--p1)} #z2{--pc:var(--p2)}
+.panel{height:120px;flex:none;background:var(--panel);border-radius:14px;padding:8px 12px;display:flex;flex-direction:column;justify-content:space-between}
+.prow{display:flex;align-items:center;gap:10px;flex:1;min-height:0}
+.panel .chips{flex:none}
+.pname{font-size:11px;line-height:1;margin-bottom:2px;font-weight:800;letter-spacing:2px;color:var(--pc)}
+.sw{flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;
+  background:#333;border:3px solid rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.sw.off{visibility:hidden}
+.itxt{flex:1;min-width:0;line-height:1.1}
+.iverb{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1px}
+.ifing{font-size:22px;font-weight:900;white-space:nowrap}
+.icol{font-size:13px;font-weight:800;letter-spacing:1px}
+.ibig{flex:1;text-align:center;font-size:34px;font-weight:900;letter-spacing:2px}
+.ibig.sm{font-size:20px}
+.chips{display:flex;gap:5px;margin-top:4px}
+.chip{flex:1;text-align:center;font-size:9px;font-weight:800;padding:3px 0;border-radius:6px;background:#2c2c58;color:var(--mut)}
+.chip.on{background:var(--pc);color:#10102a}
+.chip.tgt{outline:2px solid #fff;color:#fff}
+.chip.on.tgt{color:#10102a}
+.board{flex:1;min-height:0;margin-top:8px;display:grid;gap:8px;justify-content:center;align-content:center}
+.circ{width:var(--d);height:var(--d);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.35),rgba(255,255,255,0) 55%),var(--c);
+  border:4px solid rgba(0,0,0,.28);box-shadow:0 4px 0 rgba(0,0,0,.35);color:rgba(255,255,255,.85);font-size:calc(var(--d)*.34);
+  text-shadow:0 1px 2px rgba(0,0,0,.4);transition:transform .08s}
+.circ small{font-size:calc(var(--d)*.2);font-weight:900;color:#10102a;text-shadow:none;margin-top:-4px;display:none}
+.circ.occ{transform:scale(.92);border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.35),0 0 18px #fff}
+.circ.occ small{display:block}
+.circ.occ .g{display:none}
+#mid{height:42px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px}
+#mid .r{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--mut);width:84px;white-space:nowrap}
+#mid .r.right{text-align:right}
+#mid .r.f{transform:rotate(180deg)}
+#track{flex:1;height:14px;border-radius:7px;background:#25254d;overflow:hidden}
+#fill{height:100%;width:0;background:#3ddc84;border-radius:7px}
+#z2.gone,#mid .gone{display:none}
+
+/* ---------- telas ---------- */
+.screen{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 22px;
+  background:radial-gradient(circle at 50% 0%,#2a2a6a,var(--bg) 65%);text-align:center;overflow:auto;touch-action:pan-y}
+h1{margin:0;font-size:44px;line-height:.95;font-weight:900;letter-spacing:1px}
+h1 span{display:inline-block}
+.logo{display:flex;gap:10px;margin:18px 0 22px}
+.logo i{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.55);box-shadow:0 4px 0 rgba(0,0,0,.35);animation:bob 1.6s ease-in-out infinite}
+.logo i:nth-child(2){animation-delay:.2s}.logo i:nth-child(3){animation-delay:.4s}.logo i:nth-child(4){animation-delay:.6s}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.btn{display:block;width:100%;max-width:340px;margin:8px auto;padding:16px 12px;border:0;border-radius:16px;font:inherit;font-size:20px;font-weight:900;
+  letter-spacing:1px;color:#10102a;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.4)}
+.btn.b1{background:var(--p1)} .btn.b2{background:var(--p2)}
+.btn.sec{background:#34346a;color:#fff;font-size:15px;padding:12px}
+.row2{display:flex;gap:10px;width:100%;max-width:340px}
+.row2 .btn{margin:8px 0}
+.rules{max-width:420px;text-align:left;font-size:15px;line-height:1.4}
+.rules h2{text-align:center;margin:0 0 10px;font-size:26px}
+.rules li{margin-bottom:8px}
+.rules b{color:#ffd54a}
+.small{font-size:12px;color:var(--mut);margin-top:8px}
+
+#over{background:rgba(10,10,30,.9);padding:0;justify-content:space-between}
+#over .half{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px}
+#over .half.flip{transform:rotate(180deg)}
+#over .hd{font-size:34px;font-weight:900;line-height:1.05}
+#over .hd.win{color:#3ddc84}#over .hd.lose{color:#ff5a5a}
+#over .why{margin-top:8px;font-size:16px;font-weight:700;color:#ffd54a}
+#over .mid{flex:none;width:100%;padding:8px 22px;pointer-events:none}
+#over .mid.on{pointer-events:auto}
+#score{font-size:18px;font-weight:900;margin-bottom:4px;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<div id="stage" class="hidden">
+  <section class="zone flip" id="z2">
+    <div class="panel">
+      <div class="pname">JOGADOR 2</div>
+      <div class="prow"><div class="sw off"></div><div class="itxt"></div></div>
+      <div class="chips"></div>
+    </div>
+    <div class="board"></div>
+  </section>
+  <div id="mid">
+    <span class="r right f" id="rnd2"></span>
+    <div id="track"><div id="fill"></div></div>
+    <span class="r right" id="rnd1"></span>
+  </div>
+  <section class="zone" id="z1">
+    <div class="panel">
+      <div class="pname">JOGADOR 1</div>
+      <div class="prow"><div class="sw off"></div><div class="itxt"></div></div>
+      <div class="chips"></div>
+    </div>
+    <div class="board"></div>
+  </section>
+</div>
+
+<div id="menu" class="screen">
+  <h1><span style="color:#ff5a5a">D</span><span style="color:#29a8ff">E</span><span style="color:#43d36a">D</span><span style="color:#ffd93d">O</span><span style="color:#ff5a5a">S</span><br>
+      <span style="color:#fff">TWISTER</span></h1>
+  <div class="logo"><i style="background:#e53935"></i><i style="background:#1e88e5"></i><i style="background:#43a047"></i><i style="background:#fdd835"></i></div>
+  <button class="btn b1" id="b-solo">1 JOGADOR</button>
+  <button class="btn b2" id="b-duo">2 JOGADORES</button>
+  <div class="row2">
+    <button class="btn sec" id="b-nf"></button>
+    <button class="btn sec" id="b-snd"></button>
+  </div>
+  <button class="btn sec" id="b-rules" style="max-width:340px">COMO JOGAR</button>
+  <div class="small">No modo 2 jogadores, deite o celular na mesa<br>e fiquem um de cada lado.</div>
+</div>
+
+<div id="rules" class="screen hidden">
+  <div class="rules">
+    <h2>COMO JOGAR</h2>
+    <ol>
+      <li>Cada jogador usa <b>uma mão</b> e joga na <b>sua metade</b> da tela (o celular fica deitado entre vocês).</li>
+      <li>A cada jogada o giro sorteia <b>um dedo e uma cor</b>. Ex.: <b>INDICADOR → AZUL</b>.</li>
+      <li>Apoie esse dedo em um <b>círculo vazio</b> da cor sorteada. Se o dedo já estiver na tela, <b>levante só ele</b> e leve para a nova cor.</li>
+      <li>Os <b>outros dedos ficam parados</b> nos círculos o tempo todo.</li>
+      <li>Perde quem: levantar um dedo que não devia, tocar na cor errada, tocar fora da vez, tocar num círculo ocupado ou estourar o tempo.</li>
+      <li>O tempo de cada jogada vai <b>diminuindo</b>. Quem aguentar mais, vence!</li>
+      <li>No modo 1 jogador você tenta fazer o maior número de jogadas.</li>
+    </ol>
+    <div class="small" style="text-align:center">O jogo não enxerga qual dedo você usa: vale a honestidade, como no Twister de verdade! Se o seu celular reconhecer poucos toques ao mesmo tempo, escolha menos dedos nas opções.</div>
+  </div>
+  <button class="btn b1" id="b-rback" style="margin-top:16px">ENTENDI</button>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="half flip" id="o2"><div class="hd"></div><div class="why"></div></div>
+  <div class="mid" id="omid">
+    <div id="score"></div>
+    <div class="row2">
+      <button class="btn b1" id="b-again">JOGAR DE NOVO</button>
+    </div>
+    <button class="btn sec" id="b-home">MENU</button>
+  </div>
+  <div class="half" id="o1"><div class="hd"></div><div class="why"></div></div>
+</div>
+
+<script>
+"use strict";
+/* ============ dados ============ */
+const COLORS=[
+  {n:"VERMELHO",c:"#e53935",s:"●"},
+  {n:"AZUL",c:"#1e88e5",s:"▲"},
+  {n:"VERDE",c:"#43a047",s:"■"},
+  {n:"AMARELO",c:"#fdd835",s:"★"}
+];
+const FINGERS=["POLEGAR","INDICADOR","MÉDIO","ANELAR","MINDINHO"];
+const ABBR=["POL","IND","MED","ANE","MIN"];
+const COLS=4;
+
+/* ============ preferências ============ */
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,String(v))}catch(e){}}
+};
+let nf=Math.min(5,Math.max(2,parseInt(store.get("dt_nf","3"),10)||3));
+let soundOn=store.get("dt_snd","1")==="1";
+let best=parseInt(store.get("dt_best","0"),10)||0;
+
+/* ============ som ============ */
+let AC=null;
+function audio(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(AC&&AC.state==="suspended")AC.resume();
+  return AC;
+}
+function beep(f,d,type,vol,delay){
+  if(!soundOn)return;const a=audio();if(!a)return;
+  const t=a.currentTime+(delay||0),o=a.createOscillator(),g=a.createGain();
+  o.type=type||"sine";o.frequency.value=f;
+  g.gain.setValueAtTime(vol||.15,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.02);
+}
+const sfx={
+  tick(){beep(520+Math.random()*300,.05,"square",.06)},
+  go(){beep(660,.12,"triangle",.2);beep(990,.18,"triangle",.2,.1)},
+  ok(){beep(784,.1,"sine",.2);beep(1175,.14,"sine",.2,.09)},
+  count(){beep(440,.12,"sine",.2)},
+  foul(){beep(160,.35,"sawtooth",.22);beep(110,.45,"sawtooth",.22,.12)},
+  win(){[523,659,784,1047].forEach((f,i)=>beep(f,.2,"triangle",.22,i*.12))}
+};
+function vib(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+
+/* ============ estado ============ */
+const $=s=>document.querySelector(s);
+const zones=[$("#z1"),$("#z2")];
+let G=null;               // partida atual
+let session=[0,0];        // vitórias da sessão (2 jogadores)
+let lastMode=2;
+const tracked=new Map();  // id do toque -> {p,f}
+
+const rnd=n=>Math.floor(Math.random()*n);
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ============ telas ============ */
+function show(id){
+  for(const s of ["menu","rules","over"])$("#"+s).classList.toggle("hidden",s!==id);
+  $("#stage").classList.toggle("hidden",id==="menu"||id==="rules");
+}
+function refreshMenu(){
+  $("#b-nf").textContent="DEDOS: "+nf;
+  $("#b-snd").textContent="SOM: "+(soundOn?"LIGADO":"MUDO");
+}
+function toMenu(){
+  clearTimers();G=null;tracked.clear();
+  $("#stage").classList.add("hidden");
+  show("menu");refreshMenu();
+}
+$("#b-solo").onclick=()=>{audio();startGame(1)};
+$("#b-duo").onclick=()=>{audio();session=[0,0];startGame(2)};
+$("#b-nf").onclick=()=>{nf=nf>=5?2:nf+1;store.set("dt_nf",nf);refreshMenu()};
+$("#b-snd").onclick=()=>{soundOn=!soundOn;store.set("dt_snd",soundOn?"1":"0");refreshMenu();sfx.ok()};
+$("#b-rules").onclick=()=>show("rules");
+$("#b-rback").onclick=()=>show("menu");
+$("#b-again").onclick=()=>{audio();startGame(lastMode)};
+$("#b-home").onclick=toMenu;
+window.handleBack=function(){
+  if(!$("#rules").classList.contains("hidden")){show("menu");return true}
+  if(G){toMenu();return true}
+  return false;
+};
+
+/* ============ montagem da partida ============ */
+function startGame(mode){
+  clearTimers();tracked.clear();
+  lastMode=mode;
+  const rows=mode===1?6:3;
+  G={mode,rows,phase:"ready",turn:0,count:0,instr:null,show:null,countText:"",airborne:false,
+     deadline:0,dur:10,timers:[],raf:0,pl:[]};
+  const np=mode;
+  for(let p=0;p<np;p++){
+    const list=[];
+    for(let i=0;i<COLS*rows;i++)list.push(i%4);
+    shuffle(list);
+    G.pl.push({
+      circles:list.map(c=>({color:c,occ:null,el:null,cx:0,cy:0,r:0})),
+      fingers:Array.from({length:nf},()=>({circle:-1,tid:null}))
+    });
+  }
+  $("#z2").classList.toggle("gone",mode===1);
+  $("#rnd2").classList.toggle("gone",mode===1);
+  for(let p=0;p<np;p++)buildZone(p);
+  show("stage");
+  $("#stage").classList.remove("hidden");
+  requestAnimationFrame(()=>{computeRects();renderAll()});
+  runCountdown();
+}
+function buildZone(p){
+  const z=zones[p],board=z.querySelector(".board");
+  board.innerHTML="";
+  board.style.gridTemplateColumns=`repeat(${COLS},var(--d))`;
+  G.pl[p].circles.forEach(c=>{
+    const e=document.createElement("div");
+    e.className="circ";e.style.setProperty("--c",COLORS[c.color].c);
+    e.innerHTML=`<span class="g">${COLORS[c.color].s}</span><small></small>`;
+    board.appendChild(e);c.el=e;
+  });
+  const chips=z.querySelector(".chips");chips.innerHTML="";
+  for(let f=0;f<nf;f++){const d=document.createElement("div");d.className="chip";d.textContent=ABBR[f];chips.appendChild(d)}
+}
+function computeRects(){
+  if(!G)return;
+  G.pl.forEach((pl,p)=>{
+    const board=zones[p].querySelector(".board");
+    const bw=board.clientWidth,bh=board.clientHeight;
+    const gap=8;
+    const d=Math.max(30,Math.min((bw-gap*(COLS-1))/COLS,(bh-gap*(G.rows-1))/G.rows));
+    board.style.setProperty("--d",d+"px");
+    pl.circles.forEach(c=>{
+      const r=c.el.getBoundingClientRect();
+      c.cx=r.left+r.width/2;c.cy=r.top+r.height/2;c.r=r.width/2;
+    });
+  });
+  // um segundo cálculo depois de aplicar o tamanho
+  G.pl.forEach(pl=>pl.circles.forEach(c=>{
+    const r=c.el.getBoundingClientRect();
+    c.cx=r.left+r.width/2;c.cy=r.top+r.height/2;c.r=r.width/2;
+  }));
+}
+window.addEventListener("resize",()=>setTimeout(computeRects,50));
+
+/* ============ fluxo ============ */
+function later(fn,ms){const t=setTimeout(fn,ms);G.timers.push(t);return t}
+function clearTimers(){
+  if(!G)return;
+  G.timers.forEach(clearTimeout);G.timers=[];
+  if(G.spin){clearInterval(G.spin);G.spin=null}
+  cancelAnimationFrame(G.raf);
+}
+function runCountdown(){
+  const seq=["3","2","1","JÁ!"];
+  let i=0;
+  const step=()=>{
+    if(!G||G.phase!=="ready")return;
+    G.countText=seq[i];renderAll();
+    i===3?sfx.go():sfx.count();
+    i++;
+    if(i<seq.length)later(step,800);else later(()=>startTurn(),700);
+  };
+  later(step,300);
+}
+function startTurn(){
+  if(!G)return;
+  G.phase="spin";G.instr=null;G.airborne=false;G.countText="";
+  const final=pickInstr(G.turn);
+  let n=0;const total=11;
+  G.spin=setInterval(()=>{
+    n++;
+    if(n<total){
+      G.show={f:rnd(nf),c:rnd(4),move:false};sfx.tick();renderAll();
+    }else{
+      clearInterval(G.spin);G.spin=null;
+      G.show=null;G.instr=final;G.phase="play";
+      G.dur=Math.max(4.5,10-G.count*0.2);
+      G.deadline=performance.now()+G.dur*1000;
+      sfx.go();renderAll();
+      G.raf=requestAnimationFrame(loop);
+    }
+  },90);
+  renderAll();
+}
+function pickInstr(p){
+  const pl=G.pl[p];
+  for(const f of shuffle([...Array(nf).keys()])){
+    const fg=pl.fingers[f];
+    const cur=fg.circle>=0?pl.circles[fg.circle].color:-1;
+    const opts=[];
+    for(let c=0;c<4;c++){
+      if(c===cur)continue;
+      if(pl.circles.some(k=>k.color===c&&k.occ===null))opts.push(c);
+    }
+    if(opts.length)return{f,c:opts[rnd(opts.length)],move:fg.circle>=0};
+  }
+  return{f:0,c:0,move:false};
+}
+function loop(){
+  if(!G||G.phase!=="play")return;
+  const left=G.deadline-performance.now();
+  const frac=Math.max(0,left/(G.dur*1000));
+  const fill=$("#fill");
+  fill.style.width=(frac*100)+"%";
+  fill.style.background=frac>.5?"#3ddc84":frac>.25?"#ffb300":"#ff4d4d";
+  if(left<=0){foul(G.turn,"TEMPO ESGOTADO!");return}
+  G.raf=requestAnimationFrame(loop);
+}
+function success(){
+  G.count++;G.phase="between";G.airborne=false;
+  sfx.ok();vib(25);renderAll();
+  later(()=>{G.turn=G.mode===1?0:1-G.turn;startTurn()},650);
+}
+function foul(p,why){
+  if(!G||G.phase==="over")return;
+  clearTimers();G.phase="over";
+  tracked.clear();
+  sfx.foul();vib([120,60,200]);
+  renderAll();
+  later(()=>endScreen(p,why),700);
+}
+function endScreen(loser,why){
+  const mode=G.mode,wasTurns=G.count;
+  const o1=$("#o1"),o2=$("#o2");
+  if(mode===1){
+    const rec=wasTurns>best;
+    if(rec){best=wasTurns;store.set("dt_best",best)}
+    o2.classList.add("gone");o2.style.display="none";
+    o1.querySelector(".hd").className="hd "+(rec?"win":"lose");
+    o1.querySelector(".hd").innerHTML=rec?"NOVO RECORDE!":"FIM DE JOGO";
+    o1.querySelector(".why").innerHTML=why+"<br>Jogadas: "+wasTurns+" · Recorde: "+best;
+    $("#score").textContent="";
+    if(rec)sfx.win();
+  }else{
+    o2.style.display="";
+    const winner=1-loser;
+    session[winner]++;
+    [[o1,0],[o2,1]].forEach(([el,p])=>{
+      const hd=el.querySelector(".hd");
+      hd.className="hd "+(p===winner?"win":"lose");
+      hd.innerHTML=p===winner?"VOCÊ VENCEU!":"VOCÊ PERDEU";
+      el.querySelector(".why").textContent="Jogador "+(loser+1)+": "+why;
+    });
+    $("#score").textContent="J1  "+session[0]+"  ×  "+session[1]+"  J2";
+    sfx.win();
+  }
+  const mid=$("#omid");mid.classList.remove("on");
+  show("over");
+  later(()=>mid.classList.add("on"),900);
+}
+
+/* ============ desenho ============ */
+function renderAll(){
+  if(!G)return;
+  const np=G.mode;
+  for(let p=0;p<np;p++){renderPanel(p);renderCircles(p)}
+  const r="RODADA "+(G.count+ (G.phase==="play"||G.phase==="spin"?1:0));
+  $("#rnd1").textContent=r;$("#rnd2").textContent=r;
+  if(G.phase!=="play"){const f=$("#fill");f.style.width=G.phase==="ready"?"100%":"0%";f.style.background="#3ddc84"}
+}
+function renderCircles(p){
+  const pl=G.pl[p];
+  pl.circles.forEach(c=>{
+    c.el.classList.toggle("occ",c.occ!==null);
+    c.el.querySelector("small").textContent=c.occ!==null?ABBR[c.occ]:"";
+  });
+}
+function renderPanel(p){
+  const z=zones[p],pl=G.pl[p];
+  const sw=z.querySelector(".sw"),tx=z.querySelector(".itxt");
+  const active=G.turn===p&&(G.phase==="play"||G.phase==="spin"||G.phase==="between");
+  z.classList.toggle("active",active&&G.phase!=="between");
+  let html="",tgt=-1;
+  sw.classList.add("off");
+  const big=(t,sm)=>`<div class="ibig${sm?" sm":""}">${t}</div>`;
+  const instrHtml=(i,verbText)=>{
+    const col=COLORS[i.c];
+    sw.style.background=col.c;sw.textContent=col.s;sw.classList.remove("off");
+    return `<div class="iverb">${verbText}</div><div class="ifing">${FINGERS[i.f]}</div><div class="icol" style="color:${col.c==="#1e88e5"?"#6db6ff":col.c}">${col.n}</div>`;
+  };
+  if(G.phase==="over"){html=big("FIM",false)}
+  else if(G.phase==="ready"){html=big(G.countText||"PREPARAR",!G.countText||G.countText.length>2)}
+  else if(!active&&G.phase!=="between"){html=big("AGUARDE<br><span style='font-size:12px;color:#9a9ac8;letter-spacing:1px'>SEGURE OS DEDOS</span>",true)}
+  else if(G.phase==="between"){html=big(G.turn===p?"BOA!":"AGUARDE",G.turn!==p)}
+  else if(G.phase==="spin"){
+    const s=G.show;
+    if(s){html=instrHtml(s,"SORTEANDO...")}else html=big("GIRANDO...",true);
+  }else if(G.phase==="play"){
+    html=instrHtml(G.instr,G.instr.move?(G.airborne?"AGORA APOIE":"LEVANTE E MOVA"):"APOIE O DEDO");
+    tgt=G.instr.f;
+  }
+  tx.innerHTML=html;
+  z.querySelectorAll(".chip").forEach((ch,f)=>{
+    ch.classList.toggle("on",pl.fingers[f].circle>=0);
+    ch.classList.toggle("tgt",f===tgt);
+  });
+}
+
+/* ============ toques ============ */
+function findCircle(x,y){
+  let best=null,bd=1e9;
+  G.pl.forEach((pl,p)=>pl.circles.forEach((c,i)=>{
+    const d=Math.hypot(x-c.cx,y-c.cy);
+    if(d<=c.r*1.12&&d<bd){bd=d;best={p,i}}
+  }));
+  return best;
+}
+function inGame(){return G&&(G.phase==="ready"||G.phase==="spin"||G.phase==="play"||G.phase==="between")}
+
+function onDown(t){
+  const hit=findCircle(t.clientX,t.clientY);
+  if(!hit)return;
+  const {p,i}=hit,circ=G.pl[p].circles[i];
+  if(G.phase!=="play"||p!==G.turn){
+    return foul(p,G.phase==="ready"?"QUEIMOU A LARGADA!":p!==G.turn?"FORA DA VEZ!":"CALMA! AGUARDE O SORTEIO");
+  }
+  if(circ.occ!==null)return foul(p,"CÍRCULO OCUPADO!");
+  if(circ.color!==G.instr.c)return foul(p,"COR ERRADA!");
+  const fg=G.pl[p].fingers[G.instr.f];
+  fg.circle=i;fg.tid=t.identifier;circ.occ=G.instr.f;
+  tracked.set(t.identifier,{p,f:G.instr.f});
+  success();
+}
+function lift(id,msg){
+  const tr=tracked.get(id);
+  if(!tr)return;
+  tracked.delete(id);
+  const pl=G.pl[tr.p],fg=pl.fingers[tr.f];
+  if(fg.circle>=0)pl.circles[fg.circle].occ=null;
+  fg.circle=-1;fg.tid=null;
+  if(G.phase==="play"&&tr.p===G.turn&&G.instr.move&&tr.f===G.instr.f&&!G.airborne){
+    G.airborne=true;renderAll();return;
+  }
+  foul(tr.p,msg);
+}
+function onMove(t){
+  const tr=tracked.get(t.identifier);
+  if(!tr)return;
+  const fg=G.pl[tr.p].fingers[tr.f];
+  if(fg.circle<0)return;
+  const c=G.pl[tr.p].circles[fg.circle];
+  if(Math.hypot(t.clientX-c.cx,t.clientY-c.cy)>c.r*1.7)lift(t.identifier,"ESCORREGOU!");
+}
+function handler(fn){
+  return e=>{
+    if(!inGame())return;
+    e.preventDefault();
+    for(const t of e.changedTouches){if(!G||G.phase==="over")break;fn(t)}
+  };
+}
+const opt={passive:false};
+document.addEventListener("touchstart",handler(onDown),opt);
+document.addEventListener("touchmove",handler(onMove),opt);
+document.addEventListener("touchend",handler(t=>lift(t.identifier,"LEVANTOU O DEDO!")),opt);
+document.addEventListener("touchcancel",handler(t=>lift(t.identifier,"LEVANTOU O DEDO!")),opt);
+document.addEventListener("contextmenu",e=>e.preventDefault());
+
+refreshMenu();
+window.DT={get G(){return G},tracked,COLORS,FINGERS};
+</script>
+</body>
+</html>

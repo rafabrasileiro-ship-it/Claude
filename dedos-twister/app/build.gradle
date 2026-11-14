@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Número da versão: sobe sozinho a cada build no GitHub (run number); local usa 1.
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
+// Chave de assinatura criada e guardada pelo GitHub Actions (não fica no repositório).
+def ciKeystore = System.getenv('DEDOS_KEYSTORE')
+
+android {
+    namespace 'com.rafa.dedostwister'
+    compileSdk 34
+
+    signingConfigs {
+        if (ciKeystore) {
+            release {
+                storeFile file(ciKeystore)
+                storePassword System.getenv('DEDOS_STORE_PASS')
+                keyAlias 'dedos'
+                keyPassword System.getenv('DEDOS_STORE_PASS')
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.rafa.dedostwister.jogo'
+        minSdk 21
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.0.${buildNumber}"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Sem a chave do CI (build local), assina com a de debug.
+            signingConfig ciKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
