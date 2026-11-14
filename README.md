@@ -35,7 +35,7 @@ Feito em Java nativo, com um renderizador 3D próprio (câmera em perspectiva, m
 
 - 5 missões (a 4 é dividida em 4 minifases nos estúdios), 8 fases selecionáveis, chefes com padrões próprios.
 - Heróis: Jair Bonossauro e 3 desbloqueáveis (Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a).
-- Golpes: A = soco esquerdo, soco direito e chute baixo de lado (3º toque); B+A no ar = voadora de lado; segurar A (~1,3 s) = onda de choque; C toque = pegar item/agarrar, C segurado = defesa de boxe; D = especial (gasta 50 de Patriotismo). Menu "Como jogar" na tela inicial.
+- Golpes: A = soco esquerdo, soco direito e chute baixo de lado (3º toque); B+A no ar = voadora de lado; segurar A (1 s) = onda de choque; C toque = pegar item/agarrar, C segurado = defesa de boxe; D = especial (gasta 50 de Patriotismo). Menu "Como jogar" na tela inicial.
 - Fase bônus: Travessia do Lago de jet-ski, desviando (ou batendo de frente) em baleias caricatas; o especial chama patriotas de jet-ski.
 - Modo dupla por Wi-Fi (recomendado, 60 atualizações/s, achamento automático da sala) ou Bluetooth: pareie os dois celulares, um cria a sala e o outro entra. Os dois heróis ficam na mesma tela, com o dobro de inimigos comuns e chefões com o dobro de vida ; no jet-ski cada um pilota o seu e o especial chama 3 patriotas (também no solo). O anfitrião roda o jogo e o convidado recebe a imagem e envia os toques.
 - Missão 5: Velociraptor com a bandeira de batalha (combo de bandeirada, varredura aérea, investida com lança, rugido).

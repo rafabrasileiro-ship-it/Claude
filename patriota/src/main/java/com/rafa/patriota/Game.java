@@ -38,6 +38,8 @@ final class Game {
     static final int LOCK0 = 200, LOCK_GAP = 700;
 
     // ---------------------------------------------------------------- estado público
+    /** velocidade de carga do especial (barra de Patriotismo): 75% do ritmo original. */
+    static final float METER_RATE = 0.75f;
     final Listener L;
     final Random rnd = new Random();
     Ent p;
@@ -579,7 +581,7 @@ final class Game {
         if (rootT > 0) rootT -= dt;
         if (comboT > 0) comboT -= dt;
         if (heldC) cHold += dt;
-        if (heldA) { aHold += dt * 0.75f; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
+        if (heldA) { aHold += dt; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
 
         final boolean pA = bufA > 0, pB = bufB > 0, pC = bufC > 0, pD = bufD > 0;
         bufA -= dt; bufB -= dt; bufC -= dt; bufD -= dt;
@@ -871,7 +873,7 @@ final class Game {
         }
         if (pA) {
             damageSimple(g, 6 * dmgMul());
-            grabHits++; L.sfx(SFX_HIT); meter = Math.min(100, meter + 3);
+            grabHits++; L.sfx(SFX_HIT); meter = Math.min(100, meter + 3 * METER_RATE);
             fxs.add(new Fx(FX_SPARK, g.x, g.y, 30, 0.25f, 14, 0xFFFFFFFF));
             if (g.alive && !g.dying && grabHits >= 3) { releaseGrab(true); }
             return;
@@ -1082,7 +1084,7 @@ final class Game {
             return true;
         }
         if (t.st == S_WIND && !k.boss) {
-            meter = Math.min(100, meter + (t.kind == Data.K_ABELIO ? 18 : 10));
+            meter = Math.min(100, meter + (t.kind == Data.K_ABELIO ? 18 : 10) * METER_RATE);
             pop("CONTRA-ATAQUE!", t.x, t.y - 90, 0.8f, 0xFFFFD400);
         }
         if (t.kind == Data.K_MULA && t.st == S_WIND && t.atk == 0) {
@@ -1090,10 +1092,10 @@ final class Game {
             pop("INTERROMPIDO!", t.x, t.y - 120, 1.2f, 0xFFFFD400);
         }
         t.hp -= dmg; t.flash = 0.15f;
-        meter = Math.min(100, meter + 4);
+        meter = Math.min(100, meter + 4 * METER_RATE);
         combo++; comboTimer = 1.8f; if (combo > maxCombo) maxCombo = combo;
         score += 10 * Math.max(1, 1 + combo / 10);
-        if (combo > 0 && combo % 10 == 0) { meter = Math.min(100, meter + 10); pop("COMBO x" + combo + "!", t.x, t.y - 130, 1.1f, 0xFFFFD400); punch = 0.5f; }
+        if (combo > 0 && combo % 10 == 0) { meter = Math.min(100, meter + 10 * METER_RATE); pop("COMBO x" + combo + "!", t.x, t.y - 130, 1.1f, 0xFFFFD400); punch = 0.5f; }
         if (rnd.nextFloat() < 0.12f) brawlVoice();
         fxs.add(new Fx(FX_SPARK, t.x, t.y, 40 + t.h, 0.25f, 16, 0xFFFFFFFF));
         L.vibrate(10);

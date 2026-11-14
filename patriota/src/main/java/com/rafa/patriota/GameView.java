@@ -487,10 +487,10 @@ final class GameView extends View {
         title(c, "COMO JOGAR", 44);
         String[][] rows = {
             {"ANALÓGICO", "Move o herói. Segure para o lado e aperte A para arremessar um inimigo agarrado."},
-            {"A", "Soco esquerdo, soco direito e, no 3º toque seguido, chute baixo de lado. Segure A por cerca de 1,3 s para a onda de choque."},
+            {"A", "Soco esquerdo, soco direito e, no 3º toque seguido, chute baixo de lado. Segure A por 1 s para a onda de choque."},
             {"B", "Pula. No ar, aperte A para a voadora de lado (losango aberto)."},
             {"C", "Toque: pega item ou agarra o inimigo. Segure: defesa de boxe, que bloqueia golpes de frente e anda devagar."},
-            {"D", "Especial: gasta 50 de Patriotismo e varre os inimigos da tela."},
+            {"D", "Especial: gasta 50 de Patriotismo (a barra enche mais devagar) e varre os inimigos da tela."},
         };
         float y = 82;
         for (String[] r : rows) {

@@ -288,7 +288,7 @@ final class Jet {
         splash(w.x, w.y, 20);
         fxs.add(new Game.Fx(Game.FX_SPARK, w.x - 20, w.y, 40, 0.3f, 22, 0xFFFFFFFF));
         if (byPlayer) {
-            meter = Math.min(100, meter + 22);
+            meter = Math.min(100, meter + 22 * Game.METER_RATE);
             combo++; comboTimer = 2f;
             score += 50 * Math.max(1, combo / 3 + 1);
         }
