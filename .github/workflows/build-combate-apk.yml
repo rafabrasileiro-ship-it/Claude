@@ -1,0 +1,57 @@
+name: Gerar APK do Combate
+
+on:
+  push:
+    paths:
+      - "combate-android/**"
+      - "combate/public/**"
+      - ".github/workflows/build-combate-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COMBATE_KEYSTORE: ${{ github.workspace }}/combate-release.keystore
+      COMBATE_STORE_PASS: combate-ci-chave
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Restaurar chave de assinatura
+        uses: actions/cache@v4
+        with:
+          path: combate-release.keystore
+          key: combate-keystore-v1
+      - name: Criar chave de assinatura (só na primeira vez)
+        run: |
+          if [ ! -f combate-release.keystore ]; then
+            keytool -genkeypair -keystore combate-release.keystore -alias combate \
+              -keyalg RSA -keysize 2048 -validity 36500 \
+              -storepass "$COMBATE_STORE_PASS" -keypass "$COMBATE_STORE_PASS" \
+              -dname "CN=Combate"
+          fi
+      - name: Compilar APK
+        working-directory: combate-android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: combate-apk
+          path: combate-android/app/build/outputs/apk/release/*.apk
+      - name: Salvar APK no repositório
+        run: |
+          git rm -q --ignore-unmatch dist-combate/*.apk
+          mkdir -p dist-combate
+          cp combate-android/app/build/outputs/apk/release/*.apk dist-combate/combate-v${{ github.run_number }}.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist-combate/
+          git commit -m "Atualiza APK do Combate v${{ github.run_number }} [skip ci]" || exit 0
+          git pull --rebase origin "$GITHUB_REF_NAME" && git push
