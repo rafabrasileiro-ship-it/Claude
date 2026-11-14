@@ -706,7 +706,7 @@ final class R3 {
             case Game.S_IDLE: mv = moving ? 1f : 0f; break;
             case Game.S_ATK: {
                 pt = g.atkProg();
-                boolean fin = g.mounted ? g.comboStep == 3 : g.comboStep == 4;
+                boolean fin = g.comboStep == 3;
                 pose = (fin && g.weapon < 0 && g.hero != 2) ? Draw.P_KICK : Draw.P_PUNCH;
                 break;
             }
@@ -738,7 +738,9 @@ final class R3 {
             lk.scale = old;
             return;
         }
+        Draw.atkArm = (o.st == Game.S_ATK && g.comboStep == 2 && g.weapon < 0) ? 1 : 0;
         person(c, o.x, o.h, Z, o.face, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false, true);
+        Draw.atkArm = 0;
     }
 
     // ================================================================ FASE DO JET-SKI

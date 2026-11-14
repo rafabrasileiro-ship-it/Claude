@@ -27,6 +27,8 @@ final class Draw {
     }
 
     // poses
+    /** braço que soca: 0 = da frente, 1 = de trás (alterna a cada golpe do combo). */
+    static int atkArm = 0;
     static final int P_IDLE = 0, P_PUNCH = 1, P_KICK = 2, P_HURT = 3, P_DOWN = 4, P_JUMP = 5, P_WIND = 6, P_GRAB = 7,
             P_SPIN = 8, P_SPEC = 9, P_JKICK = 10, P_CHARGE = 11;
 
@@ -366,9 +368,16 @@ final class Draw {
         if (lk.acc == Data.AC_TOGA) armCol = 0xFF111111;
         if (q == 0) {
         // braço de trás
-            poly(c, shade(armCol, -0.15f), -10, ay, -5, ay, -9 - sa, ay + 24, -14 - sa, ay + 24);
+            if (punching && atkArm == 1) {
+                float bx = 20 + 18 * ext;
+                poly(c, shade(armCol, -0.15f), -8, ay - 2, -2, ay + 4, bx + 6, ay + 8 - 4 * ext, bx, ay + 2 - 4 * ext);
+                circle(c, skin, bx + 5, ay + 4 - 4 * ext, 5);
+            } else poly(c, shade(armCol, -0.15f), -10, ay, -5, ay, -9 - sa, ay + 24, -14 - sa, ay + 24);
             // braço da frente
-            if (punching) {
+            if (punching && atkArm == 1) {
+                poly(c, armCol, 4, ay - 2, 10, ay + 4, 16, ay + 6, 12, ay);
+                circle(c, skin, 15, ay + 4, 5);
+            } else if (punching) {
                 float fx = 20 + 18 * ext;
                 poly(c, armCol, 4, ay - 2, 10, ay + 4, fx + 6, ay + 8 - 4 * ext, fx, ay + 2 - 4 * ext);
                 circle(c, skin, fx + 5, ay + 4 - 4 * ext, 5);
@@ -395,13 +404,14 @@ final class Draw {
             if (toga) up = 0xFF151515;
             int fo = longS ? up : skin;
             float hxT, hyT;
-            if (punching) { hxT = 25 + 18 * ext; hyT = ay + 4 - 4 * ext; }
+            if (punching) { if (atkArm == 1) { hxT = 12; hyT = ay + 4; } else { hxT = 25 + 18 * ext; hyT = ay + 4 - 4 * ext; } }
             else if (pose == P_WIND || pose == P_JKICK || pose == P_CHARGE) { hxT = 19; hyT = ay + (pose == P_CHARGE ? -28 : -18) + 2; }
             else if (pose == P_GRAB) { hxT = 34; hyT = ay + 3; }
             else if (pose == P_SPIN) { float a2 = walk * 0.6f; hxT = (float) Math.cos(a2) * 30 + 3; hyT = ay + (float) Math.sin(a2) * 8 + 1; }
             else { hxT = 10 + sa; hyT = ay + 27; }
             // braço de trás (guarda alta ao socar)
             float bhx = punching || pose == P_GRAB ? 12 : -11 - sa, bhy = punching || pose == P_GRAB ? ay + 4 : ay + 26;
+            if (punching && atkArm == 1) { bhx = 25 + 18 * ext; bhy = ay + 4 - 4 * ext; }
             limb2(c, shade(up, -0.25f), shade(fo, -0.25f), -8 * g, ay - 1, bhx, bhy, 13.5f, 13.5f, 1, 6.5f);
             circle(c, shade(skin, -0.5f), bhx, bhy + 1, 5f); circle(c, shade(skin, -0.2f), bhx, bhy + 1, 4f);
             // braço da frente

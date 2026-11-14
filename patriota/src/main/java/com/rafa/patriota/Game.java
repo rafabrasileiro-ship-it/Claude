@@ -19,7 +19,7 @@ final class Game {
     }
 
     static final int SFX_HIT = 0, SFX_HEAVY = 1, SFX_JUMP = 2, SFX_HURT = 3, SFX_SPECIAL = 4, SFX_ITEM = 5,
-            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10;
+            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10, SFX_PUNCH = 11, SFX_KICK = 12;
 
     // estados
     static final int S_IDLE = 0, S_ATK = 1, S_JUMP = 2, S_JKICK = 3, S_HURT = 4, S_DOWN = 5, S_GETUP = 6,
@@ -626,7 +626,7 @@ final class Game {
             }
             case S_ATK: {
                 o.t += ad - dt;
-                int n = mounted ? 3 : 4;
+                int n = 3;
                 float dur = attackDur();
                 float act = dur * 0.35f;
                 if (o.t < act) o.x += o.face * 70 * dt;
@@ -721,12 +721,12 @@ final class Game {
         if (weapon >= 0) return weapon == Data.IT_VUVU ? 0.5f : weapon == Data.IT_JBL ? 0.6f : 0.3f;
         if (hero == 2) return 0.28f;
         if (mounted) return comboStep == 3 ? 0.5f : 0.32f;
-        return comboStep == 4 ? 0.42f : comboStep == 3 ? 0.3f : 0.22f;
+        return comboStep == 3 ? 0.36f : 0.22f;
     }
 
     private void startAttack(boolean chain) {
         Ent o = p;
-        int n = mounted ? 3 : 4;
+        int n = 3;
         if (!chain && comboT <= 0) comboStep = 0;
         comboStep++;
         if (comboStep > n) comboStep = 1;
@@ -737,7 +737,7 @@ final class Game {
         Ent o = p;
         if (weapon >= 0) { weaponHit(); return; }
         if (hero == 2 && !mounted) return;
-        float[] dm = mounted ? new float[]{10, 10, 18} : new float[]{6, 6, 9, 14};
+        float[] dm = mounted ? new float[]{10, 10, 18} : new float[]{8, 9, 18};
         float dmg = dm[Math.min(comboStep, dm.length) - 1] * dmgMul();
         boolean finisher = comboStep == dm.length;
         ArrayList<Ent> ts;
@@ -750,7 +750,7 @@ final class Game {
             if (landHit(t, dmg, finisher ? 1 : 0, dir, false)) hits++;
             if (mounted && finisher && t.alive && t.type == Ent.ENEMY) t.vy = -140;
         }
-        L.sfx(finisher ? SFX_HEAVY : SFX_HIT);
+        if (hits > 0) L.sfx(finisher ? SFX_KICK : SFX_PUNCH); else L.sfx(SFX_THROW);
         if (finisher && hits > 0) { shake = 6; voice(Data.HERO_FINISH[hero], false); }
     }
 

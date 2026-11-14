@@ -12,7 +12,7 @@ import java.util.Random;
 /** Efeitos sonoros e música gerados por código + voz por síntese (TTS) quando disponível. */
 final class Sfx implements Game.Listener {
     private static final int RATE = 22050;
-    private final AudioTrack[] fx = new AudioTrack[11];
+    private final AudioTrack[] fx = new AudioTrack[13];
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
     private Context ctx;
@@ -76,6 +76,8 @@ final class Sfx implements Game.Listener {
             fx[Game.SFX_WIN] = track(arp(new float[]{523, 659, 784, 1047, 784, 1047}, 0.13f));
             fx[Game.SFX_LOSE] = track(arp(new float[]{330, 294, 262, 196}, 0.2f));
             fx[Game.SFX_THROW] = track(noise(0.09f, 0.4f, 700));
+            fx[Game.SFX_PUNCH] = track(punchFx(0.11f, 0.5f, 170));
+            fx[Game.SFX_KICK] = track(punchFx(0.17f, 0.6f, 105));
             musicBattle = loop(song(true));
             musicTriumph = loop(song(false));
         } catch (Throwable ignored) { }
@@ -225,6 +227,22 @@ final class Sfx implements Game.Listener {
             float env = 1f - (float) i / n;
             float v = (rnd.nextFloat() * 2 - 1) * 0.7f + (float) Math.sin(2 * Math.PI * tone * i / RATE) * 0.6f;
             s[i] = (short) (v * env * env * amp * 11000);
+        }
+        return s;
+    }
+
+    /** impacto de soco/chute: pancada grave abafada + estalo curto de ruído; amplitude baixa para ficar sob as vozes. */
+    private short[] punchFx(float sec, float amp, float f0) {
+        int n = (int) (sec * RATE);
+        short[] s = new short[n];
+        double ph = 0; float lp = 0;
+        for (int i = 0; i < n; i++) {
+            float t = (float) i / n;
+            ph += 2 * Math.PI * (f0 - f0 * 0.5f * t) / RATE;
+            float env = (1f - t) * (1f - t);
+            lp += 0.35f * ((rnd.nextFloat() * 2 - 1) - lp); // ruído filtrado = som "carnudo"
+            float v = (float) Math.sin(ph) * 0.9f + lp * (i < n / 4 ? 0.9f : 0.2f);
+            s[i] = (short) (v * env * amp * 12000);
         }
         return s;
     }
