@@ -21,3 +21,6 @@ Tabuleiro 10×10 com 2 lagos, 40 peças por jogador, soldado (2) anda várias ca
 
 ## Modo contra a máquina
 Na tela inicial, escolha **Fácil / Médio / Difícil** e toque em **🤖 Jogar contra a máquina**. Roda inteiramente no aparelho (sem servidor e sem Wi-Fi). A máquina só usa a informação que um jogador humano teria: calcula probabilidades com base nas peças que ainda restam e nas que já se moveram, usa soldados para explorar e evita ficar ao lado de peças que possam capturá-la.
+
+## Visão 3D
+O tabuleiro é exibido em perspectiva, com as peças "em pé" (espessura, sombra e destaque de seleção), como no jogo da Estrela. Em pé a câmera fica mais alta; deitado fica mais inclinada. Dá para desligar em **☰ Menu → Visão 3D**.
