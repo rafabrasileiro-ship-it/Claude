@@ -85,7 +85,7 @@ final class GameView extends View {
         sfx = new Sfx(ctx);
         relay = new Snap.Relay(sfx);
         game = new Game(relay);
-        jet = new Jet(sfx);
+        jet = new Jet(relay);
         java.util.Arrays.fill(role, -1);
         loadPrefs();
         buildLooks();
@@ -292,10 +292,9 @@ final class GameView extends View {
 
     private boolean guestMode() { return coop && !net.host; }
 
-    /** Próxima fase da campanha (na dupla pula o jet-ski, que é só solo); -1 se acabou. */
+    /** Próxima fase da campanha; -1 se acabou. */
     private int nextStage() {
         int nx = stageSel + 1;
-        while (nx < Data.STAGES.size() && coop && Data.STAGES.get(nx).jet) nx++;
         return nx < Data.STAGES.size() ? nx : -1;
     }
 
@@ -341,8 +340,9 @@ final class GameView extends View {
     }
 
     private void startGuest(int stage, int hostHero, int myHero) {
-        stageSel = stage; jetMode = false; hero = myHero;
+        stageSel = stage; jetMode = Data.STAGES.get(stage).jet; hero = myHero;
         game.resetMirror(); relay.rec = false;
+        if (jetMode) { jet.start(hostHero, myHero); jet.mirror = true; jet.local = 1; jet.ps[0].maxHp = jet.ps[1].maxHp = 0; jet.ps[0].x = jet.ps[1].x = 0; jet.camX = 0; jet.adopt(1); }
         screen = SC_PLAY; screenT = 0; resetTouch(); curJx = curJy = sentJx = sentJy = 0;
         playStageMusic(stage);
         last = System.nanoTime();
@@ -363,7 +363,7 @@ final class GameView extends View {
             switch (m[0]) {
                 case Snap.M_HERO: if (m.length > 1) partnerHero = Math.max(0, Math.min(5, m[1])); break;
                 case Snap.M_START: if (guestMode() && m.length > 3) startGuest(m[1], m[2], m[3]); break;
-                case Snap.M_INPUT: if (!guestMode() && !game.mirror && game.np == 2) Snap.applyInput(game, m); break;
+                case Snap.M_INPUT: if (!guestMode()) { if (jetMode) Snap.applyInputJet(jet, m); else if (!game.mirror && game.np == 2) Snap.applyInput(game, m); } break;
                 case Snap.M_BYE: endCoop("O amigo saiu da partida."); return;
                 default: break;
             }
@@ -376,7 +376,7 @@ final class GameView extends View {
         if (coopSub == 0) {
             String[] help = {"Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida.",
                     "Wi-Fi é o mais rápido e fluido: os dois celulares na mesma rede (ou no ponto de acesso de um deles).",
-                    "Um jogador CRIA A SALA; o outro toca em ENTRAR. O anfitrião escolhe a fase (jet-ski é só solo)."};
+                    "Um jogador CRIA A SALA; o outro toca em ENTRAR. O anfitrião escolhe a fase ."};
             for (int i = 0; i < help.length; i++) Draw.text(c, help[i], 400, 80 + i * 22, 13, 0xFFFFFFFF, Paint.Align.CENTER);
             addBtn(c, B_HOSTW, 60, 160, 390, 216, "CRIAR SALA — Wi-Fi (recomendado)", true, 0xFF1B8F3A);
             addBtn(c, B_JOINW, 410, 160, 740, 216, "ENTRAR NA SALA — Wi-Fi", true, 0xFF1D3E9A);
@@ -513,7 +513,7 @@ final class GameView extends View {
         for (int i = 0; i < n; i++) {
             int col = i / 5, row = i % 5;
             float x0 = 30 + col * 385, y0 = 62 + row * 64;
-            boolean solo = coop && Data.STAGES.get(i).jet;
+            boolean solo = false;
             boolean ok = i <= cleared && !solo;
             String name = Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0];
             addBtn(c, B_STAGE + i, x0, y0, x0 + 365, y0 + 56, solo ? Data.STAGES.get(i).id + " · só no modo solo" : ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
@@ -589,9 +589,9 @@ final class GameView extends View {
     // ---------------------------------------------------------------- jogo
     private void startStage(int idx) {
         stageSel = idx;
-        jetMode = Data.STAGES.get(idx).jet && !coop;
+        jetMode = Data.STAGES.get(idx).jet;
         game.mirror = false; game.local = 0; relay.rec = coop; relay.ev.clear();
-        if (jetMode) jet.start(hero);
+        if (jetMode) { if (coop) { int ph = partnerHero >= 0 ? partnerHero : 0; jet.start(hero, ph); net.send(Snap.msg(Snap.M_START, idx, hero, ph)); } else jet.start(hero); }
         else if (coop) { game.start(idx, hero, partnerHero >= 0 ? partnerHero : 0); net.send(Snap.msg(Snap.M_START, idx, hero, partnerHero >= 0 ? partnerHero : 0)); }
         else game.start(idx, hero);
         screen = SC_PLAY; screenT = 0;
@@ -699,11 +699,35 @@ final class GameView extends View {
     // ---------------------------------------------------------------- fase do jet-ski
     private void drawJetPlay(Canvas c, float dt) {
         Jet j = jet;
-        if (screen == SC_PLAY) {
+        if (j.mirror) {
+            byte[] m = net.takeSnap();
+            if (m != null) { Snap.readJet(j, m, noVoice); }
+            if (j.ps[0].maxHp == 0 || j.ps[1].maxHp == 0) {
+                Draw.rect(c, 0xFF000000, 0, 0, Game.W, Game.H);
+                Draw.text(c, "Sincronizando com o anfitrião...", 400, 225, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                return;
+            }
+            j.smooth(dt);
+            pingT += dt; if (pingT > 1f) { pingT = 0; net.ping(); }
+            if (screen == SC_PLAY || screen == SC_PAUSE) {
+                if (j.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
+                else if (j.result == 1) onWin();
+            } else if ((screen == SC_OVER || screen == SC_WIN) && j.result == 0) {
+                screen = SC_PLAY; screenT = 0; resetTouch(); playStageMusic(stageSel);
+            }
+            if (screen == SC_PLAY && (Math.abs(curJx - sentJx) > 0.03f || Math.abs(curJy - sentJy) > 0.03f || ((curJx == 0 && curJy == 0) && (sentJx != 0 || sentJy != 0)))) {
+                sentJx = curJx; sentJy = curJy; net.send(Snap.msgInput(Snap.I_MOVE, curJx, curJy));
+            }
+        } else if (screen == SC_PLAY) {
             j.update(dt);
             if (j.result == 2) { screen = SC_OVER; screenT = 0; resetTouch(); sfx.music(0); }
             else if (j.result == 1) onWin();
         } else if (screen == SC_WIN || screen == SC_OVER) j.update(0);
+        j.sync();
+        if (coop && !j.mirror && net.connected()) {
+            snapT += dt;
+            if (snapT >= 1f / net.rate) { snapT = 0; net.sendSnap(Snap.writeJet(j, relay)); }
+        }
         c.save();
         if (j.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * j.shake, (rnd.nextFloat() - 0.5f) * j.shake);
         R3.jetWorld(c, j, heroLooks, Draw.q == 0);
@@ -720,11 +744,31 @@ final class GameView extends View {
         drawPops(c, j.pops);
         c.restore();
         drawJetHud(c);
-        drawEndOverlays(c, j.score, j.hp, j.maxHp);
+        if (j.np == 2) drawJetPartner(c, j);
+        drawEndOverlays(c, j.score, j.ps[j.local].hp, j.ps[j.local].maxHp);
+    }
+
+    private void drawJetPartner(Canvas c, Jet j) {
+        Jet.JS q = j.ps[1 - j.local];
+        int oi = 1 - j.local;
+        Draw.rect(c, 0x99000000, 560, 56, 792, 92);
+        c.save(); c.clipRect(562, 58, 592, 90);
+        Draw.noShadow = true;
+        R3.icon(c, heroLooks[q.hero], 577, 160, 0.8f, 0, Draw.P_IDLE);
+        Draw.noShadow = false;
+        c.restore();
+        Draw.text(c, (oi == 0 ? "1P " : "2P ") + Data.HERO_NAME[q.hero] + (q.hp <= 0 ? " (caído)" : ""), 598, 68, 11, oi == 0 ? 0xFF76FF03 : 0xFF40C4FF, Paint.Align.LEFT);
+        float f = Math.max(0f, q.hp / q.maxHp);
+        Draw.rect(c, 0xFF000000, 597, 72, 789, 82);
+        Draw.rect(c, f > 0.3f ? 0xFF2E9B3A : 0xFFE53935, 598, 73, 598 + 190 * f, 81);
+        Draw.text(c, (net.isWifi() ? "Wi-Fi" : "Bluetooth") + (net.rtt >= 0 && net.rtt < 5000 ? " " + net.rtt + " ms" : ""), 790, 102, 10, 0xFFBBBBBB, Paint.Align.RIGHT);
+        Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
+        Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
     }
 
     private void drawJetHud(Canvas c) {
         Jet j = jet;
+        j.adopt(j.local);
         Draw.rect(c, 0xFF223322, 8, 8, 66, 66);
         c.save(); c.clipRect(8, 8, 66, 66);
         R3.icon(c, heroLooks[j.hero], 30, 278, 1.5f, 0, Draw.P_IDLE);
@@ -756,9 +800,9 @@ final class GameView extends View {
     }
 
     // entrada: despacha para o modo de jogo atual
-    private void inPress(int b) { if (jetMode) jet.press(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_PRESS, b, 0)); else game.press(b); }
-    private void inRelease(int b) { if (jetMode) jet.release(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_RELEASE, b, 0)); else game.release(b); }
-    private void inMove(float x, float y) { if (jetMode) jet.setMove(x, y); else if (game.mirror) { curJx = x; curJy = y; } else game.setMove(x, y); }
+    private void inPress(int b) { if (jetMode && jet.mirror) net.send(Snap.msgInput(Snap.I_PRESS, b, 0)); else if (jetMode) jet.press(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_PRESS, b, 0)); else game.press(b); }
+    private void inRelease(int b) { if (jetMode && jet.mirror) net.send(Snap.msgInput(Snap.I_RELEASE, b, 0)); else if (jetMode) jet.release(b); else if (game.mirror) net.send(Snap.msgInput(Snap.I_RELEASE, b, 0)); else game.release(b); }
+    private void inMove(float x, float y) { if (jetMode && jet.mirror) { curJx = x; curJy = y; } else if (jetMode) jet.setMove(x, y); else if (game.mirror) { curJx = x; curJy = y; } else game.setMove(x, y); }
 
 
     /** Marcadores 2D sobre o mundo 3D: avisos de ataque, barras de vida e auras. */
@@ -961,7 +1005,7 @@ final class GameView extends View {
         joyActive = false; joyX = joyY = 0;
         for (int i = 0; i < 4; i++) btnDown[i] = false;
         downBtn = -1;
-        try { inMove(0, 0); if (jetMode) jet.release(Game.BC); else if (game.p != null) inRelease(Game.BA); } catch (Exception ignored) { }
+        try { inMove(0, 0); if (jetMode) inRelease(Game.BC); else if (game.p != null) inRelease(Game.BA); } catch (Exception ignored) { }
     }
 
     // ---------------------------------------------------------------- toque
@@ -1109,7 +1153,7 @@ final class GameView extends View {
                     else if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
                 else if (id >= B_STAGE && id < B_STAGE + 20) {
                     int s = id - B_STAGE;
-                    if (coop) { if (s <= cleared && s < Data.STAGES.size() && !Data.STAGES.get(s).jet) { stageSel = s; screen = SC_BRIEF; briefT = 0; screenT = 0; } }
+                    if (coop) { if (s <= cleared && s < Data.STAGES.size()) { stageSel = s; screen = SC_BRIEF; briefT = 0; screenT = 0; } }
                     else if (s <= cleared && s < Data.STAGES.size()) { stageSel = s; fromStageList = true; screen = SC_SELECT; screenT = 0; }
                 } else if (id >= B_OPT && id < B_OPT + 10) {
                     switch (id - B_OPT) {

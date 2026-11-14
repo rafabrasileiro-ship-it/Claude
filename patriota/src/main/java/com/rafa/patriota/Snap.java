@@ -213,6 +213,127 @@ final class Snap {
         } catch (IOException | RuntimeException ignored) { }
     }
 
+    // ---------------------------------------------------------------- snapshot do jet-ski (dupla)
+    static byte[] writeJet(Jet j, Relay relay) {
+        try {
+            j.sync();
+            ByteArrayOutputStream bo = new ByteArrayOutputStream(1024);
+            DataOutputStream o = new DataOutputStream(bo);
+            o.writeByte(M_SNAP);
+            o.writeByte(j.np); o.writeByte(j.result); o.writeInt(j.score); o.writeShort(j.kills); o.writeShort(j.combo);
+            o.writeFloat(j.camX); o.writeFloat(j.shake);
+            for (int i = 0; i < j.np; i++) {
+                Jet.JS q = j.ps[i];
+                o.writeByte(q.hero); o.writeShort(q.hp * 4 > 32000 ? 32000 : (int) (q.hp * 4)); o.writeShort((int) (q.maxHp * 4)); o.writeByte((int) Math.min(100, q.meter));
+                o.writeShort(q4(q.x)); o.writeShort(q4(q.y)); o.writeShort(q4(q.h)); o.writeByte((int) Math.max(-100, Math.min(100, q.bank * 8)));
+                o.writeByte((int) Math.min(255, q.inv * 40)); o.writeByte((int) Math.min(255, q.flash * 400)); o.writeByte((q.ramT > 0 ? 1 : 0) | (q.specialT > 0 ? 2 : 0));
+            }
+            int n = Math.min(j.whales.size(), 24);
+            o.writeByte(n);
+            for (int i = 0; i < n; i++) {
+                Jet.Whale w = j.whales.get(i);
+                o.writeShort(w.id); o.writeByte(w.type | (w.dying ? 2 : 0));
+                o.writeShort(q4(w.x)); o.writeShort(q4(w.y)); o.writeShort(q4(w.h));
+                o.writeByte((int) Math.max(0, Math.min(255, w.hp * 20))); o.writeByte((int) Math.min(255, w.flash * 400)); o.writeShort(q100(w.sinkT)); o.writeShort(q100(Math.min(w.t, 300f)));
+            }
+            n = Math.min(j.patriots.size(), 8);
+            o.writeByte(n);
+            for (int i = 0; i < n; i++) { Jet.Patriot p = j.patriots.get(i); o.writeShort(q4(p.x)); o.writeShort(q4(p.y)); o.writeByte(p.look); }
+            n = Math.min(j.pops.size(), 8);
+            o.writeByte(n);
+            for (int i = 0; i < n; i++) {
+                Game.Pop p = j.pops.get(i);
+                o.writeUTF(p.s); o.writeShort(q4(p.x)); o.writeShort(q4(p.y)); o.writeShort(q100(p.t)); o.writeShort(q100(p.life)); o.writeInt(p.color);
+            }
+            n = Math.min(j.fxs.size(), 24);
+            o.writeByte(n);
+            for (int i = 0; i < n; i++) {
+                Game.Fx f = j.fxs.get(i);
+                o.writeByte(f.kind); o.writeShort(q4(f.x)); o.writeShort(q4(f.y)); o.writeShort(q4(f.h)); o.writeShort(q100(f.t));
+                o.writeShort(q100(f.life)); o.writeShort(q4(f.r)); o.writeInt(f.color);
+            }
+            int ne = relay == null ? 0 : relay.ev.size();
+            o.writeByte(ne);
+            for (int i = 0; i < ne; i++) o.writeUTF(relay.ev.get(i));
+            if (relay != null) relay.ev.clear();
+            return bo.toByteArray();
+        } catch (IOException e) { return new byte[]{M_SNAP}; }
+    }
+
+    static void readJet(Jet j, byte[] m, Game.Listener L) {
+        try {
+            DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(m));
+            in.readByte();
+            j.np = in.readUnsignedByte(); j.result = in.readUnsignedByte(); j.score = in.readInt(); j.kills = in.readShort(); j.combo = in.readShort();
+            boolean first = j.camX == 0;
+            j.camTx = in.readFloat(); if (first || j.camTx < j.camX - 300) j.camX = j.camTx; j.shake = in.readFloat();
+            for (int i = 0; i < j.np; i++) {
+                Jet.JS q = j.ps[i];
+                boolean fresh = q.maxHp == 0;
+                q.hero = in.readUnsignedByte(); q.hp = in.readShort() / 4f; q.maxHp = in.readShort() / 4f; q.meter = in.readUnsignedByte();
+                q.tx = in.readShort() / 4f; q.ty = in.readShort() / 4f; q.h = in.readShort() / 4f; q.bank = in.readByte() / 8f;
+                q.inv = in.readUnsignedByte() / 40f; q.flash = in.readUnsignedByte() / 400f;
+                int fl = in.readUnsignedByte(); q.ramT = (fl & 1) != 0 ? 0.2f : 0; q.specialT = (fl & 2) != 0 ? 1f : 0;
+                if (fresh || q.x == 0) { q.x = q.tx; q.y = q.ty; }
+            }
+            int n = in.readUnsignedByte();
+            HashMap<Integer, Jet.Whale> old = new HashMap<>();
+            for (Jet.Whale w : j.whales) old.put(w.id, w);
+            ArrayList<Jet.Whale> fresh = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                int id = in.readShort(); Jet.Whale w = old.get(id); boolean isNew = w == null;
+                if (isNew) { w = new Jet.Whale(); w.id = id; }
+                int ty = in.readUnsignedByte(); w.type = ty & 1; w.dying = (ty & 2) != 0; w.size = w.type == 0 ? 1.0f : 1.25f; w.maxHp = w.type == 0 ? 2f : 3f;
+                w.tx = in.readShort() / 4f; w.ty = in.readShort() / 4f; w.h = in.readShort() / 4f;
+                w.hp = in.readUnsignedByte() / 20f; w.flash = in.readUnsignedByte() / 400f; w.sinkT = in.readShort() / 100f; w.t = in.readShort() / 100f;
+                if (isNew) { w.x = w.tx; w.y = w.ty; }
+                fresh.add(w);
+            }
+            j.whales.clear(); j.whales.addAll(fresh);
+            n = in.readUnsignedByte();
+            while (j.patriots.size() > n) j.patriots.remove(j.patriots.size() - 1);
+            for (int i = 0; i < n; i++) {
+                Jet.Patriot p; boolean isNew = i >= j.patriots.size();
+                if (isNew) { p = new Jet.Patriot(); j.patriots.add(p); } else p = j.patriots.get(i);
+                p.tx = in.readShort() / 4f; p.ty = in.readShort() / 4f; p.look = in.readUnsignedByte();
+                if (isNew) { p.x = p.tx; p.y = p.ty; }
+            }
+            n = in.readUnsignedByte();
+            j.pops.clear();
+            for (int i = 0; i < n; i++) {
+                String s = in.readUTF(); float x = in.readShort() / 4f, y = in.readShort() / 4f, t = in.readShort() / 100f, life = in.readShort() / 100f;
+                Game.Pop p = new Game.Pop(s, x, y, life, in.readInt()); p.t = t; j.pops.add(p);
+            }
+            n = in.readUnsignedByte();
+            j.fxs.clear();
+            for (int i = 0; i < n; i++) {
+                int kind = in.readUnsignedByte(); float x = in.readShort() / 4f, y = in.readShort() / 4f, h = in.readShort() / 4f, t = in.readShort() / 100f;
+                float life = in.readShort() / 100f, r = in.readShort() / 4f; int col = in.readInt();
+                Game.Fx f = new Game.Fx(kind, x, y, h, life, r, col); f.t = t; j.fxs.add(f);
+            }
+            n = in.readUnsignedByte();
+            for (int i = 0; i < n; i++) {
+                String s = in.readUTF();
+                if (s.charAt(0) == 's') { try { L.sfx(Integer.parseInt(s.substring(1))); } catch (NumberFormatException ignored) { } }
+                else if (s.charAt(0) == 'v') L.voice(s.substring(1));
+            }
+        } catch (IOException | RuntimeException ignored) { }
+    }
+
+    /** Aplica uma mensagem de entrada do convidado no jet-ski 2. */
+    static void applyInputJet(Jet j, byte[] m) {
+        try {
+            DataInputStream in = new DataInputStream(new java.io.ByteArrayInputStream(m));
+            in.readByte();
+            byte kind = in.readByte();
+            float a = in.readFloat(), b = in.readFloat();
+            if (j.np < 2) return;
+            if (kind == I_MOVE) j.setMove(1, a, b);
+            else if (kind == I_PRESS) j.press(1, (int) a);
+            else if (kind == I_RELEASE) j.release(1, (int) a);
+        } catch (IOException ignored) { }
+    }
+
     /** Define o alvo de posição; objetos novos aparecem direto no lugar. */
     private static void place(Ent e) {
         if (Float.isNaN(e.x)) { e.x = e.tx; e.y = e.ty; e.h = e.th; }

@@ -844,8 +844,12 @@ final class R3 {
         water(c, j.camX, j.time);
         for (Jet.Whale w : j.whales) { if (w.x > j.camX - 250 && w.x < j.camX + Game.W + 250) whale(c, w, zOf(w.y), j.time); }
         for (Jet.Patriot p : j.patriots) jetski(c, p.x, zOf(p.y), 0, 1, 0, heroLooks[p.look], 0, true, j.time, true);
-        boolean blink = j.inv > 0 && j.inv < 3 && ((int) (j.time * 14) & 1) == 0 && j.specialT <= 0;
-        if (!blink) jetski(c, j.x, zOf(j.y), j.h + (float) Math.sin(j.time * 9) * 1.4f, 1, j.bank, heroLooks[j.hero], j.flash, false, j.time, j.ramT > 0);
+        for (int i = 0; i < j.np; i++) {
+            Jet.JS q = j.ps[i];
+            if (q.hp <= 0) continue;
+            boolean blink = q.inv > 0 && q.inv < 3 && ((int) (j.time * 14) & 1) == 0 && q.specialT <= 0;
+            if (!blink) jetski(c, q.x, zOf(q.y), q.h + (float) Math.sin(j.time * 9 + i) * 1.4f, 1, q.bank, heroLooks[q.hero], q.flash, false, j.time, q.ramT > 0);
+        }
         flush(c);
         fogK = 0.22f;
     }
