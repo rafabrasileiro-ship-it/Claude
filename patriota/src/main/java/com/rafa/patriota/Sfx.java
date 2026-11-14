@@ -45,6 +45,8 @@ final class Sfx implements Game.Listener {
         CLIPS.put("(Mula sobre a fome)", "voz_lula_fome");
         CLIPS.put("(Mula no alto-falante)", "voz_lula_game");
         CLIPS.put("Filho da puta!", "voz_filho_da_puta_1,voz_filho_da_puta_2");
+        CLIPS.put("Puta que o pariu!", "voz_puta_que_o_pariu");
+        CLIPS.put("Porra!", "voz_porra");
         CLIPS.put("Vagabundo!", "voz_vagabundo");
         CLIPS.put("Escrota!", "voz_escrota");
         CLIPS.put("Fudido!", "voz_fudido");

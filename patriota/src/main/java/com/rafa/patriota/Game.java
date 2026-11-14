@@ -541,7 +541,7 @@ final class Game {
         bossVoiceCd = time;
     }
     private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!"};
-    private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!"};
+    private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!", "Puta que o pariu!", "Porra!"};
 
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
