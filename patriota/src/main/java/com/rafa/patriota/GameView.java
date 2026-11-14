@@ -625,7 +625,7 @@ final class GameView extends View {
     }
 
     private void playStageMusic(int idx) {
-        if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
+        if (Data.STAGES.get(idx).jet && sfx.stageMusic("musica_jetski")) { /* som de jet-ski de fundo */ } else if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
     }
 
     private void drawPlay(Canvas c, float dt) {
