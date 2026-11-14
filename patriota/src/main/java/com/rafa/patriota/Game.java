@@ -236,7 +236,7 @@ final class Game {
         score = 0; result = 0; endT = 0; radio = ""; radioT = 0; bossRef = null; mountT = 0;
         segIdx = 0; segActive = false; cur = null; camX = 0; camMin = 0; camMax = LOCK0; shake = 0; time = 0;
         hitStop = 0; camLead = 0; ambT = 5f; sps = new ArrayList<>();
-        voiceCd = 0; goT = 0; auraT = 0;
+        voiceCd = 0; goT = 0; auraT = 0; sawSmoke = false;
         voice(stageIdx == 2 && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
         introT = stageIdx == Data.STAGES.size() - 1 ? 1.4f : 0f;
         combo = 0; comboTimer = 0; slowT2 = 0; punch = 0; dustT = 0;
@@ -295,6 +295,7 @@ final class Game {
         for (int i = 0; i < np; i++) { use(i); updatePlayer(dt); }
         use(0);
         updateSeg(dt);
+        if (!sawSmoke && voiceCd <= 0) for (Ent e : ents) if (e.type == Ent.ENEMY && e.alive && Data.KINDS[e.kind].joint && e.x > camX + 20 && e.x < camX + W - 20) { sawSmoke = true; jairSay("Vagabundo!"); break; }
         auraNow = false;
         for (int i = 0; i < ents.size(); i++) {
             Ent e = ents.get(i);
@@ -431,6 +432,7 @@ final class Game {
             pop("XANXA, a esposa do Mula, entrou na luta!", e.x, e.y - 160, 2.4f, 0xFFFFCC80);
         } else if (k.boss) {
             bossRef = e;
+            if (kind == Data.K_REITOR || kind == Data.K_BONE || kind == Data.K_MULA) jairSay("Vagabundo!");
             e.x = camX + W - 100; e.y = 350; e.face = -1;
             if (kind == Data.K_BONE) {
                 e.invul = true; e.aux2 = 1; e.y = 330;
@@ -497,9 +499,9 @@ final class Game {
         if (time - bossVoiceCd > 8f || bossVoiceCd == 0) { bossVoiceCd = time; ambT = Math.max(ambT, clipLen(s) + 6f); L.voice(s); }
     }
 
-    private static final String[] GROBO = {"Não tem credibilidade!", "Canalhas!", "Hahahaha!"};
-    private static final String[] QUARENTENA = {"Jacaré!"};
-    private static final String[] CONTRA_MULA = {"Para de mentir, Lula!"};
+    private static final String[] GROBO = {"Não tem credibilidade!", "Canalhas!", "Hahahaha!", "Que porra é essa?"};
+    private static final String[] QUARENTENA = {"Jacaré!", "Que porra é essa?"};
+    private static final String[] CONTRA_MULA = {"Para de mentir, Lula!", "Que porra é essa?"};
     // falas "de fundo" (alto-falante) por fase
     private static final String[] AMB_MANIF = {"Bora pra rua, gente!", "(Mula sobre a fome)", "(Mula no alto-falante)",
             "Lula!", "O maior presidente da história do Brasil!", "É Lula, é Lula!", "Agora é Lula!", "É Lula!", "Cara sem dente!"};
@@ -547,7 +549,7 @@ final class Game {
         bossVoiceCd = time;
     }
     private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!", "Que porra é essa?", "Tá de sacanagem comigo?", "Hahahahaha!"};
-    private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!", "Puta que o pariu!", "Porra!"};
+    private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!", "Puta que o pariu!", "Porra!", "Que porra é essa?"};
 
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
@@ -560,6 +562,10 @@ final class Game {
         else if (stageIdx == 2 && rnd.nextFloat() < 0.7f) pool = UNIVERSIDADE;
         voice(pool[rnd.nextInt(pool.length)], false);
     }
+
+    /** Fala forçada do Jair (as gravações são dele). */
+    private void jairSay(String s) { if (hero == 0) voice(s, true); }
+    private boolean sawSmoke;
 
     private void voice(String s, boolean force) {
         if (!L.hasClip(s)) return;
