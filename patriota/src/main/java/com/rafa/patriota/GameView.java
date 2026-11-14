@@ -124,7 +124,7 @@ final class GameView extends View {
         for (int i = 0; i < Data.KINDS.length; i++) {
             Data.Kind k = Data.KINDS[i];
             Draw.Look l = new Draw.Look();
-            l.skin = k.skin; l.shirt = k.shirt; l.pants = k.pants; l.hair = k.hair; l.acc = k.acc; l.scale = k.scale;
+            l.skin = k.skin; l.shirt = k.shirt; l.pants = k.pants; l.hair = k.hair; l.acc = k.acc; l.scale = k.scale; l.joint = k.joint;
             if (i == Data.K_CHEFAO || i == Data.K_DOMINGAO || i == Data.K_ATILA) l.girth = 1.2f;
             kindLooks[i] = l;
         }

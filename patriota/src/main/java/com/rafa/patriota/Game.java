@@ -511,6 +511,9 @@ final class Game {
         switch (s) {
             case "A maioria ali é militante.": return 7.8f;
             case "Hahahaha!": return 6.0f;
+            case "Que porra é essa?": return 1.0f;
+            case "Tá de sacanagem comigo?": return 1.5f;
+            case "Hahahahaha!": return 2.1f;
             case "Para de mentir, Lula!": return 4.6f;
             case "São uns idiotas úteis!": return 5.5f;
             case "Canalhas!": return 4.3f;
@@ -543,7 +546,7 @@ final class Game {
         ambT = clipLen(s) + 7f + rnd.nextFloat() * 7f;
         bossVoiceCd = time;
     }
-    private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!"};
+    private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!", "Que porra é essa?", "Tá de sacanagem comigo?", "Hahahahaha!"};
     private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!", "Puta que o pariu!", "Porra!"};
 
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */

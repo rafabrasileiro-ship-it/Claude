@@ -18,13 +18,13 @@ final class Data {
     // acessórios (desenho)
     static final int AC_NONE = 0, AC_FLAG = 1, AC_MASK = 2, AC_VEST = 3, AC_BOOK = 4, AC_GUITAR = 5, AC_KNIFE = 6,
             AC_TROPHY = 7, AC_RING = 8, AC_TRIPOD = 9, AC_SUIT = 10, AC_TOGA = 11, AC_HAWAII = 12, AC_COAT = 13,
-            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19, AC_XANXA = 20;
+            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19, AC_XANXA = 20, AC_FLAGS = 21;
 
     static final class Kind {
         String name;
         float hp, spd, dmg, range, windup, cd, scale = 1f;
         int atk, score, skin, shirt, pants, hair, acc;
-        boolean boss, guard;
+        boolean boss, guard, joint;
         String[] lines;
 
         Kind(String name, float hp, float spd, float dmg, float range, float windup, float cd, int atk, int score,
@@ -36,6 +36,7 @@ final class Data {
         }
 
         Kind big(float s) { scale = s; boss = true; return this; }
+        Kind joint() { joint = true; return this; }
         Kind guard() { guard = true; return this; }
     }
 
@@ -44,21 +45,21 @@ final class Data {
     static final Kind[] KINDS = new Kind[24];
 
     static {
-        KINDS[K_MANIF] = new Kind("Manifestante", 24, 55, 6, 52, 0.45f, 1.6f, AT_MELEE, 100, SK2, 0xFFD62828, 0xFF3A3A3A, 0xFF222222, AC_FLAG, "Fascista!", "Ei, ei, ei!");
+        KINDS[K_MANIF] = new Kind("Manifestante", 24, 55, 6, 52, 0.45f, 1.6f, AT_MELEE, 100, SK2, 0xFFD62828, 0xFF3A3A3A, 0xFF222222, AC_FLAGS, "Fascista!", "Ei, ei, ei!");
         KINDS[K_PIQUET] = new Kind("Piqueteiro", 40, 68, 9, 56, 0.5f, 1.4f, AT_MELEE, 160, SK3, 0xFFB5121B, 0xFF1F2A44, 0xFF111111, AC_MEGA, "Greve geral!");
         KINDS[K_CHEFAO] = new Kind("Chefão da Marcha", 230, 70, 11, 80, 0.5f, 1.3f, AT_BOSS, 1500, SK1, 0xFFE63946, 0xFF222222, 0xFF553311, AC_MEGA, "Não vai passar!").big(1.35f);
         KINDS[K_PANDE] = new Kind("Pandeminion", 26, 60, 3, 118, 0.55f, 2.2f, AT_GEL, 120, SK4, 0xFFF4F4F4, 0xFF4BA3C3, 0xFF444444, AC_MASK, "Fica em casa!", "Cadê a vacina?", "Negacionista!", "Use máscara!");
-        KINDS[K_FISCAL] = new Kind("Fiscal de Praça", 32, 78, 3, 140, 0.6f, 2.6f, AT_RIBBON, 150, SK3, 0xFFE8D400, 0xFF2B2B2B, 0xFF222222, AC_VEST, "Apita! Apita!", "Circulando!");
+        KINDS[K_FISCAL] = new Kind("Fiscal de Praça", 32, 78, 3, 140, 0.6f, 2.6f, AT_RIBBON, 150, SK3, 0xFFC62828, 0xFF2B2B2B, 0xFF222222, AC_VEST, "Apita! Apita!", "Circulando!");
         KINDS[K_ATILA] = new Kind("Doutor Atila-mento", 280, 62, 9, 80, 0.5f, 1.5f, AT_BOSS, 2000, SK4, 0xFFFFFFFF, 0xFF2F6F9F, 0xFFDDDDDD, AC_COAT, "Estatística!", "Fique em casa!").big(1.35f);
-        KINDS[K_ESTUD] = new Kind("Estudante de Humanas", 24, 58, 6, 0, 0.6f, 2.4f, AT_THROW, 110, SK1, 0xFF7B2D8E, 0xFF2D3E50, 0xFFAA5500, AC_BOOK, "Problematizando!", "Isso é uma construção!");
-        KINDS[K_CIRANDA] = new Kind("Cirandeiro", 30, 62, 7, 54, 0.5f, 1.5f, AT_MELEE, 120, SK3, 0xFFE67E22, 0xFF6B4F2A, 0xFF222222, AC_NONE, "Ciranda, cirandinha!");
-        KINDS[K_MPB] = new Kind("Músico de MPB", 34, 52, 8, 60, 0.6f, 1.8f, AT_MELEE, 140, SK2, 0xFF2E8B57, 0xFF8B7355, 0xFF442200, AC_GUITAR, "Acústico, meu bem!");
+        KINDS[K_ESTUD] = new Kind("Estudante de Humanas", 24, 58, 6, 0, 0.6f, 2.4f, AT_THROW, 110, SK1, 0xFF7B2D8E, 0xFF2D3E50, 0xFFAA5500, AC_BOOK, "Problematizando!", "Isso é uma construção!").joint();
+        KINDS[K_CIRANDA] = new Kind("Cirandeiro", 30, 62, 7, 54, 0.5f, 1.5f, AT_MELEE, 120, SK3, 0xFFE67E22, 0xFF6B4F2A, 0xFF222222, AC_NONE, "Ciranda, cirandinha!").joint();
+        KINDS[K_MPB] = new Kind("Músico de MPB", 34, 52, 8, 60, 0.6f, 1.8f, AT_MELEE, 140, SK2, 0xFF2E8B57, 0xFF8B7355, 0xFF442200, AC_GUITAR, "Acústico, meu bem!").joint();
         KINDS[K_REITOR] = new Kind("Reitor Desconstruído", 240, 50, 11, 0, 0.8f, 1.8f, AT_BOSS, 1800, SK4, 0xFF6A1B9A, 0xFF4A148C, 0xFF999999, AC_REITOR, "Desconstruam-se!").big(1.3f);
-        KINDS[K_GREVISTA] = new Kind("Grevista", 16, 80, 5, 48, 0.4f, 1.3f, AT_MELEE, 60, SK2, 0xFFC0392B, 0xFF333333, 0xFF222222, AC_FLAG, "Greve!");
+        KINDS[K_GREVISTA] = new Kind("Grevista", 16, 80, 5, 48, 0.4f, 1.3f, AT_MELEE, 60, SK2, 0xFFC0392B, 0xFF333333, 0xFF222222, AC_FLAG, "Greve!").joint();
         KINDS[K_ABELIO] = new Kind("Abélio Dispo", 22, 100, 12, 0, 0.55f, 2.0f, AT_STAB, 180, SK1, 0xFF303030, 0xFF1B1B1B, 0xFF111111, AC_KNIFE, "Foi mando de Deus!", "Não foi ninguém que mandou!");
         KINDS[K_GALA] = new Kind("Galã Engajado", 34, 60, 8, 0, 0.6f, 2.2f, AT_POSE, 170, SK4, 0xFF1D3557, 0xFF0B132B, 0xFF222222, AC_TROPHY, "Eu sou ator!", "Cancelado!");
         KINDS[K_ATRIZ] = new Kind("Atriz Engajada", 30, 66, 8, 0, 0.55f, 2.0f, AT_POSE, 170, SK2, 0xFFD81B60, 0xFF880E4F, 0xFFE6B800, AC_DRESS, "Meu momento!", "Que drama!");
-        KINDS[K_DANCA] = new Kind("Dançarino", 20, 95, 5, 50, 0.35f, 1.1f, AT_MELEE, 80, SK3, 0xFFFFEB3B, 0xFFFF4081, 0xFF222222, AC_DANCER, "Ê, ê, ê!");
+        KINDS[K_DANCA] = new Kind("Dançarino", 20, 95, 5, 50, 0.35f, 1.1f, AT_MELEE, 80, SK3, 0xFFE53935, 0xFFFF4081, 0xFF222222, AC_DANCER, "Ê, ê, ê!");
         KINDS[K_DOMINGAO] = new Kind("Apresentador Domingão", 300, 55, 9, 90, 0.6f, 1.4f, AT_BOSS, 2400, SK1, 0xFFFF8F00, 0xFF1565C0, 0xFF666666, AC_HAWAII, "Oloko, bicho!").big(1.4f);
         KINDS[K_EXBBB] = new Kind("Ex-BBB", 38, 62, 8, 56, 0.5f, 1.5f, AT_MELEE, 160, SK2, 0xFF00BCD4, 0xFF3F51B5, 0xFF111111, AC_RING, "Tá ligado?!").guard();
         KINDS[K_INFLU] = new Kind("Influenciador", 32, 56, 6, 56, 0.6f, 1.6f, AT_MELEE, 160, SK1, 0xFFFF5722, 0xFF212121, 0xFFFFC107, AC_RING, "Palestrinha rápida:", "Bora engajar!");

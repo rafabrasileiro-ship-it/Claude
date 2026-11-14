@@ -20,7 +20,7 @@ final class Draw {
 
     static final class Look {
         int skin, shirt, pants, hair, acc;
-        boolean torn;
+        boolean torn, joint;
         float scale = 1f;
         float girth = 1f;
         int hero = -1; // 0..3 heróis
@@ -322,17 +322,17 @@ final class Draw {
                 for (int i = 0; i < 4; i++) circle(c, 0x66402A12, -8 + i * 6, -66 + (i % 2) * 14, 2.4f);
             }
         }
-        if (lk.acc == Data.AC_VEST) { rect(c, 0xFFFFEB3B, -9, -68, 9, -40); line(c, 0xFFB0B000, 0, -68, 0, -40, 1.5f); }
+        if (lk.acc == Data.AC_VEST) { rect(c, 0xFFE53935, -9, -68, 9, -40); line(c, 0xFF8E1B1B, 0, -68, 0, -40, 1.5f); }
         if (lk.acc == Data.AC_SUIT || lk.acc == Data.AC_ANCHOR) {
             poly(c, 0xFFEEEEEE, -4, -70, 4, -70, 0, -54);
             poly(c, lk.acc == Data.AC_ANCHOR ? 0xFFC62828 : 0xFFD32F2F, -1.5f, -66, 1.5f, -66, 2, -48, -2, -48);
         }
         if (lk.acc == Data.AC_HAWAII) {
-            for (int i = 0; i < 6; i++) circle(c, i % 2 == 0 ? 0xFFFFEB3B : 0xFFE91E63, -8 + (i % 3) * 8, -64 + (i / 3) * 12, 3);
+            for (int i = 0; i < 6; i++) circle(c, i % 2 == 0 ? 0xFFE53935 : 0xFFE91E63, -8 + (i % 3) * 8, -64 + (i / 3) * 12, 3);
         }
         if (lk.acc == Data.AC_COAT) { poly(c, 0xFFFFFFFF, -13, -70, 13, -70, 15, -20, -15, -20); rect(c, 0xFF90A4AE, -1, -68, 1, -22); }
         if (lk.acc == Data.AC_MULA) { poly(c, 0xFFB71C1C, -13, -70, 13, -70, 12, -40, -12, -40); rect(c, 0xFFEEEEEE, -2, -70, 2, -40); }
-        if (lk.acc == Data.AC_DANCER) { poly(c, 0xFFFFFF00, -14, -64, 14, -64, 12, -54, -12, -54); }
+        if (lk.acc == Data.AC_DANCER) { poly(c, 0xFFE53935, -14, -64, 14, -64, 12, -54, -12, -54); }
 
         // ---- cabeça
         float hx = 2;
@@ -504,7 +504,7 @@ final class Draw {
 
     private static void accessory(Canvas c, int acc, float hx, float hy, int pose, boolean guard, float pt) {
         switch (acc) {
-            case Data.AC_FLAG:
+            case Data.AC_FLAG: case Data.AC_FLAGS:
                 line(c, 0xFF8D6E63, hx, hy + 6, hx + 4, hy - 64, 2.5f);
                 poly(c, 0xFFD62828, hx + 4, hy - 64, hx + 32, hy - 58, hx + 30, hy - 46, hx + 4, hy - 50);
                 break;

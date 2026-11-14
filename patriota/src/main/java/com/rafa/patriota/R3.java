@@ -345,9 +345,9 @@ final class R3 {
         bias = 3;
         if (lk.hero == 0) { box(2, 67, -11.9f, 7.3f * g, 72.3f, 11.9f, 0xFF1B8F3A); box(2, 56, -12, 6, 61, -11.4f, 0xFF1D3E9A); }
         if (lk.torn) { box(-2, 46, -12, 5, 56, -11.4f, skin); box(-6, 60, -12, -1, 64, -11.4f, 0xFF7A5A20); }
-        if (lk.acc == Data.AC_VEST) { box(-7.4f * g, 46, -12, 7.4f * g, 70, 12, 0xFFFFEB3B); box(-7.6f * g, 54, -12.2f, 7.6f * g, 58, 12.2f, 0xFFBDBDBD); }
+        if (lk.acc == Data.AC_VEST) { box(-7.4f * g, 46, -12, 7.4f * g, 70, 12, 0xFFE53935); box(-7.6f * g, 54, -12.2f, 7.6f * g, 58, 12.2f, 0xFFBDBDBD); }
         if (lk.acc == Data.AC_SUIT || lk.acc == Data.AC_ANCHOR) { box(5, 56, -3, 7.4f * g, 72, 3, 0xFFEEEEEE); box(6, 50, -1.3f, 7.7f * g, 70, 1.3f, 0xFFC62828); }
-        if (lk.acc == Data.AC_HAWAII) { for (int i = 0; i < 5; i++) box(-5 + i * 2.6f, 48 + (i * 7) % 20, -12, -2 + i * 2.6f, 52 + (i * 7) % 20, -11.4f, i % 2 == 0 ? 0xFFFFEB3B : 0xFFE91E63); }
+        if (lk.acc == Data.AC_HAWAII) { for (int i = 0; i < 5; i++) box(-5 + i * 2.6f, 48 + (i * 7) % 20, -12, -2 + i * 2.6f, 52 + (i * 7) % 20, -11.4f, i % 2 == 0 ? 0xFFE53935 : 0xFFE91E63); }
         if (lk.acc == Data.AC_COAT) { box(-7.6f * g, 22, -12.2f, 7.6f * g, 72.3f, 12.2f, 0xFFF4F4F4); box(6, 24, -1, 7.9f * g, 70, 1, 0xFF90A4AE); }
         if (lk.acc == Data.AC_MULA) { box(-7.4f * g, 44, -12, 7.4f * g, 72.2f, 12, 0xFFB71C1C); box(6, 44, -2.5f, 7.7f * g, 72, 2.5f, 0xFFEEEEEE); }
         if (lk.acc == Data.AC_DANCER) box(-7.3f, 58, -12, 7.3f, 66, 12, 0xFFFFFF00);
@@ -381,6 +381,16 @@ final class R3 {
         if (lk.acc == Data.AC_COAT || lk.acc == Data.AC_ANCHOR || lk.hero == 2) { box(1.8f, 82.3f, -7.8f, 6.2f, 86.8f, -7.3f, 0x8890CAF9); box(-4, 84.5f, -7.7f, 2, 85.4f, -7.3f, 0xFF222222); }
         if (lk.acc == Data.AC_SUIT) { box(1, 82.5f, -7.8f, 7.6f, 86.5f, 7.8f, 0xFF0A0A0A); }
         if (lk.acc == Data.AC_REITOR) { box(-11, 92, -11, 11, 94, 11, 0xFF111111); box(-5, 90, -5, 5, 92, 5, 0xFF111111); box(8, 86, 9, 9.5f, 94, 10.5f, 0xFFFFD400); }
+        if (lk.joint) { // cigarro de maconha aceso na boca + fumacinha subindo
+            box(5.5f, 78.2f, -1.1f, 13, 79.8f, 1.1f, 0xFFF5F5DC);
+            box(12.4f, 77.9f, -1.3f, 14.2f, 80.1f, 1.3f, (((int) (Draw.time * 6) & 1) == 0) ? 0xFFFF6D00 : 0xFFFF9100);
+            for (int i = 0; i < 4; i++) {
+                float sp = (Draw.time * 0.55f + i * 0.25f + X * 0.002f) % 1f;
+                float sx = 14.5f + sp * 5 + (float) Math.sin(sp * 7 + i * 2) * 1.6f, sy = 81 + sp * 22, sz = 1.2f + sp * 2.6f;
+                int al = (int) ((1f - sp) * 150);
+                box(sx - sz, sy - sz, -sz, sx + sz, sy + sz, sz, (al << 24) | 0xE6E6E6);
+            }
+        }
         if (lk.acc == Data.AC_DANCER) box(-7.8f, 86, -7.8f, 7.8f, 88.5f, 7.8f, 0xFFFF4081);
         if (lk.hero == 1) { box(-7.8f, 88, -7.8f, 7.8f, 93, 7.8f, 0xFF2E7D32); box(7, 88, -6, 13, 89.5f, 6, 0xFF1B5E20); }
         bias = 0;
@@ -420,6 +430,19 @@ final class R3 {
 
     private static void heldAcc(Look lk, float z, boolean guard) {
         switch (lk.acc) {
+            case Data.AC_FLAGS: { // bandeira vermelha maior, com estrela branca no meio
+                box(-1, 30, z - 1, 1, 112, z + 1, 0xFF8D6E63); box(1, 84, z - 0.6f, 38, 111, z + 0.6f, 0xFFD62828);
+                float cx = 19.5f, cy = 97.5f, rr = 6.5f;
+                for (int k = 0; k < 5; k++) { // estrela de 5 pontas = pentagrama de 5 barras
+                    double a0 = Math.toRadians(90 + 72 * k), a1 = Math.toRadians(90 + 72 * ((k + 2) % 5));
+                    float x0 = cx + rr * (float) Math.cos(a0), y0 = cy + rr * (float) Math.sin(a0), x1 = cx + rr * (float) Math.cos(a1), y1 = cy + rr * (float) Math.sin(a1);
+                    float mx = (x0 + x1) / 2, my = (y0 + y1) / 2, len = (float) Math.hypot(x1 - x0, y1 - y0);
+                    push(); rot((float) Math.toDegrees(Math.atan2(y1 - y0, x1 - x0)), mx, my);
+                    box(mx - len / 2, my - 0.8f, z - 0.8f, mx + len / 2, my + 0.8f, z + 0.8f, 0xFFFFFFFF);
+                    pop();
+                }
+                break;
+            }
             case Data.AC_FLAG: box(-1, 30, z - 1, 1, 108, z + 1, 0xFF8D6E63); box(1, 86, z - 0.6f, 30, 107, z + 0.6f, 0xFFD62828); break;
             case Data.AC_MEGA: box(-3, 26, z - 3, 3, 40, z + 3, 0xFFE0E0E0); box(-6, 18, z - 6, 6, 27, z + 6, 0xFFEEEEEE); break;
             case Data.AC_BOOK: box(-2, 26, z - 6, 2.5f, 40, z + 6, 0xFF5E35B1); box(-1.4f, 27, z - 6.4f, 1.9f, 39, z + 6.4f, 0xFFFFF59D); break;
