@@ -176,7 +176,7 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("deprecation")
-    private void setImmersive(boolean on) {
+    private void fullscreen(boolean on) {
         if (Build.VERSION.SDK_INT >= 30) {
             WindowInsetsController c = getWindow().getInsetsController();
             if (c == null) return;
@@ -194,13 +194,13 @@ public class MainActivity extends Activity {
 
     @Override public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && web != null && web.getVisibility() == View.VISIBLE) setImmersive(true);
+        if (hasFocus && web != null && web.getVisibility() == View.VISIBLE) fullscreen(true);
     }
 
     private void showMenu() {
         menuScroll.setVisibility(View.VISIBLE);
         web.setVisibility(View.GONE);
-        setImmersive(false);
+        fullscreen(false);
         resume.setVisibility(inGame ? View.VISIBLE : View.GONE);
         stopHost.setVisibility(server != null ? View.VISIBLE : View.GONE);
     }
@@ -208,7 +208,7 @@ public class MainActivity extends Activity {
         inGame = true;
         menuScroll.setVisibility(View.GONE);
         web.setVisibility(View.VISIBLE);
-        setImmersive(true);
+        fullscreen(true);
     }
 
     /** Contra a máquina: roda 100% no aparelho, carregando a página embutida no app. */
