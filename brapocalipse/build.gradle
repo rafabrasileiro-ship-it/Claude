@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Mesmo esquema do Jogo do Dino: versão = número da execução no GitHub; chave de assinatura do CI.
+def buildNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+def ciKeystore = System.getenv('DINO_KEYSTORE')
+
+android {
+    namespace 'com.rafa.brapocalipse'
+    compileSdk 34
+
+    signingConfigs {
+        if (ciKeystore) {
+            release {
+                storeFile file(ciKeystore)
+                storePassword System.getenv('DINO_STORE_PASS')
+                keyAlias 'dino'
+                keyPassword System.getenv('DINO_STORE_PASS')
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.rafa.brapocalipse'
+        minSdk 21
+        targetSdk 34
+        versionCode buildNumber
+        versionName "1.0.${buildNumber}"
+    }
+
+    // O jogo em si (HTML5/Canvas) fica em br-apocalipse/www e entra no APK como assets.
+    sourceSets {
+        main {
+            assets.srcDirs = ['../br-apocalipse/www']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ciKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

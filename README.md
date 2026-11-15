@@ -1,3 +1,10 @@
+# BR-APOCALIPSE 🧟🚚
+
+Jogo de sobrevivência sobre rodas para Android: de Bauru (SP) a Fortaleza (CE) por 10 cidades e 10 Chefes de Estrada, com piloto e artilheiros em 1ª pessoa e co-op Wi-Fi para até 4 celulares.
+O APK sai no artefato `br-apocalipse-apk` da aba **Actions** (e em `dist/br-apocalipse-vNN.apk`). Detalhes, controles e co-op em [`br-apocalipse/README.md`](br-apocalipse/README.md).
+
+---
+
 # Jogo do Dino 🦖
 
 Jogo simples para Android inspirado no jogo do dinossauro que aparece no navegador quando você está sem internet.
