@@ -16,6 +16,8 @@ final class Ent {
     int atk;
     boolean did, thrown, dying, guardUp, invul;
     float aux, aux2, life, wind, rec;
+    /** cavalo comendo um item (animação da cabeça no chão). */
+    float eat;
     float dmg, w;
     boolean friendly, tall, arc, alive = true;
     int slot = 1;

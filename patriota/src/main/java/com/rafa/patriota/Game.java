@@ -19,7 +19,7 @@ final class Game {
     }
 
     static final int SFX_HIT = 0, SFX_HEAVY = 1, SFX_JUMP = 2, SFX_HURT = 3, SFX_SPECIAL = 4, SFX_ITEM = 5,
-            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10, SFX_PUNCH = 11, SFX_KICK = 12, SFX_MOTO = 13;
+            SFX_BREAK = 6, SFX_ROAR = 7, SFX_WIN = 8, SFX_LOSE = 9, SFX_THROW = 10, SFX_PUNCH = 11, SFX_KICK = 12, SFX_MOTO = 13, SFX_WHIP = 14, SFX_NEIGH = 15;
 
     // estados
     static final int S_IDLE = 0, S_ATK = 1, S_JUMP = 2, S_JKICK = 3, S_HURT = 4, S_DOWN = 5, S_GETUP = 6,
@@ -30,7 +30,7 @@ final class Game {
             PJ_NOTIF = 6, PJ_WATCH = 7;
 
     // especiais
-    static final int SP_RIDE = 0, SP_TRUCK = 1, SP_BURST = 2, SP_SPIN = 3, SP_LANCE = 4, SP_ROAR = 5, SP_PRAY = 6;
+    static final int SP_RIDE = 0, SP_TRUCK = 1, SP_BURST = 2, SP_SPIN = 3, SP_LANCE = 4, SP_ROAR = 5, SP_PRAY = 6, SP_COICE = 7;
 
     // botões
     static final int BA = 0, BB = 1, BC = 2, BD = 3;
@@ -230,14 +230,15 @@ final class Game {
         stageIdx = stageIndex; stage = Data.STAGES.get(stageIndex);
         ents.clear(); pops.clear(); fxs.clear();
         if (np == 2) {
-            initPlayer(heroB, 40, 392); save(ps[1]);
+            initPlayer(heroB, 40, 392); mounted = stage.horse; save(ps[1]);
         }
-        initPlayer(heroIndex, 70, 330); save(ps[0]);
+        initPlayer(heroIndex, 70, 330); mounted = stage.horse; save(ps[0]);
         score = 0; result = 0; endT = 0; radio = ""; radioT = 0; bossRef = null; mountT = 0;
         segIdx = 0; segActive = false; cur = null; camX = 0; camMin = 0; camMax = LOCK0; shake = 0; time = 0;
         hitStop = 0; camLead = 0; ambT = 5f; sps = new ArrayList<>();
         voiceCd = 0; goT = 0; auraT = 0; sawSmoke = false;
-        voice(stageIdx == 2 && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
+        voice((stageIdx == Data.ST_UNIV || stageIdx == Data.ST_MST) && hero == 0 ? "A maioria ali é militante." : Data.HERO_START[hero], true);
+        if (stage.horse) { L.sfx(SFX_NEIGH); pop("A CAVALO!", p.x, p.y - 150, 1.6f, 0xFF76FF03); }
         introT = stageIdx == Data.STAGES.size() - 1 ? 1.4f : 0f;
         combo = 0; comboTimer = 0; slowT2 = 0; punch = 0; dustT = 0;
     }
@@ -263,6 +264,15 @@ final class Game {
     }
 
     static float lockX(int i) { return LOCK0 + i * LOCK_GAP; }
+
+    /** fase a cavalo (fazenda invadida): o herói já começa montado. */
+    boolean horse() { return stage != null && stage.horse; }
+
+    /** hora do dia na fase da fazenda: 0 = dia, 1 = noite (avança com a fase). */
+    float dusk() {
+        if (!horse()) return 0f;
+        return Math.max(0f, Math.min(1f, camX / lockX(stage.segs.size() - 1)));
+    }
 
     int theme() {
         int i = Math.min(segIdx, stage.segs.size() - 1);
@@ -539,7 +549,7 @@ final class Game {
     private void updateAmbient(float dt) {
         ambT -= dt;
         if (ambT > 0 || p.st == S_DEAD) return;
-        String[] pool = stageIdx == 0 ? AMB_MANIF : stageIdx == 2 ? AMB_UNIV : stageIdx == Data.STAGES.size() - 1 ? AMB_FINAL : null;
+        String[] pool = horse() ? AMB_TODAS : stageIdx == 0 ? AMB_MANIF : stageIdx == Data.ST_UNIV ? AMB_UNIV : stageIdx == Data.STAGES.size() - 1 ? AMB_FINAL : null;
         if (pool == null) { ambT = 30f; return; }
         String s = pool[rnd.nextInt(pool.length)];
         if (!L.hasClip(s)) { ambT = 5f; return; }
@@ -551,15 +561,25 @@ final class Game {
     private static final String[] UNIVERSIDADE = {"São vagabundos!", "São uns idiotas úteis!", "Que porra é essa?", "Tá de sacanagem comigo?", "Hahahahaha!"};
     private static final String[] BRIGA = {"Filho da puta!", "Vagabundo!", "Escrota!", "Fudido!", "Vai pra puta que o pariu, porra!", "Puta que o pariu!", "Porra!", "Que porra é essa?"};
 
+    private static String[] join(String[]... a) {
+        ArrayList<String> r = new ArrayList<>();
+        for (String[] x : a) for (String v : x) if (!r.contains(v)) r.add(v);
+        return r.toArray(new String[0]);
+    }
+    /** fase do MST: os sons de todas as fases juntas. */
+    private static final String[] TODAS = join(BRIGA, GROBO, QUARENTENA, CONTRA_MULA, UNIVERSIDADE);
+    private static final String[] AMB_TODAS = join(AMB_MANIF, AMB_UNIV, AMB_FINAL);
+
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
         if (hero != 0 || voiceCd > 0) return;
         String[] pool = BRIGA;
         // falas específicas por fase: estúdios da Grobo (4.1 a 4.4) e universidade (fase 3)
         if (bossRef != null && bossRef.kind == Data.K_MULA && rnd.nextFloat() < 0.6f) pool = CONTRA_MULA;
-        else if (stageIdx == 1 && rnd.nextFloat() < 0.5f) pool = QUARENTENA;
-        else if (stageIdx >= 3 && stageIdx <= 6 && rnd.nextFloat() < 0.7f) pool = GROBO;
-        else if (stageIdx == 2 && rnd.nextFloat() < 0.7f) pool = UNIVERSIDADE;
+        else if (horse()) pool = TODAS;
+        else if (stageIdx == Data.ST_QUAR && rnd.nextFloat() < 0.5f) pool = QUARENTENA;
+        else if (stageIdx >= Data.ST_GROBO0 && stageIdx <= Data.ST_GROBO1 && rnd.nextFloat() < 0.7f) pool = GROBO;
+        else if (stageIdx == Data.ST_UNIV && rnd.nextFloat() < 0.7f) pool = UNIVERSIDADE;
         voice(pool[rnd.nextInt(pool.length)], false);
     }
 
@@ -590,6 +610,7 @@ final class Game {
         if (rootT > 0) rootT -= dt;
         if (comboT > 0) comboT -= dt;
         if (heldC) cHold += dt;
+        if (o.eat > 0) o.eat -= dt;
         if (heldA) { aHold += dt; if (aHold >= 1f && !charged && o.st != S_SPECIAL) { charged = true; pop("CARREGADO!", o.x, o.y - 100, 0.8f, 0xFFFFD400); } }
 
         final boolean pA = bufA > 0, pB = bufB > 0, pC = bufC > 0, pD = bufD > 0;
@@ -597,7 +618,7 @@ final class Game {
 
         if (o.st == S_IDLE && (Math.abs(pvx) > 90 || Math.abs(pvy) > 60)) {
             dustT -= dt;
-            if (dustT <= 0) { dustT = 0.11f; fxs.add(new Fx(FX_DUST, o.x - o.face * 8, o.y, 4, 0.45f, 12, 0xFFD7CCC8)); }
+            if (dustT <= 0) { dustT = 0.2f; fxs.add(new Fx(FX_DUST, o.x - o.face * (mounted ? 30 : 8), o.y, 3, 0.4f, mounted ? 11 : 8, 0xFFD7CCC8)); }
         }
         float spd = Data.HERO_SPD[hero] * (mounted ? 1.3f : 1f) * (slowT > 0 ? 0.5f : 1f) * (coffeeT > 0 ? 1.1f : 1f);
         float ad = dt * atkSpeed();
@@ -633,7 +654,7 @@ final class Game {
                 if (Math.abs(jx) > 0.2f) o.face = jx > 0 ? 1 : -1;
                 o.vh -= GRAV * dt; o.h += o.vh * dt;
                 if (pA) { bufA = 0; o.st = S_JKICK; o.t = 0; o.hit.clear(); spTick = 0; L.sfx(SFX_THROW); }
-                if (o.h <= 0) { o.h = 0; o.vh = 0; o.st = S_IDLE; o.t = 0; for (int i = 0; i < 3; i++) fxs.add(new Fx(FX_DUST, o.x + (i - 1) * 14, o.y, 4, 0.5f, 16, 0xFFD7CCC8)); }
+                if (o.h <= 0) { o.h = 0; o.vh = 0; o.st = S_IDLE; o.t = 0; for (int i = 0; i < 2; i++) fxs.add(new Fx(FX_DUST, o.x + (i * 2 - 1) * 10, o.y, 3, 0.45f, 12, 0xFFD7CCC8)); }
                 break;
             }
             case S_JKICK: {
@@ -745,6 +766,7 @@ final class Game {
     private float attackDur() {
         if (weapon >= 0) return weapon == Data.IT_VUVU ? 0.5f : weapon == Data.IT_JBL ? 0.6f : 0.3f;
         if (hero == 2) return 0.28f;
+        if (mounted && horse()) return comboStep == 3 ? 0.42f : 0.3f;
         if (mounted) return comboStep == 3 ? 0.5f : 0.32f;
         return comboStep == 3 ? 0.36f : 0.22f;
     }
@@ -762,6 +784,15 @@ final class Game {
         Ent o = p;
         if (weapon >= 0) { weaponHit(); return; }
         if (hero == 2 && !mounted) return;
+        if (mounted && horse()) { // chicotada: alcance longo à frente do cavalo
+            boolean fin = comboStep == 3;
+            int n = 0;
+            for (Ent t : targets(o.x + o.face * 8, o.x + o.face * (fin ? 178 : 152), 34, 90)) if (landHit(t, (fin ? 16 : 9) * dmgMul(), fin ? 1 : 0, o.face, false)) n++;
+            L.sfx(SFX_WHIP);
+            if (n > 0) fxs.add(new Fx(FX_SPARK, o.x + o.face * 120, o.y, 46, 0.2f, 18, 0xFFFFFFFF));
+            if (fin && n > 0) { shake = 6; voice(Data.HERO_FINISH[hero], false); }
+            return;
+        }
         float[] dm = mounted ? new float[]{10, 10, 18} : new float[]{8, 9, 18};
         float dmg = dm[Math.min(comboStep, dm.length) - 1] * dmgMul();
         boolean finisher = comboStep == dm.length;
@@ -904,8 +935,10 @@ final class Game {
     // ---------------------------------------------------------------- especiais
     private void startSpecial() {
         if (meter < 50) { pop("Patriotismo baixo!", p.x, p.y - 100, 1f, 0xFFFFA000); return; }
-        startSpecialKind(mounted ? SP_ROAR : Data.HERO_SPEC[hero]);
+        startSpecialKind(mounted ? (horse() ? SP_COICE : SP_ROAR) : Data.HERO_SPEC[hero]);
     }
+
+    private int spN;
 
     private void startSpecialKind(int sp) {
         Ent o = p;
@@ -936,6 +969,8 @@ final class Game {
                 spDur = 1.2f; break;
             case SP_ROAR:
                 spDur = 1.1f; break;
+            case SP_COICE:
+                spDur = 1.35f; spN = 0; L.sfx(SFX_NEIGH); break;
             case SP_PRAY:
                 spDur = 1.0f; break;
             default: spDur = 0.8f; break;
@@ -988,6 +1023,18 @@ final class Game {
                             if (t.alive && !t.dying && !Data.KINDS[t.kind].boss) { t.st = S_HURT; t.t = 0; t.stunT = 1.6f; }
                         }
                     }
+                }
+                if (o.t >= spDur) endSpecial();
+                break;
+            }
+            case SP_COICE: { // o cavalo gira e solta 5 coices: acerta todo mundo ao alcance dos cascos
+                o.x += jx * 60 * dt;
+                while (spN < 5 && o.t >= (spN + 0.5f) * spDur / 5f) {
+                    spN++; o.hit.clear();
+                    for (Ent t : targets(o.x - 128, o.x + 128, 58, 90)) landHit(t, 13 * dmgMul(), spN == 5 ? 2 : 1, t.x >= o.x ? 1 : -1, true);
+                    L.sfx(SFX_KICK); shake = 9;
+                    fxs.add(new Fx(FX_RING, o.x, o.y, 0, 0.3f, 128, 0xFFD7B98E));
+                    fxs.add(new Fx(FX_DUST, o.x + ((spN & 1) == 0 ? 40 : -40), o.y, 3, 0.45f, 12, 0xFFD7CCC8));
                 }
                 if (o.t >= spDur) endSpecial();
                 break;
@@ -1203,6 +1250,7 @@ final class Game {
                 case Data.IT_CLORO: p.hp = p.maxHp; cloroImmune = true; blurT = 0; pop("CLOROQUINA! Imune ao álcool", p.x, p.y - 100, 1.8f, 0xFFFFFFFF); break;
                 default: break;
             }
+            if (mounted && horse()) { p.eat = 0.9f; pop("O cavalo comeu!", p.x, p.y - 128, 1.2f, 0xFFFFE082); }
         }
     }
 
@@ -1524,7 +1572,7 @@ final class Game {
     private void chooseBoss(Ent e, float adx, float ady) {
         float r = rnd.nextFloat();
         switch (e.kind) {
-            case Data.K_CHEFAO:
+            case Data.K_CHEFAO: case Data.K_MSTBOSS:
                 if (adx < 95) setBossAtk(e, 0, 0.45f, 0.5f);
                 else if (r < 0.6f) setBossAtk(e, 1, 0.6f, 0.6f);
                 else e.cd = 0.3f;
@@ -1580,7 +1628,7 @@ final class Game {
         e.dmg = k.dmg;
         int f = e.face;
         switch (e.kind) {
-            case Data.K_CHEFAO:
+            case Data.K_CHEFAO: case Data.K_MSTBOSS:
                 if (e.atk == 0) { meleeBox(e, 85, 11, 1); L.sfx(SFX_HEAVY); }
                 else { e.vx = f * 400; e.life = 0.5f; e.dmg = 14; L.sfx(SFX_THROW); }
                 break;

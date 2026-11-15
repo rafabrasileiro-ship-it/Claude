@@ -13,12 +13,14 @@ final class Data {
     static final int K_MANIF = 0, K_PIQUET = 1, K_CHEFAO = 2, K_PANDE = 3, K_FISCAL = 4, K_ATILA = 5,
             K_ESTUD = 6, K_CIRANDA = 7, K_MPB = 8, K_REITOR = 9, K_GREVISTA = 10, K_ABELIO = 11,
             K_GALA = 12, K_ATRIZ = 13, K_DANCA = 14, K_DOMINGAO = 15, K_EXBBB = 16, K_INFLU = 17,
-            K_CINE = 18, K_BONE = 19, K_GUARDA = 20, K_XEREX = 21, K_MULA = 22, K_XANXA = 23;
+            K_CINE = 18, K_BONE = 19, K_GUARDA = 20, K_XEREX = 21, K_MULA = 22, K_XANXA = 23,
+            K_MST = 24, K_MSTB = 25, K_MSTBOSS = 26;
 
     // acessórios (desenho)
     static final int AC_NONE = 0, AC_FLAG = 1, AC_MASK = 2, AC_VEST = 3, AC_BOOK = 4, AC_GUITAR = 5, AC_KNIFE = 6,
             AC_TROPHY = 7, AC_RING = 8, AC_TRIPOD = 9, AC_SUIT = 10, AC_TOGA = 11, AC_HAWAII = 12, AC_COAT = 13,
-            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19, AC_XANXA = 20, AC_FLAGS = 21;
+            AC_ANCHOR = 14, AC_MULA = 15, AC_DRESS = 16, AC_DANCER = 17, AC_MEGA = 18, AC_REITOR = 19, AC_XANXA = 20, AC_FLAGS = 21,
+            AC_FOICE = 22, AC_FOICEB = 23, AC_FOICE2 = 24;
 
     static final class Kind {
         String name;
@@ -42,7 +44,7 @@ final class Data {
 
     static final int SK1 = 0xFFF1C27D, SK2 = 0xFFD9A066, SK3 = 0xFF8D5524, SK4 = 0xFFFFDBB0;
 
-    static final Kind[] KINDS = new Kind[24];
+    static final Kind[] KINDS = new Kind[27];
 
     static {
         KINDS[K_MANIF] = new Kind("Manifestante", 24, 55, 6, 52, 0.45f, 1.6f, AT_MELEE, 100, SK2, 0xFFD62828, 0xFF3A3A3A, 0xFF222222, AC_FLAGS, "Fascista!", "Ei, ei, ei!");
@@ -68,6 +70,9 @@ final class Data {
         KINDS[K_GUARDA] = new Kind("Guarda de Elite", 42, 66, 10, 58, 0.5f, 1.5f, AT_MELEE, 200, SK2, 0xFF101820, 0xFF101820, 0xFF111111, AC_SUIT, "Multado!", "Protocolo!");
         KINDS[K_XEREX] = new Kind("Xerxes de Moraes", 330, 60, 12, 95, 0.7f, 1.4f, AT_BOSS, 3000, SK4, 0xFF111111, 0xFF000000, 0xFF111111, AC_TOGA, "Canetada!", "Multa diária!").big(1.4f);
         KINDS[K_MULA] = new Kind("Mula", 430, 58, 12, 85, 0.6f, 1.3f, AT_BOSS, 4000, SK2, 0xFFD50000, 0xFF263238, 0xFFEEEEEE, AC_MULA, "Nunca antes na história!", "Uma pinga, companheiro!").big(1.4f);
+        KINDS[K_MST] = new Kind("Militante do MST", 30, 72, 7, 58, 0.45f, 1.4f, AT_MELEE, 130, SK3, 0xFFC62828, 0xFF5D4037, 0xFF222222, AC_FOICE, "Ocupar e resistir!", "A terra é nossa!", "Reforma agrária já!");
+        KINDS[K_MSTB] = new Kind("Invasor Sem-Terra", 38, 84, 8, 60, 0.4f, 1.3f, AT_MELEE, 160, SK2, 0xFF6D4C41, 0xFFB71C1C, 0xFF111111, AC_FOICEB, "Pátria livre!", "Venceremos!", "Queima tudo!");
+        KINDS[K_MSTBOSS] = new Kind("Coordenador da Invasão", 420, 74, 12, 95, 0.5f, 1.3f, AT_BOSS, 2200, SK3, 0xFFB71C1C, 0xFF4E342E, 0xFF3E2723, AC_FOICE2, "Esta fazenda agora é do movimento!", "Passa a foice nele!").big(1.4f);
         KINDS[K_XANXA] = new Kind("Xanxa", 300, 62, 11, 85, 0.55f, 1.4f, AT_BOSS, 3500, SK4, 0xFF6D4C33, 0xFF111111, 0xFF2B2B2B, AC_XANXA, "Respeito!").big(1.35f);
     }
 
@@ -105,7 +110,10 @@ final class Data {
 
     // ---- fases
     static final int TH_PAULISTA = 0, TH_QUARENT = 1, TH_CAMPUS = 2, TH_PORTAO = 3, TH_NOVELA = 4, TH_PALCO = 5,
-            TH_BBB = 6, TH_JORNAL = 7, TH_TRIBUNAL = 8;
+            TH_BBB = 6, TH_JORNAL = 7, TH_TRIBUNAL = 8, TH_FAZENDA = 9;
+
+    /** índices de fase usados pelas falas (a fase do MST entrou depois da quarentena). */
+    static final int ST_QUAR = 1, ST_MST = 2, ST_UNIV = 3, ST_GROBO0 = 4, ST_GROBO1 = 7;
 
     static final class Sp {
         final int kind, side;
@@ -138,10 +146,11 @@ final class Data {
     static final class Stage {
         final String id, title, briefing;
         final ArrayList<Seg> segs = new ArrayList<>();
-        boolean jet;
+        boolean jet, horse;
         Stage(String id, String title, String briefing) { this.id = id; this.title = title; this.briefing = briefing; }
         Stage seg(Seg s) { segs.add(s); return this; }
         Stage jet() { jet = true; return this; }
+        Stage horse() { horse = true; return this; }
     }
 
     static final ArrayList<Stage> STAGES = new ArrayList<>();
@@ -160,6 +169,15 @@ final class Data {
                 .seg(new Seg(TH_QUARENT).add(K_FISCAL, 2, 0, 0, 1.5f).add(K_PANDE, 2, 0, 2.5f, 1.5f).crate(300, IT_CLORO))
                 .seg(new Seg(TH_QUARENT).add(K_PANDE, 3, 0, 0, 1.2f).add(K_FISCAL, 2, 0, 3f, 1.5f).crate(600, -1))
                 .seg(new Seg(TH_QUARENT).r("Aquele é o Doutor Atila-mento. Cuidado com as seringas!").add(K_ATILA, 1, 1, 0.5f, 0).add(K_PANDE, 2, 0, 5f, 3f)));
+
+        STAGES.add(new Stage("2.5", "Apocalipse Rural — A Fazenda Invadida",
+                "Jair, o MST tomou a fazenda no caminho e botou fogo na plantação. Monte no cavalo: chicote numa mão, bandeira na outra. O cavalo come o que achar pelo chão e a força vai para você. Atravesse antes que a noite e o fogo engulam tudo.")
+                .horse()
+                .seg(new Seg(TH_FAZENDA).add(K_MST, 4, 0, 0, 1.2f).crate(420, IT_PASTEL))
+                .seg(new Seg(TH_FAZENDA).add(K_MST, 3, 0, 0, 1.1f).add(K_MSTB, 3, 0, 2.5f, 1.2f).crate(300, -1))
+                .seg(new Seg(TH_FAZENDA).r("O fogo está se espalhando, Jair! Não deixe eles cercarem o cavalo.").add(K_MSTB, 4, 0, 0, 1.0f).add(K_MST, 4, 0, 3f, 1.0f).crate(200, IT_PAO).crate(620, -1))
+                .seg(new Seg(TH_FAZENDA).add(K_MST, 5, 0, 0, 0.9f).add(K_MSTB, 4, 0, 3f, 1.0f).crate(400, IT_PASTEL))
+                .seg(new Seg(TH_FAZENDA).r("Anoiteceu e a plantação inteira está em chamas. Aquele é o coordenador da invasão!").add(K_MSTBOSS, 1, 1, 0.5f, 0).add(K_MSTB, 3, 0, 5f, 2.5f).add(K_MST, 3, 0, 9f, 2.5f).crate(200, IT_PAO).crate(600, IT_PASTEL)));
 
         STAGES.add(new Stage("3", "A Infiltração Acadêmica — Campus da UFB",
                 "O próximo bloqueio fica dentro da universidade. Ignore a fumaça e a barulheira, atravesse o campus.")

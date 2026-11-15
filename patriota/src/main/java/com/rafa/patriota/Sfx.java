@@ -12,7 +12,7 @@ import java.util.Random;
 /** Efeitos sonoros e música gerados por código + voz por síntese (TTS) quando disponível. */
 final class Sfx implements Game.Listener {
     private static final int RATE = 22050;
-    private final AudioTrack[] fx = new AudioTrack[13];
+    private final AudioTrack[] fx = new AudioTrack[16];
     private AudioTrack musicBattle, musicTriumph;
     private AudioTrack currentMusic;
     private Context ctx;
@@ -83,6 +83,8 @@ final class Sfx implements Game.Listener {
             fx[Game.SFX_THROW] = track(noise(0.09f, 0.4f, 700));
             fx[Game.SFX_PUNCH] = track(punchFx(0.11f, 0.5f, 170));
             fx[Game.SFX_KICK] = track(punchFx(0.17f, 0.6f, 105));
+            fx[Game.SFX_WHIP] = track(whipFx());
+            fx[Game.SFX_NEIGH] = track(neigh(0.85f));
             musicBattle = loop(song(true));
             musicTriumph = loop(song(false));
         } catch (Throwable ignored) { }
@@ -309,6 +311,37 @@ final class Sfx implements Game.Listener {
                 float env = 1f - 0.7f * i / per;
                 s[k * per + i] = (short) (((i % period) < period / 2 ? 1 : -1) * 7500 * env);
             }
+        }
+        return s;
+    }
+
+    /** chicote: assobio curto subindo + estalo seco. */
+    private short[] whipFx() {
+        int n = (int) (0.2f * RATE), crack = (int) (0.13f * RATE);
+        short[] s = new short[n];
+        float lp = 0, prev = 0;
+        for (int i = 0; i < n; i++) {
+            float w = rnd.nextFloat() * 2 - 1, v;
+            if (i < crack) { float t = (float) i / crack; lp += (0.08f + 0.5f * t) * (w - lp); v = (lp - prev * 0.6f) * t * t * 0.5f; prev = lp; }
+            else { float t = (float) (i - crack) / (n - crack); v = w * (1f - t) * (1f - t) * (1f - t) * 1.5f; }
+            s[i] = (short) (Math.max(-1f, Math.min(1f, v)) * 9000);
+        }
+        return s;
+    }
+
+    /** relincho: tom agudo que sobe e desce tremendo. */
+    private short[] neigh(float sec) {
+        int n = (int) (sec * RATE);
+        short[] s = new short[n];
+        double ph = 0;
+        for (int i = 0; i < n; i++) {
+            float t = (float) i / n;
+            float f = (t < 0.18f ? 700 + 900 * (t / 0.18f) : 1600 - 1000 * ((t - 0.18f) / 0.82f)) * (1f + 0.06f * (float) Math.sin(t * sec * 2 * Math.PI * 13));
+            ph += 2 * Math.PI * f / RATE;
+            float trem = 0.65f + 0.35f * (float) Math.sin(t * sec * 2 * Math.PI * 13);
+            float env = (float) Math.sin(Math.PI * Math.min(1f, t * 1.05f)) * trem;
+            float v = (float) (Math.sin(ph) * 0.55 + Math.sin(ph * 2) * 0.25 + Math.sin(ph * 3) * 0.12) + (rnd.nextFloat() * 2 - 1) * 0.08f;
+            s[i] = (short) (v * env * 7000);
         }
         return s;
     }

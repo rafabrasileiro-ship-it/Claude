@@ -68,6 +68,7 @@ final class Scene {
 
     /** Pós-processamento: tom de cor do cenário e vinheta. */
     static void post(Canvas c, int theme) {
+        if (theme == Data.TH_FAZENDA) embers(c, Draw.time, dusk);
         if (Draw.q < 2) return;
         int tint;
         switch (theme) {
@@ -76,6 +77,7 @@ final class Scene {
             case Data.TH_PALCO: tint = 0x18401080; break;
             case Data.TH_NOVELA: tint = 0x14FFC070; break;
             case Data.TH_TRIBUNAL: tint = 0x10FFF2D0; break;
+            case Data.TH_FAZENDA: tint = ((int) (12 + 30 * dusk) << 24) | (l3(0xFFFFE8B0, 0xFFFF7A30, 0xFF1A1030, dusk) & 0xFFFFFF); break;
             default: tint = 0x0CFFE8B0;
         }
         Draw.rect(c, tint, 0, 0, 800, 450);
@@ -122,6 +124,7 @@ final class Scene {
             case Data.TH_PALCO: palco(c, cam, time, lite); break;
             case Data.TH_BBB: bbb(c, cam, time, lite); break;
             case Data.TH_JORNAL: jornal(c, cam, time, lite); break;
+            case Data.TH_FAZENDA: fazenda(c, cam, time, lite); break;
             default: tribunal(c, cam, time, lite); break;
         }
     }
@@ -382,6 +385,187 @@ final class Scene {
             Draw.poly(c, 0xFFFFD400, x + 27, 138, x + 44, 152 + w, x + 27, 166, x + 10, 152);
         }
         floor(c, cam, 0xFFDCD3C3, 0xFFC4BAA6, 0xFFB0A590);
+    }
+
+    // ---------------------------------------------------------------- Fazenda invadida (MST) — do dia para a noite
+    /** 0 = dia claro, 0.5 = pôr do sol, 1 = noite com a plantação em chamas. */
+    static float dusk;
+
+    private static int l3(int a, int b, int c3, float d) { return d < 0.5f ? Draw.mix(a, b, d * 2) : Draw.mix(b, c3, (d - 0.5f) * 2); }
+    private static float hs(float a) { float v = (float) Math.sin(a * 127.1f + 3.7f) * 43758.547f; return v - (float) Math.floor(v); }
+    private static int al(int rgb, float a) { return ((int) Math.max(0, Math.min(255, a)) << 24) | (rgb & 0xFFFFFF); }
+
+    /** língua de fogo animada (três camadas de cor). */
+    private static void fire(Canvas c, float x, float y, float h, float w, float t, float seed) {
+        float f1 = (float) Math.sin(t * 9 + seed * 5) * 0.18f, f2 = (float) Math.sin(t * 13 + seed * 9) * 0.2f;
+        Draw.poly(c, 0xFED84315, x - w, y, x - w * 0.5f, y - h * (0.55f + f2), x - w * 0.15f, y - h * 0.4f, x + w * f1, y - h * (1f + f1), x + w * 0.3f, y - h * 0.45f, x + w * 0.6f, y - h * (0.7f - f2), x + w, y);
+        Draw.poly(c, 0xFEFF9800, x - w * 0.6f, y, x - w * 0.2f, y - h * (0.5f + f1), x + w * f2 * 0.6f, y - h * (0.72f + f2), x + w * 0.3f, y - h * 0.4f, x + w * 0.6f, y);
+        Draw.poly(c, 0xFEFFF176, x - w * 0.3f, y, x + w * f1 * 0.4f, y - h * (0.38f + f1 * 0.5f), x + w * 0.3f, y);
+    }
+
+    private static void mstFlag(Canvas c, float x, float y, float h, float time, boolean lite, boolean text) {
+        Draw.rect(c, 0xFF5D4037, x, y - h, x + 3, y);
+        float w = lite ? 0 : (float) Math.sin(time * 5 + x * 0.05f) * 3;
+        Draw.poly(c, 0xFFD32F2F, x + 3, y - h, x + 43, y - h + w, x + 43, y - h + 26 + w, x + 3, y - h + 26);
+        Draw.circle(c, 0xFFFFFFFF, x + 23, y - h + 13 + w * 0.5f, 8);
+        Draw.circle(c, 0xFF2E7D32, x + 23, y - h + 13 + w * 0.5f, 4);
+        if (text) Draw.text(c, "MST", x + 23, y - h + 36, 9, 0xFFD32F2F, Paint.Align.CENTER);
+    }
+
+    private static void fazenda(Canvas c, float cam, float time, boolean lite) {
+        float d = dusk;
+        // céu: azul de dia, laranja no pôr do sol, noite avermelhada pelo incêndio
+        Draw.grad(c, 0, 0, 800, FLOOR_TOP, l3(0xFF5E9FD6, 0xFF5B3468, 0xFF0A0916, d), l3(0xFFEADFC0, 0xFFFF9A4A, 0xFF8A2A10, d));
+        if (d > 0.55f) { // estrelas e lua (meio encobertas pela fumaça)
+            float sa = (d - 0.55f) / 0.45f;
+            for (int i = 0; i < 46; i++) {
+                float tw = 0.6f + 0.4f * (float) Math.sin(time * 2.5f + i * 1.7f);
+                Draw.rect(c, al(0xFFFFFF, 200 * sa * tw * (1f - hs(i + 9) * 0.5f)), hs(i) * 800, hs(i + 50) * 150, hs(i) * 800 + 1.6f, hs(i + 50) * 150 + 1.6f);
+            }
+            Draw.puff(c, al(0xFFE0B0, 70 * sa), 130, 62, 46);
+            Draw.circle(c, al(0xFFE9C8, 235 * sa), 130, 62, 16); Draw.circle(c, al(0xD9BFA0, 120 * sa), 125, 58, 4); Draw.circle(c, al(0xD9BFA0, 110 * sa), 135, 68, 3);
+        }
+        float sy = 70 + d * 300; // sol descendo
+        if (sy < FLOOR_TOP + 30) {
+            int sc = Draw.mix(0xFFFFF59D, 0xFFFF5722, Math.min(1f, d * 1.8f));
+            Draw.puff(c, al(sc, 90), 610, sy, 90); Draw.circle(c, sc, 610, sy, 26);
+        }
+        // clarão do incêndio no horizonte
+        float glowA = 40 + 190 * d, flick = 0.9f + 0.1f * (float) Math.sin(time * 7);
+        float og = off(cam, 0.1f, 400);
+        for (int i = -1; i < 4; i++) Draw.puff(c, al(0xFF6A1A, glowA * flick * (0.7f + 0.3f * hs(i + 3))), og + i * 400 + 150, FLOOR_TOP - 6, 170 + 80 * d);
+        // serras ao longe
+        float o = off(cam, 0.08f, 800);
+        int hill = l3(0xFF86A070, 0xFF6B4046, 0xFF1C1014, d);
+        for (int k = -1; k < 3; k++) {
+            float x0 = o + k * 800;
+            Draw.poly(c, hill, x0, FLOOR_TOP, x0, 208, x0 + 160, 178, x0 + 340, 212, x0 + 520, 186, x0 + 700, 204, x0 + 800, 208, x0 + 800, FLOOR_TOP);
+        }
+        // colunas de fumaça distantes, inclinadas pelo vento
+        if (!lite) {
+            float os = off(cam, 0.16f, 520);
+            int smk = l3(0xFF6A625C, 0xFF3E2C2A, 0xFF1A1212, d);
+            for (int k = -1; k < 3; k++) {
+                float bx = os + k * 520 + 120;
+                for (int i = 0; i < 9; i++) {
+                    float u = (i + (time * 0.12f + k * 0.37f) % 1f) / 9f;
+                    Draw.puff(c, al(smk, (110 + 90 * d) * (1f - u * 0.75f)), bx + u * 150 + (float) Math.sin(u * 7 + k) * 10, 236 - u * 230, 16 + u * 62);
+                }
+            }
+        }
+        // sede da fazenda, celeiro e caixa d'água tomados pelo movimento
+        int wall = l3(0xFFE8DCC0, 0xFFC9905E, 0xFF2A1A1C, d), roof = l3(0xFFA1503A, 0xFF7A3626, 0xFF1A0E0E, d), barn = l3(0xFF9E3B2E, 0xFF7E2A20, 0xFF200F10, d), wood = l3(0xFF6D4C41, 0xFF4E2E22, 0xFF120A0A, d);
+        int win = d > 0.45f ? 0xFFFF9D3A : 0xFF6A8CA8;
+        float om = off(cam, 0.35f, 1300);
+        for (int k = -1; k < 2; k++) {
+            float x0 = om + k * 1300;
+            if (x0 > 820 || x0 < -1200) continue;
+            // casa sede
+            Draw.rect(c, wall, x0 + 120, 176, x0 + 330, FLOOR_TOP);
+            Draw.poly(c, roof, x0 + 104, 180, x0 + 225, 132, x0 + 346, 180);
+            Draw.rect(c, Draw.shade(wall, -0.2f), x0 + 120, 236, x0 + 330, FLOOR_TOP);
+            for (int i = 0; i < 4; i++) { Draw.rect(c, win, x0 + 138 + i * 50, 196, x0 + 162 + i * 50, 222); Draw.rect(c, wood, x0 + 149 + i * 50, 196, x0 + 151 + i * 50, 222); }
+            Draw.rect(c, 0xFFD32F2F, x0 + 150, 228, x0 + 300, 244);
+            Draw.text(c, "FAZENDA OCUPADA", x0 + 225, 240, 11, 0xFFFFFFFF, Paint.Align.CENTER);
+            mstFlag(c, x0 + 222, 134, 46, time, lite, false);
+            // celeiro
+            Draw.rect(c, barn, x0 + 520, 160, x0 + 700, FLOOR_TOP);
+            Draw.poly(c, roof, x0 + 506, 164, x0 + 560, 124, x0 + 660, 124, x0 + 714, 164);
+            Draw.rect(c, wood, x0 + 580, 196, x0 + 640, FLOOR_TOP);
+            Draw.line(c, Draw.shade(barn, 0.3f), x0 + 580, 196, x0 + 640, FLOOR_TOP, 2); Draw.line(c, Draw.shade(barn, 0.3f), x0 + 640, 196, x0 + 580, FLOOR_TOP, 2);
+            Draw.text(c, "MST", x0 + 610, 186, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+            if (d > 0.5f) { fire(c, x0 + 690, 160, 40 * d, 22, time, k + 2); fire(c, x0 + 540, 162, 30 * d, 16, time, k + 5); }
+            // caixa d'água e cata-vento
+            Draw.rect(c, wood, x0 + 868, 170, x0 + 872, FLOOR_TOP); Draw.rect(c, wood, x0 + 908, 170, x0 + 912, FLOOR_TOP);
+            Draw.line(c, wood, x0 + 870, 250, x0 + 910, 190, 2); Draw.line(c, wood, x0 + 910, 250, x0 + 870, 190, 2);
+            Draw.rect(c, Draw.shade(wall, -0.25f), x0 + 858, 138, x0 + 922, 172);
+            Draw.poly(c, roof, x0 + 852, 138, x0 + 890, 120, x0 + 928, 138);
+            Draw.rect(c, wood, x0 + 1040, 130, x0 + 1043, FLOOR_TOP);
+            for (int b = 0; b < 6; b++) { double a = b * Math.PI / 3 + (lite ? 0 : time * 1.6f); Draw.line(c, Draw.shade(wall, -0.1f), x0 + 1041, 130, x0 + 1041 + (float) Math.cos(a) * 20, 130 + (float) Math.sin(a) * 20, 3); }
+            mstFlag(c, x0 + 1150, FLOOR_TOP, 70, time, lite, false);
+        }
+        // plantação: fileiras de pés de milho/cana, uns verdes, outros já queimados, com fogo avançando
+        float op = off(cam, 0.6f, 600);
+        Draw.rect(c, l3(0xFF7C9A3A, 0xFF6B5A2A, 0xFF1A0F0A, d), 0, 222, 800, FLOOR_TOP);
+        for (int row = 0; row < 3; row++) {
+            float by = 232 + row * 11, hgt = 20 + row * 7;
+            float orow = off(cam, 0.6f + row * 0.08f, 600);
+            for (int i = -1; i < 105; i++) {
+                float x = orow + i * 8 + row * 3;
+                if (x < -10 || x > 810) continue;
+                int wi = ((i % 75) + 75) % 75;
+                float h = hs(wi * 3.1f + row * 17);
+                boolean burnt = h < d * 1.15f - 0.08f;
+                int col = burnt ? 0xFF140C08 : l3(h > 0.5f ? 0xFF7CB342 : 0xFFA4B03A, h > 0.5f ? 0xFF8A7A2A : 0xFF9A6A2A, 0xFF3A2414, d);
+                Draw.line(c, col, x, by, x + (h - 0.5f) * 6, by - hgt * (burnt ? 0.6f : 0.8f + h * 0.4f), 2.2f);
+                if (!burnt && !lite) Draw.line(c, col, x + 1, by - hgt * 0.5f, x + 6, by - hgt * 0.7f, 1.6f);
+            }
+            if (!lite || row == 2) for (int i = -1; i < 12; i++) {
+                float x = orow + i * 75 + row * 31;
+                int wi = ((i % 8) + 8) % 8;
+                float h = hs(wi * 7.3f + row * 5);
+                if (h < 0.22f + d * 0.78f) {
+                    float fh = (14 + 34 * d) * (0.6f + h) * (0.7f + row * 0.25f);
+                    if (!lite) Draw.puff(c, al(0xFF8A2A, 90 + 80 * d), x, by - fh * 0.4f, fh * 1.3f);
+                    fire(c, x, by + 2, fh, 9 + 7 * d + row * 2, time, wi + row * 3);
+                }
+            }
+        }
+        // acampamento: barracas de lona preta, bandeiras do MST e cerca de arame
+        float on = off(cam, 0.85f, 640);
+        int tarp = l3(0xFF26262B, 0xFF1E1A1E, 0xFF0C0A0C, d);
+        for (int i = -1; i < 3; i++) {
+            float x = on + i * 640;
+            Draw.poly(c, tarp, x + 60, FLOOR_TOP, x + 110, 206, x + 160, FLOOR_TOP);
+            Draw.poly(c, Draw.shade(tarp, 0.12f), x + 110, 206, x + 160, FLOOR_TOP, x + 196, FLOOR_TOP - 6, x + 146, 204);
+            Draw.poly(c, 0xFF0A0A0A, x + 96, FLOOR_TOP, x + 110, 226, x + 124, FLOOR_TOP);
+            Draw.line(c, wood, x + 110, 200, x + 110, 210, 2);
+            mstFlag(c, x + 210, FLOOR_TOP, 78, time, lite, true);
+            Draw.poly(c, tarp, x + 380, FLOOR_TOP, x + 420, 216, x + 460, FLOOR_TOP);
+            Draw.poly(c, Draw.shade(tarp, 0.12f), x + 420, 216, x + 460, FLOOR_TOP, x + 488, FLOOR_TOP - 5, x + 448, 214);
+            if (d > 0.3f) Draw.puff(c, al(0xFFA040, 60 * d), x + 300, FLOOR_TOP - 14, 60);
+        }
+        float of = off(cam, 1f, 90);
+        for (int i = -1; i < 11; i++) {
+            float x = of + i * 90;
+            Draw.rect(c, wood, x, FLOOR_TOP - 26, x + 4, FLOOR_TOP);
+        }
+        Draw.line(c, 0xFF8A8A8A, 0, FLOOR_TOP - 20, 800, FLOOR_TOP - 20, 1); Draw.line(c, 0xFF8A8A8A, 0, FLOOR_TOP - 10, 800, FLOOR_TOP - 10, 1);
+        floor(c, cam, 0xFF7C5634, 0xFF5E3F24, 0xFF4A2F1A);
+    }
+
+    /** Fagulhas e cinzas do incêndio: sobem em redemoinho, estalam e caem por todo o cenário. */
+    static void embers(Canvas c, float time, float d) {
+        int n = (int) ((Draw.q == 0 ? 10 : 22) + (Draw.q == 0 ? 20 : 70) * d);
+        for (int i = 0; i < n; i++) {
+            float sp = 0.10f + hs(i) * 0.14f;
+            float t = (time * sp + hs(i + 31)) % 1f;
+            boolean rising = (i & 3) == 0;
+            float x = (hs(i + 77) * 900 + t * (120 + hs(i + 5) * 160) + (float) Math.sin(t * 11 + i) * 18) % 860 - 30;
+            float y = rising ? 250 - t * 270 + (float) Math.sin(t * 8 + i) * 10 : -20 + t * 500;
+            float fl = 0.55f + 0.45f * (float) Math.sin(time * 17 + i * 5.3f);
+            float fade = rising ? 1f - t : Math.min(1f, (1f - t) * 3f);
+            boolean ash = (i % 7) == 3;
+            if (ash) { Draw.rect(c, al(0x2A2420, 170 * fade), x, y, x + 2.4f, y + 1.6f); continue; }
+            int col = (i % 3) == 0 ? 0xFFE082 : (i % 3) == 1 ? 0xFF8F00 : 0xFF5722;
+            float dx = 5 + hs(i + 5) * 5, dy = rising ? -5 : 7;
+            Draw.line(c, al(col, 230 * fl * fade), x, y, x - dx, y - dy, 1.3f + hs(i + 2));
+            if (Draw.q >= 2 && (i & 1) == 0) Draw.puff(c, al(0xFF7A20, 90 * fl * fade), x, y, 5 + hs(i) * 4);
+        }
+        // estalos: pequenas explosões de fagulhas na linha do fogo
+        for (int k = 0; k < 2; k++) {
+            float tt = time * (2.2f + k * 0.9f) + k * 0.5f;
+            float bucket = (float) Math.floor(tt), age = tt - bucket;
+            if (hs(bucket + k * 13) > 0.35f + 0.4f * (1f - d)) continue;
+            float bx = hs(bucket * 1.7f + k) * 800, by = 215 + hs(bucket * 2.3f) * 38;
+            for (int j = 0; j < 6; j++) {
+                double a = j * 1.05 + bucket;
+                float r0 = age * 10, r1 = age * 22 + 3;
+                Draw.line(c, al(0xFFE082, 255 * (1f - age)), bx + (float) Math.cos(a) * r0, by + (float) Math.sin(a) * r0 * 0.8f - age * 8, bx + (float) Math.cos(a) * r1, by + (float) Math.sin(a) * r1 * 0.8f - age * 8, 1.4f);
+            }
+        }
+        Draw.P.setStyle(Paint.Style.FILL);
+        if (d > 0.2f) Draw.rect(c, al(0xFF5A00, (d - 0.2f) * 22 * (0.8f + 0.2f * (float) Math.sin(time * 9))), 0, 0, 800, 450);
     }
 
     // ---------------------------------------------------------------- Lago (jet-ski)

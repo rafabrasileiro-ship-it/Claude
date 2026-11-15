@@ -30,7 +30,7 @@ final class Draw {
     /** braço que soca: 0 = da frente, 1 = de trás (alterna a cada golpe do combo). */
     static int atkArm = 0;
     static final int P_IDLE = 0, P_PUNCH = 1, P_KICK = 2, P_HURT = 3, P_DOWN = 4, P_JUMP = 5, P_WIND = 6, P_GRAB = 7,
-            P_SPIN = 8, P_SPEC = 9, P_JKICK = 10, P_CHARGE = 11, P_GUARD = 12;
+            P_SPIN = 8, P_SPEC = 9, P_JKICK = 10, P_CHARGE = 11, P_GUARD = 12, P_RIDE = 13;
 
     // ---------------------------------------------------------------- primitivas
     static int mix(int a, int b, float t) {
@@ -74,6 +74,36 @@ final class Draw {
         oval(c, 0x22000000, x + ox, y + 2, rx * 1.0f, ry * 1.0f);
         oval(c, 0x38000000, x + ox * 0.7f, y + 2, rx * 0.7f, ry * 0.7f);
         oval(c, 0x50000000, x + ox * 0.4f, y + 2, rx * 0.4f, ry * 0.45f);
+    }
+
+    // ---- baforada suave (fumaça, poeira, brilho): degradê radial em cache por cor
+    private static final int NPUFF = 32;
+    private static final int[] PUFC = new int[NPUFF];
+    private static final android.graphics.RadialGradient[] PUFS = new android.graphics.RadialGradient[NPUFF];
+    private static int puffN, puffNext;
+    private static final android.graphics.Matrix PUFM = new android.graphics.Matrix();
+
+    /** Círculo de borda esfumada (alfa da cor = opacidade no centro). */
+    static void puff(Canvas c, int color, float x, float y, float r) {
+        int a = color >>> 24;
+        if (a < 3 || r < 0.4f) return;
+        if (q == 0) { circle(c, ((a * 3 / 5) << 24) | (color & 0xFFFFFF), x, y, r * 0.72f); return; }
+        int rgb = color & 0xF0F0F0;
+        android.graphics.RadialGradient g = null;
+        for (int i = 0; i < puffN; i++) if (PUFC[i] == rgb) { g = PUFS[i]; break; }
+        if (g == null) {
+            g = new android.graphics.RadialGradient(0, 0, 1, new int[]{0xFF000000 | rgb, 0xB4000000 | rgb, 0x44000000 | rgb, rgb},
+                    new float[]{0f, 0.42f, 0.76f, 1f}, android.graphics.Shader.TileMode.CLAMP);
+            int slot = puffN < NPUFF ? puffN++ : (puffNext++ % NPUFF);
+            PUFC[slot] = rgb; PUFS[slot] = g;
+        }
+        PUFM.setScale(r, r); PUFM.postTranslate(x, y);
+        g.setLocalMatrix(PUFM);
+        P.setStyle(Paint.Style.FILL);
+        P.setColor(a << 24);
+        P.setShader(g);
+        c.drawCircle(x, y, r, P);
+        P.setShader(null);
     }
 
     static void rect(Canvas c, int color, float l, float t, float r, float b) {

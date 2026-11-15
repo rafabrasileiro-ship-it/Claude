@@ -59,31 +59,80 @@ final class R3 {
     }
 
     // ---------------------------------------------------------------- lista de faces
-    private static final int MAXQ = 9000;
+    private static final int MAXQ = 14000;
     private static final float[] QX = new float[MAXQ * 4], QY = new float[MAXQ * 4];
     private static final int[] QC = new int[MAXQ];
+    private static final byte[] QT = new byte[MAXQ];   // 0 = face, 1 = fumaça suave, 2 = brilho (fogo/fagulha)
     private static final long[] KEY = new long[MAXQ];
     private static int nq;
     private static final Path PATH = new Path();
+    private static final Path SHP = new Path();        // união das sombras projetadas no chão
+    private static boolean shAny;
     private static final Paint PT = new Paint(Paint.ANTI_ALIAS_FLAG);
-    // luz (vinda de cima, da esquerda e da frente)
+    // luz principal (vinda de cima, da esquerda e da frente) e luz de contorno (por trás, à direita)
     private static final float LX = -0.42f, LY = 0.78f, LZ = -0.46f;
+    private static final float L2X = 0.62f, L2Y = 0.42f, L2Z = 0.66f;
+    private static final float SKX = 0.42f, SKZ = 0.36f; // inclinação da sombra projetada
+    private static final int REFL = 1 << 21;             // chave extra: reflexos são desenhados antes de tudo
 
-    static void begin(float camX) { cx = camX + 400; nq = 0; tp = 0; ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; bias = 0; }
+    /** o modelo atual projeta sombra / o piso é espelhado / o material emite luz própria. */
+    static boolean cast, reflect, glow;
+    /** giro em torno do eixo vertical (1 = de lado; passa por 0 = de frente; -1 = virado). */
+    static float yawK = 1f;
+    /** cor da luz ambiente (0..256 por canal), luz de contorno e sombra. */
+    static int tR = 256, tG = 256, tB = 256, rimCol = 0xFFFFFFFF, shadowCol = 0x46000000, floorTone = 0xFF808080;
+    static float rim = 0f;
+    private static float aoH;                           // altura do degradê de oclusão do modelo
+    private static int tex, texN;                        // textura por faixas: 1 = horizontais, 2 = verticais
+    static final int TEX_H = 1, TEX_V = 2;
+
+    static void begin(float camX) {
+        cx = camX + 400; nq = 0; tp = 0; ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; bias = 0;
+        SHP.reset(); shAny = false; glow = false; tex = 0; yawK = 1f;
+    }
+
+    private static void drawShadows(Canvas c) {
+        if (!shAny) return;
+        PT.setStyle(Paint.Style.FILL);
+        PT.setColor(shadowCol);
+        c.save();
+        proj(cx, 0, Z_BACK);
+        c.clipRect(-200, py, 1000, 700); // a sombra fica só no piso (não sobe pela parede do fundo)
+        c.drawPath(SHP, PT);
+        c.restore();
+        SHP.reset(); shAny = false;
+    }
+
+    static int lastN;
 
     static void flush(Canvas c) {
+        lastN = nq;
         java.util.Arrays.sort(KEY, 0, nq);
-        PT.setStyle(Paint.Style.FILL_AND_STROKE);
-        PT.setStrokeWidth(0.7f);
-        PT.setStrokeJoin(Paint.Join.ROUND);
+        boolean shDone = false;
         for (int k = nq - 1; k >= 0; k--) {
-            int i = (int) (KEY[k] & 0xFFFFFFFFL), j = i * 4;
+            long kk = KEY[k];
+            int i = (int) (kk & 0xFFFFFFFFL), j = i * 4;
+            if (!shDone && (kk >> 32) < REFL) { drawShadows(c); shDone = true; }
+            if (QT[i] != 0) {
+                float r = QX[j + 1];
+                if (QT[i] == 1) Draw.puff(c, QC[i], QX[j], QY[j], r);
+                else {
+                    int col = QC[i];
+                    Draw.puff(c, ((col >>> 25) << 24) | (col & 0xFFFFFF), QX[j], QY[j], r * 2.6f);
+                    Draw.circle(c, col, QX[j], QY[j], Math.max(0.7f, r * 0.55f));
+                }
+                continue;
+            }
             PATH.reset();
             PATH.moveTo(QX[j], QY[j]); PATH.lineTo(QX[j + 1], QY[j + 1]); PATH.lineTo(QX[j + 2], QY[j + 2]); PATH.lineTo(QX[j + 3], QY[j + 3]);
             PATH.close();
+            PT.setStyle(Paint.Style.FILL_AND_STROKE);
+            PT.setStrokeWidth(0.7f);
+            PT.setStrokeJoin(Paint.Join.ROUND);
             PT.setColor(QC[i]);
             c.drawPath(PATH, PT);
         }
+        if (!shDone) drawShadows(c);
         PT.setStyle(Paint.Style.FILL);
         nq = 0;
     }
@@ -112,27 +161,125 @@ final class R3 {
 
     /** Ampliação visual dos modelos (as colisões continuam nas unidades do jogo). */
     static final float BIG = 1.3f;
+    /** desliga as sombras projetadas (ícones de menu). */
+    static boolean noCast;
 
     private static void model(float X, float Y, float Z, int face, float scale, float flash) {
-        ox = X; oy = Y; oz = Z; mir = face >= 0 ? 1 : -1; sc = scale * BIG;
+        ox = X; oy = Y; oz = Z; mir = (face >= 0 ? 1 : -1) * yawK; sc = scale * BIG;
         ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; tp = 0; bias = 0;
         flashK = flash > 0 ? 0.7f : 0f;
+        cast = Draw.q >= 1 && !noCast; glow = false; tex = 0; aoH = 0;
     }
 
-    private static final float[] WX = new float[8], WY = new float[8], WZ = new float[8], SX = new float[8], SY = new float[8], SD = new float[8];
+    private static final float[] WX = new float[16], WY = new float[16], WZ = new float[16], SX = new float[16], SY = new float[16], SD = new float[16];
+    private static final float[] RX = new float[16], RY = new float[16], HX = new float[16], HY = new float[16];
     private static final int[][] FACE = {{0, 4, 6, 2}, {1, 3, 7, 5}, {0, 1, 5, 4}, {2, 6, 7, 3}, {0, 2, 3, 1}, {4, 5, 7, 6}};
+    private static final int[] SIDE = {2, 1, 0, 0, 1, 2}; // qual par de arestas da face é vertical
+
+    private static void vert(int i, float lx, float ly, float lz) {
+        float rx = ta * lx + tb * ly + tx, ry = tc * lx + td * ly + ty;
+        WX[i] = ox + mir * sc * rx; WY[i] = oy + sc * ry; WZ[i] = oz + sc * lz;
+        proj(WX[i], WY[i], WZ[i]);
+        SX[i] = px; SY[i] = py; SD[i] = pd;
+    }
+
+    /** depois dos vértices: reflexo no piso e sombra projetada (casco convexo dos pontos achatados no chão). */
+    private static void extras(int n, int color) {
+        boolean solid = (color >>> 24) > 200 && alphaMul > 200 && !glow;
+        if (reflect && solid) for (int i = 0; i < n; i++) { proj(WX[i], -WY[i], WZ[i]); RX[i] = px; RY[i] = py; }
+        if (!cast || !solid) return;
+        int start = 0;
+        for (int i = 0; i < n; i++) {
+            float h = WY[i] > 0 ? WY[i] : 0;
+            proj(WX[i] + SKX * h, 0, WZ[i] + SKZ * h);
+            HX[i] = px; HY[i] = py;
+            if (px < HX[start]) start = i;
+        }
+        int cur = start, cnt = 0;
+        do {
+            if (cnt == 0) SHP.moveTo(HX[cur], HY[cur]); else SHP.lineTo(HX[cur], HY[cur]);
+            int nxt = cur == 0 ? 1 : 0;
+            for (int j = 0; j < n; j++) {
+                if (j == cur) continue;
+                float cr = (HX[nxt] - HX[cur]) * (HY[j] - HY[cur]) - (HY[nxt] - HY[cur]) * (HX[j] - HX[cur]);
+                if (cr < -0.0001f) nxt = j;
+                else if (cr < 0.0001f) { // colineares: fica com o mais distante
+                    float da = Math.abs(HX[nxt] - HX[cur]) + Math.abs(HY[nxt] - HY[cur]), db = Math.abs(HX[j] - HX[cur]) + Math.abs(HY[j] - HY[cur]);
+                    if (db > da) nxt = j;
+                }
+            }
+            cur = nxt; cnt++;
+        } while (cur != start && cnt <= n);
+        SHP.close();
+        shAny = true;
+    }
+
+    /** Emite uma face (se visível) já iluminada: difusa + contorno + oclusão + neblina + cor do ambiente. */
+    private static void face(int a, int b, int c2, int d, float nx, float ny, float nz, int color, int side) {
+        if (nq > MAXQ - 12) return;
+        float mx = (WX[a] + WX[c2]) * 0.5f, my = (WY[a] + WY[c2]) * 0.5f, mz = (WZ[a] + WZ[c2]) * 0.5f;
+        if (nx * (cx - mx) + ny * (CY - my) + nz * (CZ - mz) <= 0) return; // de costas para a câmera
+        int al = (color >>> 24) * alphaMul / 255, r = (color >> 16) & 255, g = (color >> 8) & 255, bl = color & 255;
+        if (!glow) {
+            float lit = nx * LX + ny * LY + nz * LZ;
+            float k = 0.60f + 0.40f * Math.max(0f, lit);
+            if (ny < -0.5f) k = 0.45f;
+            if (aoH > 0) { float hk = (my - oy) / aoH; if (hk < 1f) k *= 0.82f + 0.18f * Math.max(0f, hk); }
+            r = (int) (r * k); g = (int) (g * k); bl = (int) (bl * k);
+            if (Draw.q >= 1 && ny > 0.5f) { // luz do céu nas faces de cima
+                r += (((fog >> 16) & 255) - r) >> 3; g += (((fog >> 8) & 255) - g) >> 3; bl += ((fog & 255) - bl) >> 3;
+            }
+            if (lit > 0.75f && Draw.q >= 2) { r += 14; g += 14; bl += 12; }
+            r = r * tR >> 8; g = g * tG >> 8; bl = bl * tB >> 8;
+            if (rim > 0) {
+                float rl = nx * L2X + ny * L2Y + nz * L2Z;
+                if (rl > 0) { rl *= rim; r += (int) (((rimCol >> 16) & 255) * rl); g += (int) (((rimCol >> 8) & 255) * rl); bl += (int) ((rimCol & 255) * rl); }
+            }
+            if (Draw.q >= 1) { // neblina por profundidade
+                float dd = (SD[a] + SD[c2]) * 0.5f;
+                float fk = Math.max(0f, Math.min(fogK, (dd - 1250f) / 2600f));
+                if (fk > 0) { r += (int) ((((fog >> 16) & 255) - r) * fk); g += (int) ((((fog >> 8) & 255) - g) * fk); bl += (int) (((fog & 255) - bl) * fk); }
+            }
+            if (r > 255) r = 255; if (g > 255) g = 255; if (bl > 255) bl = 255;
+        }
+        int col = (al << 24) | (r << 16) | (g << 8) | bl;
+        int j = nq * 4;
+        QX[j] = SX[a]; QY[j] = SY[a]; QX[j + 1] = SX[b]; QY[j + 1] = SY[b]; QX[j + 2] = SX[c2]; QY[j + 2] = SY[c2]; QX[j + 3] = SX[d]; QY[j + 3] = SY[d];
+        QC[nq] = col; QT[nq] = 0;
+        int key = (int) (((SD[a] + SD[b] + SD[c2] + SD[d]) * 0.25f - bias) * 64f);
+        KEY[nq] = ((long) key << 32) | nq;
+        nq++;
+        if (tex != 0 && side != 0 && Draw.q >= 2 && al > 200) { // textura: frisos finos mais escuros
+            int dk = Draw.shade(col, -0.2f);
+            boolean horiz = tex == TEX_H;
+            // arestas "trilho": os frisos ligam pontos de mesmo t nas duas arestas
+            int e0a, e0b, e1a, e1b;
+            if ((side == 1) == horiz) { e0a = a; e0b = b; e1a = d; e1b = c2; } else { e0a = a; e0b = d; e1a = b; e1b = c2; }
+            for (int s = 1; s <= texN && nq < MAXQ - 4; s++) {
+                float t0 = s / (float) (texN + 1), t1 = t0 + 0.035f;
+                int q4 = nq * 4;
+                QX[q4] = SX[e0a] + (SX[e0b] - SX[e0a]) * t0; QY[q4] = SY[e0a] + (SY[e0b] - SY[e0a]) * t0;
+                QX[q4 + 1] = SX[e1a] + (SX[e1b] - SX[e1a]) * t0; QY[q4 + 1] = SY[e1a] + (SY[e1b] - SY[e1a]) * t0;
+                QX[q4 + 2] = SX[e1a] + (SX[e1b] - SX[e1a]) * t1; QY[q4 + 2] = SY[e1a] + (SY[e1b] - SY[e1a]) * t1;
+                QX[q4 + 3] = SX[e0a] + (SX[e0b] - SX[e0a]) * t1; QY[q4 + 3] = SY[e0a] + (SY[e0b] - SY[e0a]) * t1;
+                QC[nq] = dk; QT[nq] = 0; KEY[nq] = ((long) (key - 3) << 32) | nq; nq++;
+            }
+        }
+        if (reflect && al > 200 && !glow && nq < MAXQ - 4) { // reflexo no piso polido
+            int q4 = nq * 4;
+            QX[q4] = RX[a]; QY[q4] = RY[a]; QX[q4 + 1] = RX[b]; QY[q4 + 1] = RY[b]; QX[q4 + 2] = RX[c2]; QY[q4 + 2] = RY[c2]; QX[q4 + 3] = RX[d]; QY[q4 + 3] = RY[d];
+            float fade = Math.max(0.15f, 1f - (my > 0 ? my : 0) / 190f);
+            QC[nq] = ((int) (70 * fade) << 24) | (Draw.mix(col, floorTone, 0.35f) & 0xFFFFFF); QT[nq] = 0;
+            KEY[nq] = ((long) (key + REFL) << 32) | nq; nq++;
+        }
+    }
 
     /** Bloco alinhado aos eixos locais (depois transformado). */
     private static void box(float x0, float y0, float z0, float x1, float y1, float z1, int color) {
-        if (nq > MAXQ - 8) return;
+        if (nq > MAXQ - 12) return;
         if (flashK > 0) color = Draw.mix(color, 0xFFFFFFFF, flashK);
-        for (int i = 0; i < 8; i++) {
-            float lx = (i & 1) == 0 ? x0 : x1, ly = (i & 2) == 0 ? y0 : y1, lz = (i & 4) == 0 ? z0 : z1;
-            float rx = ta * lx + tb * ly + tx, ry = tc * lx + td * ly + ty;
-            WX[i] = ox + mir * sc * rx; WY[i] = oy + sc * ry; WZ[i] = oz + sc * lz;
-            proj(WX[i], WY[i], WZ[i]);
-            SX[i] = px; SY[i] = py; SD[i] = pd;
-        }
+        for (int i = 0; i < 8; i++) vert(i, (i & 1) == 0 ? x0 : x1, (i & 2) == 0 ? y0 : y1, (i & 4) == 0 ? z0 : z1);
+        extras(8, color);
         for (int f = 0; f < 6; f++) {
             float nx, ny, nz;
             switch (f) {
@@ -144,27 +291,101 @@ final class R3 {
                 default: nx = 0; ny = 0; nz = 1; break;
             }
             int[] q = FACE[f];
-            float mx = (WX[q[0]] + WX[q[2]]) * 0.5f, my = (WY[q[0]] + WY[q[2]]) * 0.5f, mz = (WZ[q[0]] + WZ[q[2]]) * 0.5f;
-            // visível se a normal aponta para a câmera
-            if (nx * (cx - mx) + ny * (CY - my) + nz * (CZ - mz) <= 0) continue;
-            float lit = nx * LX + ny * LY + nz * LZ;
-            float k = 0.62f + 0.38f * Math.max(0f, lit);
-            if (ny < -0.5f) k = 0.45f;
-            int a = (color >>> 24) * alphaMul / 255, r = (int) (((color >> 16) & 255) * k), g = (int) (((color >> 8) & 255) * k), b = (int) ((color & 255) * k);
-            if (Draw.q >= 1) { // neblina por profundidade + luz de contorno suave
-                float dd = (SD[q[0]] + SD[q[2]]) * 0.5f;
-                float fk = Math.max(0f, Math.min(fogK, (dd - 1250f) / 2600f));
-                if (fk > 0) { r += (int) ((((fog >> 16) & 255) - r) * fk); g += (int) ((((fog >> 8) & 255) - g) * fk); b += (int) (((fog & 255) - b) * fk); }
-            }
-            if (lit > 0.75f && Draw.q >= 2) { r = Math.min(255, r + 14); g = Math.min(255, g + 14); b = Math.min(255, b + 12); }
-            int j = nq * 4;
-            float d = 0;
-            for (int v = 0; v < 4; v++) { QX[j + v] = SX[q[v]]; QY[j + v] = SY[q[v]]; d += SD[q[v]]; }
-            QC[nq] = (a << 24) | (r << 16) | (g << 8) | b;
-            int key = (int) ((d * 0.25f - bias) * 64f);
-            KEY[nq] = ((long) key << 32) | nq;
-            nq++;
+            face(q[0], q[1], q[2], q[3], nx, ny, nz, color, SIDE[f]);
         }
+    }
+
+    private static final float[] OUX = {1, 1, 0, 0, -1, -1, 0, 0}, OUZ = {0, 0, 1, 1, 0, 0, -1, -1};
+    private static final float[] CXU = {0, 0, 1, -1, 0, 0, -1, 1}, CZU = {-1, 1, 0, 0, 1, -1, 0, 0};
+
+    /**
+     * Prisma de base octogonal (cantos chanfrados) e afunilado: s0/s1 = escala da seção na base/topo,
+     * ch = quanto da face plana sobra (0.45 = quase redondo, 0.85 = quase um bloco).
+     */
+    private static void oct(float x0, float y0, float z0, float x1, float y1, float z1, int color, float s0, float s1, float ch) {
+        if (Draw.q < 1) { box(x0, y0, z0, x1, y1, z1, color); return; }
+        if (nq > MAXQ - 30) return;
+        if (flashK > 0) color = Draw.mix(color, 0xFFFFFFFF, flashK);
+        float cxl = (x0 + x1) * 0.5f, czl = (z0 + z1) * 0.5f, hx = (x1 - x0) * 0.5f, hz = (z1 - z0) * 0.5f;
+        for (int i = 0; i < 8; i++) {
+            float ux = OUX[i] + CXU[i] * ch, uz = OUZ[i] + CZU[i] * ch;
+            vert(i, cxl + hx * s0 * ux, y0, czl + hz * s0 * uz);
+            vert(8 + i, cxl + hx * s1 * ux, y1, czl + hz * s1 * uz);
+        }
+        extras(16, color);
+        float dl = (float) Math.sqrt(hx * hx + hz * hz);
+        float dx = hz / dl, dz = hx / dl;
+        for (int i = 0; i < 8; i++) {
+            float lnx, lnz;
+            switch (i) {
+                case 0: lnx = 1; lnz = 0; break;
+                case 1: lnx = dx; lnz = dz; break;
+                case 2: lnx = 0; lnz = 1; break;
+                case 3: lnx = -dx; lnz = dz; break;
+                case 4: lnx = -1; lnz = 0; break;
+                case 5: lnx = -dx; lnz = -dz; break;
+                case 6: lnx = 0; lnz = -1; break;
+                default: lnx = dx; lnz = -dz; break;
+            }
+            int n = (i + 1) & 7;
+            face(i, n, 8 + n, 8 + i, ta * lnx * mir, tc * lnx, lnz, color, 2);
+        }
+        float tnx = tb * mir, tny = td;
+        face(8, 9, 10, 15, tnx, tny, 0, color, 0); face(10, 11, 14, 15, tnx, tny, 0, color, 0); face(11, 12, 13, 14, tnx, tny, 0, color, 0);
+        face(0, 1, 2, 7, -tnx, -tny, 0, color, 0); face(2, 3, 6, 7, -tnx, -tny, 0, color, 0); face(3, 4, 5, 6, -tnx, -tny, 0, color, 0);
+    }
+
+    private static void oct(float x0, float y0, float z0, float x1, float y1, float z1, int color) { oct(x0, y0, z0, x1, y1, z1, color, 1f, 1f, 0.45f); }
+
+    /** Partícula suave (fumaça, poeira) em coordenadas do mundo, ordenada por profundidade com os modelos. */
+    static void puff(float X, float Y, float Z, float r, int color) { sprite(X, Y, Z, r, color, (byte) 1); }
+
+    /** Ponto de luz (chama, fagulha). */
+    static void spark(float X, float Y, float Z, float r, int color) { sprite(X, Y, Z, r, color, (byte) 2); }
+
+    private static void sprite(float X, float Y, float Z, float r, int color, byte type) {
+        if (nq > MAXQ - 4 || (color >>> 24) < 3) return;
+        proj(X, Y, Z);
+        float sx = px, sy = py, d = pd;
+        proj(X + r, Y, Z);
+        int j = nq * 4;
+        QX[j] = sx; QY[j] = sy; QX[j + 1] = Math.abs(px - sx);
+        QC[nq] = color; QT[nq] = type;
+        KEY[nq] = ((long) (int) ((d - bias) * 64f) << 32) | nq;
+        nq++;
+    }
+
+    /** partícula em coordenadas locais do modelo atual. */
+    private static void lpuff(float lx, float ly, float lz, float r, int color, boolean fire) {
+        float rx = ta * lx + tb * ly + tx, ry = tc * lx + td * ly + ty;
+        sprite(ox + mir * sc * rx, oy + sc * ry, oz + sc * lz, r * sc, color, (byte) (fire ? 2 : 1));
+    }
+
+    /** coluna de fumaça subindo de um ponto do mundo (n baforadas em ciclo contínuo). */
+    static void smoke(float X, float Y, float Z, float rise, float r0, int rgb, int alpha, int n, float seed) {
+        for (int i = 0; i < n; i++) {
+            float sp = (Draw.time * 0.32f + i / (float) n + seed) % 1f;
+            float wob = (float) Math.sin(sp * 5.3f + i * 1.7f + seed * 9f);
+            int al = (int) (alpha * (sp < 0.15f ? sp / 0.15f : 1f - (sp - 0.15f) / 0.85f));
+            puff(X + wob * r0 * (0.4f + sp) + sp * rise * 0.35f, Y + sp * rise, Z, r0 * (0.7f + sp * 2.2f), (al << 24) | (rgb & 0xFFFFFF));
+        }
+    }
+
+    /** chama animada (línguas de fogo feitas de pontos de luz) em coordenadas do mundo. */
+    static void flame(float X, float Y, float Z, float size, float seed) {
+        float t = Draw.time;
+        puff(X, Y + size * 0.3f, Z, size * 0.95f, 0x50FF6A1A); // clarão
+        for (int i = 0; i < 6; i++) {
+            float sp = (t * 1.3f + i / 6f + seed) % 1f;
+            float wob = (float) Math.sin(sp * 6f + i * 2.1f + seed * 7f + t * 3) * size * 0.16f * (0.4f + sp);
+            int col = sp < 0.25f ? 0xFFF59D : sp < 0.55f ? 0xFFA726 : 0xE64A19;
+            int al = (int) (250 * (1f - sp * sp));
+            puff(X + wob, Y + sp * size, Z - 1, size * 0.34f * (1.15f - sp * 0.8f), (al << 24) | col);
+        }
+        spark(X + (float) Math.sin(t * 9 + seed * 5) * size * 0.08f, Y + size * 0.12f, Z - 2, size * 0.1f, 0xE0FFFDE0);
+        // fagulha que se solta e sobe
+        float sp = (t * 0.7f + seed * 3.3f) % 1f;
+        spark(X + (float) Math.sin(sp * 9 + seed) * size * 0.5f + sp * size * 0.6f, Y + size * (0.8f + sp * 1.8f), Z, 1.1f, (((int) (230 * (1f - sp))) << 24) | 0xFFC04A);
     }
 
     // ---------------------------------------------------------------- piso, sombras e efeitos no chão
@@ -180,25 +401,40 @@ final class R3 {
         c.drawPath(PATH, PT);
     }
 
+    /** aplica a cor da luz ambiente a uma cor do chão. */
+    private static int lit(int col) {
+        if (tR == 256 && tG == 256 && tB == 256) return col;
+        return (col & 0xFF000000) | (Math.min(255, ((col >> 16) & 255) * tR >> 8) << 16) | (Math.min(255, ((col >> 8) & 255) * tG >> 8) << 8) | Math.min(255, (col & 255) * tB >> 8);
+    }
+
     private static void gquad(Canvas c, int color, float x0, float z0, float x1, float z1, float y) {
         proj(x0, y, z0); GX[0] = px; GY[0] = py;
         proj(x1, y, z0); GX[1] = px; GY[1] = py;
         proj(x1, y, z1); GX[2] = px; GY[2] = py;
         proj(x0, y, z1); GX[3] = px; GY[3] = py;
-        groundPoly(c, color, 4);
+        groundPoly(c, lit(color), 4);
     }
 
+    private static void gline(Canvas c, int color, float x0, float y0, float z0, float x1, float y1, float z1, float w) {
+        proj(x0, y0, z0); float ax = px, ay = py; proj(x1, y1, z1);
+        PT.setStyle(Paint.Style.STROKE); PT.setStrokeWidth(w); PT.setColor(lit(color));
+        c.drawLine(ax, ay, px, py, PT);
+        PT.setStyle(Paint.Style.FILL);
+    }
+
+    /** Sombra de contato (oclusão) sob o modelo; a sombra projetada vem dos próprios blocos. */
     static void shadow(Canvas c, float X, float Z, float rx, float rz, float h) {
         float k = 1f / (1f + h / 120f);
         int n = 12;
+        boolean proj3 = Draw.q >= 1 && !noCast;
         for (int pass = 0; pass < (Draw.q >= 1 ? 2 : 1); pass++) {
-            float m = pass == 0 ? 1.25f : 0.8f;
+            float m = (pass == 0 ? 1.15f : 0.7f) * (proj3 ? 0.8f : 1.1f);
             for (int i = 0; i < n; i++) {
                 double a = i * Math.PI * 2 / n;
-                proj(X + rx * 0.3f + (float) Math.cos(a) * rx * m * k, 0, Z + rz * 0.2f + (float) Math.sin(a) * rz * m * k);
+                proj(X + (proj3 ? 0 : rx * 0.3f) + (float) Math.cos(a) * rx * m * k, 0, Z + (proj3 ? 0 : rz * 0.2f) + (float) Math.sin(a) * rz * m * k);
                 GX[i] = px; GY[i] = py;
             }
-            groundPoly(c, pass == 0 ? 0x33000000 : 0x44000000, n);
+            groundPoly(c, proj3 ? (pass == 0 ? 0x1E000000 : 0x2C000000) : (pass == 0 ? 0x33000000 : 0x44000000), n);
         }
     }
 
@@ -217,33 +453,103 @@ final class R3 {
     private static final int[][] FLOOR = { // cor do piso, linha
             {0xFF4B4B50, 0xFF606068}, {0xFF5A5F66, 0xFF70767E}, {0xFF5BA85A, 0xFF4C9150}, {0xFF3C3C44, 0xFF4E4E58},
             {0xFF8B5A2B, 0xFF6B4520}, {0xFF2B1B55, 0xFF4A2E96}, {0xFFD7B98E, 0xFFB99A6E}, {0xFF90A4AE, 0xFFB4C2CA},
-            {0xFFDCD3C3, 0xFFBDB29E}};
+            {0xFFDCD3C3, 0xFFBDB29E}, {0xFF7C5634, 0xFF5E3F24}};
+
+    private static float hash(float a, float b) {
+        float v = (float) Math.sin(a * 12.9898f + b * 78.233f) * 43758.547f;
+        return v - (float) Math.floor(v);
+    }
 
     static void floor(Canvas c, int theme, float camX) {
         int col = FLOOR[theme][0], ln = FLOOR[theme][1];
+        floorTone = lit(col);
         float x0 = cx - 900, x1 = cx + 900;
-        int strips = 10;
+        int strips = 12;
         float zn = -160;
         for (int i = 0; i < strips; i++) {
             float za = zn + (Z_BACK - zn) * i / strips, zb = zn + (Z_BACK - zn) * (i + 1) / strips;
-            gquad(c, Draw.shade(col, -0.30f * i / strips + 0.04f), x0, za, x1, zb, 0);
+            int sc0 = Draw.shade(col, -0.30f * i / strips + 0.04f);
+            if (Draw.q >= 1) sc0 = Draw.mix(sc0, fog, 0.16f * i / strips);
+            gquad(c, sc0, x0, za, x1, zb, 0);
         }
-        // juntas do piso (perspectiva real)
-        PT.setStyle(Paint.Style.STROKE); PT.setStrokeWidth(1.4f); PT.setColor(ln);
+        boolean hi = Draw.q >= 2;
         float gx = (float) Math.floor((cx - 900) / 100f) * 100f;
-        for (float x = gx; x < cx + 900; x += 100) {
-            proj(x, 0, zn); float ax = px, ay = py; proj(x, 0, Z_BACK); c.drawLine(ax, ay, px, py, PT);
+        switch (theme) {
+            case Data.TH_NOVELA: case Data.TH_BBB: { // assoalho: tábuas corridas com emendas alternadas
+                for (float z = -150; z < Z_BACK; z += 50) {
+                    int row = (int) Math.floor(z / 50f);
+                    if (hi && (row & 1) == 0) gquad(c, 0x12000000, x0, z, x1, Math.min(Z_BACK, z + 50), 0.1f);
+                    gline(c, ln, x0, 0.1f, z, x1, 0.1f, z, 1.3f);
+                    float sh = (row & 1) * 110 + (row % 3) * 37;
+                    for (float x = gx - 220 + sh; x < cx + 900; x += 220) gline(c, ln, x, 0.1f, z, x, 0.1f, Math.min(Z_BACK, z + 50), 1.2f);
+                }
+                break;
+            }
+            case Data.TH_CAMPUS: { // gramado com tufos e caminho de saibro
+                if (hi) for (float x = gx; x < cx + 900; x += 100) for (float z = -100; z < Z_BACK; z += 100) {
+                    float h = hash(x * 0.01f, z * 0.01f);
+                    if (h > 0.55f) gquad(c, h > 0.8f ? 0x16FFFFFF : 0x14003300, x + h * 30, z + h * 20, x + 60 + h * 30, z + 44, 0.1f);
+                }
+                gquad(c, 0xFFD8C9A0, x0, 40, x1, 200, 0.2f);
+                gquad(c, 0xFFC4B48A, x0, 40, x1, 48, 0.25f); gquad(c, 0xFFC4B48A, x0, 192, x1, 200, 0.25f);
+                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 50) for (int k = 0; k < 3; k++) {
+                    float h = hash(x * 0.02f, k * 3.1f), z = k == 0 ? -120 + h * 150 : 210 + h * (Z_BACK - 240), bx = x + h * 40;
+                    gline(c, k == 1 ? 0xFF3E8E41 : 0xFF7CC36A, bx, 0, z, bx + 3, 9 + h * 6, z, 1.5f);
+                    gline(c, 0xFF4C9A4E, bx + 4, 0, z, bx + 1, 7 + h * 5, z, 1.3f);
+                }
+                break;
+            }
+            case Data.TH_FAZENDA: { // terra batida com sulcos do arado, palha e manchas de queimado
+                for (float z = -140; z < Z_BACK; z += 42) {
+                    gquad(c, 0x24000000, x0, z, x1, z + 9, 0.1f);
+                    if (hi) gquad(c, 0x12FFE0B0, x0, z + 9, x1, z + 14, 0.1f);
+                }
+                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 100) for (float z = -100; z < Z_BACK; z += 100) {
+                    float h = hash(x * 0.013f, z * 0.017f);
+                    if (h > 0.7f) { // mancha de queimado (irregular)
+                        float bx = x + h * 40, bz = z + 10;
+                        gquad(c, 0x26100A06, bx, bz, bx + 44 + h * 40, bz + 30, 0.12f); gquad(c, 0x26100A06, bx + 12, bz - 8, bx + 30 + h * 50, bz + 18, 0.12f); gquad(c, 0x22100A06, bx - 10, bz + 8, bx + 26, bz + 40, 0.12f);
+                    }
+                    else if (h > 0.4f) { float bx = x + h * 90, bz = z + h * 60; gline(c, 0xFFD9B45A, bx, 0.3f, bz, bx + 16, 0.3f, bz + 5, 1.6f); gline(c, 0xFFC49A3C, bx + 5, 0.3f, bz + 8, bx + 19, 0.3f, bz - 2, 1.4f); } // palha
+                    else if (h > 0.25f) { float bx = x + h * 200, bz = z + 30; gline(c, 0xFF2A1A10, bx, 0, bz, bx + 2, 12, bz, 1.6f); gline(c, 0xFF2A1A10, bx + 5, 0, bz, bx + 8, 8, bz, 1.4f); } // toco queimado
+                }
+                break;
+            }
+            default: { // placas/ladrilhos em perspectiva real
+                boolean checker = theme == Data.TH_TRIBUNAL || theme == Data.TH_PALCO || theme == Data.TH_JORNAL;
+                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 100) for (float z = -200; z < Z_BACK; z += 100) {
+                    int ix = (int) Math.floor(x / 100f), iz = (int) Math.floor(z / 100f);
+                    float h = hash(ix, iz);
+                    float za = Math.max(zn, z), zb = Math.min(Z_BACK, z + 100);
+                    if (checker) { if (((ix + iz) & 1) == 0) gquad(c, theme == Data.TH_TRIBUNAL ? 0x24604830 : 0x26000000, x, za, x + 100, zb, 0.1f); }
+                    else if (h > 0.6f) gquad(c, h > 0.8f ? 0x12FFFFFF : 0x16000000, x, za, x + 100, zb, 0.1f);
+                    if (hi && !checker && h > 0.3f && h < 0.5f) { // remendo e rachadura no asfalto/concreto
+                        float bx = x + 20 + h * 100, bz = za + 30;
+                        gline(c, 0x50000000, bx, 0.1f, bz, bx + 22, 0.1f, bz + 16, 1.2f); gline(c, 0x50000000, bx + 22, 0.1f, bz + 16, bx + 30, 0.1f, bz + 42, 1.1f);
+                    }
+                    if (hi && theme == Data.TH_TRIBUNAL && h > 0.45f) gline(c, 0x40FFFFFF, x + h * 60, 0.1f, za + 10, x + 30 + h * 60, 0.1f, zb - 20, 1.1f); // veio do mármore
+                }
+                PT.setStyle(Paint.Style.STROKE); PT.setStrokeWidth(1.4f); PT.setColor(lit(ln));
+                for (float x = gx; x < cx + 900; x += 100) { proj(x, 0, zn); float ax = px, ay = py; proj(x, 0, Z_BACK); c.drawLine(ax, ay, px, py, PT); }
+                for (float z = -100; z < Z_BACK; z += 100) { proj(x0, 0, z); float ax = px, ay = py; proj(x1, 0, z); c.drawLine(ax, ay, px, py, PT); }
+                PT.setStyle(Paint.Style.FILL);
+            }
         }
-        for (float z = -100; z < Z_BACK; z += 100) {
-            proj(x0, 0, z); float ax = px, ay = py; proj(x1, 0, z); c.drawLine(ax, ay, px, py, PT);
-        }
-        PT.setStyle(Paint.Style.FILL);
-        if (theme == Data.TH_PAULISTA) { // faixa tracejada
+        if (theme == Data.TH_PAULISTA) { // faixa tracejada e sarjeta
             float s = (float) Math.floor((cx - 600) / 160f) * 160f;
             for (float x = s; x < cx + 600; x += 160) gquad(c, 0xFFFFD600, x, 70, x + 70, 78, 0.2f);
+            gquad(c, 0xFFE8E8E8, x0, Z_BACK - 60, x1, Z_BACK - 54, 0.2f);
         }
-        if (theme == Data.TH_CAMPUS) gquad(c, 0xFFD8C9A0, x0, 40, x1, 200, 0.2f);
-        // meio-fio ao fundo
+        if (theme == Data.TH_QUARENT) { // marcação de distanciamento no chão
+            float s = (float) Math.floor((cx - 600) / 240f) * 240f;
+            for (float x = s; x < cx + 600; x += 240) { gquad(c, 0xFFFFD600, x, 60, x + 60, 66, 0.2f); gquad(c, 0xFFFFD600, x, 114, x + 60, 120, 0.2f); gquad(c, 0xFFFFD600, x, 60, x + 6, 120, 0.2f); gquad(c, 0xFFFFD600, x + 54, 60, x + 60, 120, 0.2f); }
+        }
+        if (reflect && Draw.q >= 2) { // brilho especular do piso polido
+            float s = (float) Math.floor((cx - 700) / 260f) * 260f;
+            for (float x = s; x < cx + 700; x += 260) gquad(c, 0x14FFFFFF, x + 40, -140, x + 70, Z_BACK, 0.15f);
+        }
+        // oclusão ao pé da parede do fundo + meio-fio
+        if (Draw.q >= 1) for (int i = 0; i < 4; i++) gquad(c, 0x12000000, x0, Z_BACK - 70 + i * 16, x1, Z_BACK, 0.25f);
         gquad(c, Draw.shade(col, -0.45f), x0, Z_BACK - 14, x1, Z_BACK, 0.3f);
     }
 
@@ -252,39 +558,130 @@ final class R3 {
         float zb = zOf(Game.Y0) + 70;
         float s = (float) Math.floor((cx - 700) / 260f) * 260f;
         for (float x = s; x < cx + 700; x += 260) {
+            int idx = (int) Math.floor(x / 260f);
+            boolean alt = (idx & 1) != 0;
             model(x + 60, 0, zb, 1, 1, 0);
             switch (theme) {
-                case Data.TH_PAULISTA: case Data.TH_PORTAO: // poste de luz
-                    box(-3, 0, -3, 3, 150, 3, 0xFF54585F); box(-3, 146, -3, 34, 151, 3, 0xFF54585F); box(22, 140, -5, 38, 146, 5, 0xFFFFF3B0);
-                    box(-9, 0, -9, 9, 8, 9, 0xFF3C4046);
+                case Data.TH_PAULISTA: case Data.TH_PORTAO: // poste de luz, lixeira e banco
+                    oct(-9, 0, -9, 9, 8, 9, 0xFF3C4046, 1f, 0.6f, 0.45f); oct(-3.2f, 8, -3.2f, 3.2f, 150, 3.2f, 0xFF54585F, 1f, 0.7f, 0.45f);
+                    box(-3, 146, -3, 34, 151, 3, 0xFF54585F); box(20, 141, -6, 40, 147, 6, 0xFF3C4046);
+                    glow = true; box(22, 139, -5, 38, 141.5f, 5, 0xFFFFF3B0); glow = false;
+                    if (theme == Data.TH_PORTAO || Draw.q >= 2) { cast = false; box(18, 60, -9, 42, 139, 9, theme == Data.TH_PORTAO ? 0x16FFE9A0 : 0x0CFFF3B0); cast = Draw.q >= 1; }
+                    if (alt) { // lixeira
+                        oct(96, 0, -9, 114, 28, 9, 0xFF2E7D32, 0.85f, 1f, 0.45f); oct(95, 28, -10, 115, 31, 10, 0xFF1B5E20);
+                    } else { // banco de praça
+                        tex = TEX_H; texN = 2; box(84, 16, -10, 136, 20, 8, 0xFF8D6E63); box(84, 20, 5, 136, 38, 8, 0xFF8D6E63); tex = 0;
+                        box(88, 0, -8, 92, 16, 8, 0xFF37474F); box(128, 0, -8, 132, 16, 8, 0xFF37474F);
+                    }
                     break;
-                case Data.TH_QUARENT: // barreira e cone
+                case Data.TH_QUARENT: // barreira, cone e totem de álcool em gel
                     box(-40, 0, -6, 40, 34, 6, 0xFFE8E8E8); box(-40, 22, -6.5f, 40, 30, 6.5f, 0xFFFFC400); box(-40, 34, -2, 40, 70, 2, 0x6690CAF9);
-                    box(70, 0, -8, 86, 3, 8, 0xFFFF6D00); box(74, 3, -4, 82, 26, 4, 0xFFFF6D00);
+                    box(-42, 0, -8, -36, 4, 8, 0xFF9E9E9E); box(36, 0, -8, 42, 4, 8, 0xFF9E9E9E);
+                    box(68, 0, -10, 88, 3, 10, 0xFFFF6D00); oct(71, 3, -7, 85, 28, 7, 0xFFFF6D00, 1f, 0.25f, 0.45f);
+                    bias = 2; oct(73.5f, 12, -5.2f, 82.5f, 17, 5.2f, 0xFFFFFFFF, 1f, 0.8f, 0.45f); bias = 0;
+                    if (alt) { oct(118, 0, -7, 132, 4, 7, 0xFF546E7A); oct(122.5f, 4, -2.5f, 127.5f, 46, 2.5f, 0xFFB0BEC5); box(118, 46, -6, 132, 62, 6, 0xFFE0F7FA); bias = 2; box(121, 50, -6.5f, 129, 58, -6, 0xFF26A69A); bias = 0; }
                     break;
-                case Data.TH_CAMPUS: // árvore
-                    box(-6, 0, -6, 6, 60, 6, 0xFF6D4C41); box(-34, 56, -34, 34, 96, 34, 0xFF2E7D32); box(-24, 96, -24, 24, 128, 24, 0xFF388E3C); box(-13, 128, -13, 13, 150, 13, 0xFF43A047);
+                case Data.TH_CAMPUS: { // árvore de copa cheia
+                    tex = TEX_V; texN = 2; oct(-7, 0, -7, 7, 62, 7, 0xFF6D4C41, 1.25f, 0.8f, 0.45f); tex = 0;
+                    push(); rot(-38, 0, 46); oct(-3, 44, -3, 3, 70, 3, 0xFF5D4037); pop();
+                    oct(-36, 56, -36, 36, 92, 36, 0xFF2E7D32, 0.7f, 1f, 0.45f); oct(-30, 92, -30, 30, 122, 30, 0xFF388E3C, 1f, 0.8f, 0.45f);
+                    oct(-18, 122, -18, 18, 148, 18, 0xFF43A047, 1f, 0.5f, 0.45f);
+                    oct(18, 70, -24, 46, 98, 8, 0xFF388E3C, 0.8f, 0.7f, 0.45f); oct(-48, 76, -6, -20, 104, 22, 0xFF2E7D32, 0.8f, 0.7f, 0.45f);
+                    bias = 2; box(-12, 100, -31, -2, 108, -30, 0xFF66BB6A); box(8, 78, -37, 20, 86, -36, 0xFF4CAF50); bias = 0;
+                    if (alt) { tex = TEX_H; texN = 2; box(90, 14, -9, 140, 18, 9, 0xFFA1887F); tex = 0; box(94, 0, -7, 98, 14, 7, 0xFF5D4037); box(132, 0, -7, 136, 14, 7, 0xFF5D4037); }
                     break;
-                case Data.TH_NOVELA: case Data.TH_PALCO: case Data.TH_BBB: case Data.TH_JORNAL: // refletor de estúdio
-                    box(-2.5f, 0, -2.5f, 2.5f, 120, 2.5f, 0xFF2B2B2B); box(-16, 0, -2, 16, 3, 2, 0xFF2B2B2B); box(-2, 0, -16, 2, 3, 16, 0xFF2B2B2B);
-                    box(-13, 116, -11, 13, 140, 9, 0xFF1C1C1C); box(-10, 119, -14, 10, 137, -11, theme == Data.TH_PALCO ? 0xFFE1BEE7 : 0xFFFFF8D0);
+                }
+                case Data.TH_NOVELA: case Data.TH_PALCO: case Data.TH_BBB: case Data.TH_JORNAL: { // refletor de estúdio e câmera
+                    oct(-2.5f, 0, -2.5f, 2.5f, 120, 2.5f, 0xFF2B2B2B); box(-16, 0, -2, 16, 3, 2, 0xFF2B2B2B); box(-2, 0, -16, 2, 3, 16, 0xFF2B2B2B);
+                    oct(-13, 116, -11, 13, 140, 9, 0xFF1C1C1C, 1f, 1f, 0.7f);
+                    int lc = theme == Data.TH_PALCO ? (alt ? 0xFFE1BEE7 : 0xFF80DEEA) : 0xFFFFF8D0;
+                    glow = true; box(-10, 119, -14, 10, 137, -11, lc); glow = false;
+                    if (Draw.q >= 2) { cast = false; box(-12, 20, -60, 12, 119, -14, (0x12 << 24) | (lc & 0xFFFFFF)); cast = true; }
+                    if (alt) { // câmera de estúdio sobre pedestal
+                        oct(104, 0, -10, 126, 5, 10, 0xFF212121); oct(112, 5, -3, 118, 70, 3, 0xFF424242);
+                        box(100, 70, -9, 132, 90, 9, 0xFF263238); oct(132, 74, -6, 146, 86, 6, 0xFF111111); bias = 2; box(146, 76, -4, 147, 84, 4, 0xFF4FC3F7); bias = 0;
+                        box(96, 78, -3, 100, 94, 3, 0xFF37474F);
+                    }
                     break;
-                default: // coluna de mármore
-                    box(-22, 0, -22, 22, 12, 22, 0xFFE3DED2); box(-15, 12, -15, 15, 170, 15, 0xFFF7F4EC); box(-22, 170, -22, 22, 182, 22, 0xFFE3DED2);
+                }
+                case Data.TH_FAZENDA: farmProp(x + 60, zb, idx); break;
+                default: // coluna de mármore canelada
+                    box(-22, 0, -22, 22, 12, 22, 0xFFE3DED2); oct(-18, 12, -18, 18, 17, 18, 0xFFD8D2C4);
+                    tex = TEX_V; texN = 2; oct(-15, 17, -15, 15, 165, 15, 0xFFF7F4EC, 1f, 0.88f, 0.45f); tex = 0;
+                    oct(-18, 165, -18, 18, 170, 18, 0xFFD8D2C4); box(-22, 170, -22, 22, 182, 22, 0xFFE3DED2);
+                    if (alt) { oct(96, 0, -8, 112, 30, 8, 0xFF8D6E63, 0.8f, 1f, 0.45f); oct(88, 30, -16, 120, 52, 16, 0xFF2E7D32, 0.6f, 1f, 0.45f); oct(94, 52, -10, 114, 66, 10, 0xFF388E3C, 1f, 0.5f, 0.45f); }
             }
         }
     }
 
+    /** Fazenda invadida: barraca de lona preta do MST, cerca, bandeira e touceiras da plantação em chamas. */
+    private static void farmProp(float X, float zb, int idx) {
+        float d = Scene.dusk;
+        int kind = ((idx % 3) + 3) % 3;
+        if (kind == 0) { // barraca de lona preta (estrutura em A) + bandeira do MST
+            for (int sgn = -1; sgn <= 1; sgn += 2) {
+                push(); rot(sgn * 38, sgn * 34, 0);
+                tex = TEX_V; texN = 3; box(sgn * 34 - 1.5f, 0, -30, sgn * 34 + 1.5f, 56, 30, 0xFF1E1E22); tex = 0;
+                pop();
+            }
+            box(-1.5f, 0, -31, 1.5f, 48, -29, 0xFF6D4C41); box(-1.5f, 0, 29, 1.5f, 48, 31, 0xFF6D4C41); box(-1, 44, -31, 1, 46, 31, 0xFF6D4C41);
+            box(-20, 0, 26, 20, 30, 27, 0xFF15151A);
+            mstFlag(52, 0, -6, 104);
+            // fogueira do acampamento
+            box(70, 0, -20, 88, 4, -12, 0xFF3E2723); box(74, 0, -24, 80, 5, -8, 0xFF4E342E);
+            flame(X + 79, 5, zb - 16, 20, idx * 0.37f);
+            if (Draw.q >= 1) smoke(X + 79, 24, zb - 16, 110, 7, 0x3A3A3A, 110, 5, idx * 0.21f);
+        } else if (kind == 1) { // plantação pegando fogo
+            for (int i = 0; i < 7; i++) {
+                float h = hash(idx, i), bx = -70 + i * 24 + h * 8, bz = (i & 1) * 26 - 6;
+                int burnt = h < d * 1.2f ? 0xFF1A120C : (i % 3 == 0 ? 0xFF9E9D24 : 0xFF7CB342);
+                push(); rot((h - 0.5f) * 14 + (float) Math.sin(Draw.time * 2 + i) * 2, bx, 0);
+                box(bx - 1.3f, 0, bz - 1.3f, bx + 1.3f, 58 + h * 22, bz + 1.3f, burnt);
+                box(bx - 9, 30 + h * 10, bz - 0.8f, bx + 9, 33 + h * 10, bz + 0.8f, burnt); box(bx - 0.8f, 44 + h * 8, bz - 8, bx + 0.8f, 47 + h * 8, bz + 8, burnt);
+                pop();
+                if (h < 0.25f + d * 0.75f) flame(X + bx, 6 + h * 30, zb + bz, 26 + d * 30 + h * 14, idx * 0.31f + i * 0.17f);
+            }
+            if (Draw.q >= 1) smoke(X - 10, 60, zb + 10, 150 + d * 60, 12 + d * 6, 0x2E2A28, (int) (90 + d * 90), 6, idx * 0.13f);
+        } else { // cerca de arame farpado derrubada + fardo de feno + bandeira
+            for (int i = 0; i < 3; i++) { push(); rot(i == 1 ? -24 : 3, -60 + i * 60, 0); oct(-63 + i * 60, 0, -3, -57 + i * 60, 46, 3, 0xFF6D4C41, 1f, 0.8f, 0.5f); pop(); }
+            box(-60, 30, -0.5f, 60, 31, 0.5f, 0xFF9E9E9E); box(-60, 16, -0.5f, 60, 17, 0.5f, 0xFF9E9E9E);
+            tex = TEX_V; texN = 3; oct(74, 0, -16, 112, 30, 16, 0xFFD9B45A, 1f, 1f, 0.7f); tex = 0;
+            bias = 2; box(73.5f, 12, -16.5f, 112.5f, 15, 16.5f, 0xFF8D6E63); bias = 0;
+            mstFlag(-90, 0, 8, 92);
+            if (d > 0.3f) { flame(X + 93, 30, zb, 18 + d * 16, idx * 0.41f); if (Draw.q >= 1) smoke(X + 93, 46, zb, 120, 8, 0x333333, (int) (d * 130), 4, idx * 0.29f); }
+        }
+    }
+
+    /** bandeira vermelha do MST num mastro fincado no chão (círculo branco com o mapa verde no meio). */
+    private static void mstFlag(float x, float y, float z, float h) {
+        oct(x - 1.3f, y, z - 1.3f, x + 1.3f, y + h, z + 1.3f, 0xFF8D6E63);
+        float wv = (float) Math.sin(Draw.time * 5 + x) * 4;
+        push(); rot(wv, x, y + h - 12);
+        box(x + 1.3f, y + h - 26, z - 0.6f, x + 20, y + h - 1, z + 0.6f, 0xFFD32F2F);
+        push(); rot(wv * 0.8f, x + 20, y + h - 12);
+        box(x + 20, y + h - 26, z - 0.6f, x + 40, y + h - 1, z + 0.6f, 0xFFC62828);
+        pop();
+        bias = 2;
+        box(x + 12, y + h - 19, z - 1f, x + 28, y + h - 8, z + 1f, 0xFFFFFFFF); box(x + 14.5f, y + h - 21.5f, z - 1f, x + 25.5f, y + h - 5.5f, z + 1f, 0xFFFFFFFF);
+        bias = 3; box(x + 16.5f, y + h - 17.5f, z - 1.3f, x + 23.5f, y + h - 9.5f, z + 1.3f, 0xFF2E7D32); bias = 0;
+        pop();
+    }
+
     // ---------------------------------------------------------------- pessoa 3D
     private static float aHipF, aKneeF, aHipB, aKneeB, aShN, aElN, aShF, aElF, aLean;
+    /** cavaleiro: 1 = chicote na mão próxima e bandeira do Brasil na outra; velocidade faz a bandeira tremular. */
+    static int riderGear;
+    static float gearSpeed, riderLean;
 
     private static void leg(float z, float hip, float knee, int pants, int shoe, float g) {
         push();
         rot(hip, 0, 42);
-        box(-4.6f * g, 20, z - 4.6f, 4.6f * g, 43, z + 4.6f, pants);
+        oct(-4.9f * g, 20, z - 4.9f, 4.9f * g, 43.5f, z + 4.9f, pants, 0.8f, 1f, 0.5f);
         rot(knee, 0, 21);
-        box(-4f * g, 3, z - 4f, 4f * g, 22, z + 4f, pants);
-        box(-4.4f, 0, z - 4.4f, 9.5f, 4.5f, z + 4.4f, shoe);
+        oct(-4.2f * g, 3, z - 4.2f, 4.2f * g, 22.5f, z + 4.2f, pants, 0.74f, 1f, 0.5f);
+        box(-4.4f, 0, z - 4.2f, 6, 4.6f, z + 4.2f, shoe);
+        box(6, 0, z - 3.8f, 10, 3.3f, z + 3.8f, shoe);
+        if (Draw.q >= 2) { bias = 1; box(-4.6f, 0, z - 4.4f, 10.2f, 1.1f, z + 4.4f, Draw.shade(shoe, 0.35f)); bias = 0; }
         pop();
     }
 
@@ -294,6 +691,7 @@ final class R3 {
         float s = lk.scale;
         if (shadowOn) shadow(c, X, Z, 20 * s, 9 * s, H);
         model(X, H, Z, face, s, flash);
+        aoH = 74 * sc;
         int skin = lk.skin, shirt = lk.shirt, pants = lk.pants, hair = lk.hair, shoe = 0xFF1B1B1B;
         float g = lk.girth;
         boolean fem = lk.acc == Data.AC_DRESS || lk.acc == Data.AC_DANCER || lk.acc == Data.AC_XANXA || lk.hero == 4;
@@ -301,6 +699,7 @@ final class R3 {
         boolean robe = lk.acc == Data.AC_TOGA || lk.acc == Data.AC_REITOR;
         boolean longS = lk.acc == Data.AC_SUIT || lk.acc == Data.AC_ANCHOR || lk.acc == Data.AC_COAT || robe
                 || lk.acc == Data.AC_KNIFE || lk.hero == 3 || lk.acc == Data.AC_MULA;
+        boolean mst = lk.acc == Data.AC_FOICE || lk.acc == Data.AC_FOICEB || lk.acc == Data.AC_FOICE2;
         float ph = walk * 0.12f, sw = (float) Math.sin(ph) * mv;
         float breath = (float) Math.sin(Draw.time * 2.4f + X * 0.013f);
         // ---- ângulos por pose
@@ -309,8 +708,24 @@ final class R3 {
         aShN = -26 * sw + 4; aShF = 26 * sw + 4; aElN = 14 + 10 * mv; aElF = 14 + 10 * mv; aLean = -3 * mv;
         float ext = pt < 0.5f ? pt * 2 : 1f;
         switch (pose) {
-            case Draw.P_PUNCH: aShN = 20 + 72 * ext; aElN = 95 * (1 - ext); aShF = 55; aElF = 95; aLean = -7 * ext; aHipF = 16; aHipB = -14; aKneeB = -8; break;
-            case Draw.P_KICK: case Draw.P_JKICK: aHipF = 84; aKneeF = -4; aHipB = pose == Draw.P_JKICK ? -30 : -6; aKneeB = pose == Draw.P_JKICK ? -60 : -4; aLean = 13; aShN = -30; aShF = 40; aElN = 60; aElF = 80; break;
+            case Draw.P_PUNCH:
+                if (Draw.atkArm == 1) { aShF = 20 + 72 * ext; aElF = 95 * (1 - ext); aShN = 52; aElN = 105; } // soco com o braço de trás
+                else { aShN = 20 + 72 * ext; aElN = 95 * (1 - ext); aShF = 55; aElF = 95; }
+                aLean = -7 * ext; aHipF = 16; aHipB = -14; aKneeB = -8; break;
+            case Draw.P_KICK: // chute baixo, de lado, na altura do meio da coxa do inimigo
+                aHipF = 30 + 36 * ext; aKneeF = -62 * (1 - ext) - 3; aHipB = -8; aKneeB = -12; aLean = 9 * ext;
+                aShN = 48; aElN = 108; aShF = -20; aElF = 50; break;
+            case Draw.P_JKICK: // voadora de lado: uma perna esticada, a outra recolhida ("losango aberto")
+                aHipF = 86; aKneeF = -2; aHipB = 64; aKneeB = -122; aLean = 16;
+                aShN = -42; aElN = 28; aShF = 58; aElF = 96; break;
+            case Draw.P_GUARD: // guarda de boxe: punhos na altura do rosto, joelhos flexionados
+                aShN = 58; aElN = 118; aShF = 46; aElF = 126; aLean = -5;
+                aHipF = 16 + 6 * sw; aKneeF = -18; aHipB = -12 - 6 * sw; aKneeB = -16; break;
+            case Draw.P_RIDE: // montado: pernas abertas sobre a sela
+                aHipF = 58; aKneeF = -70; aHipB = 58; aKneeB = -70; aLean = -3;
+                aShF = 34; aElF = 72;
+                if (pt > 0) { aShN = 150 - 60 * ext; aElN = 46 * (1 - ext); aLean = -3 - 6 * ext; } else { aShN = 28; aElN = 52; }
+                break;
             case Draw.P_JUMP: aHipF = 55; aKneeF = -80; aHipB = 20; aKneeB = -60; aShN = 150; aShF = 130; aElN = 20; aElF = 20; break;
             case Draw.P_WIND: aShN = 155; aElN = 25; aShF = 30; aElF = 60; aLean = 5; break;
             case Draw.P_CHARGE: aShN = 170; aShF = 170; aElN = 10; aElF = 10; aHipF = 20; aHipB = -20; break;
@@ -321,27 +736,31 @@ final class R3 {
             case Draw.P_SPEC: aHipF = 70; aKneeF = -75; aHipB = 62; aKneeB = -70; aShN = 62; aShF = 58; aElN = 10; aElF = 10; aLean = -8; break;
             default: break;
         }
+        aLean += riderLean;
         if (pose == Draw.P_DOWN) { oy += 6 * s; }
         rot(aLean, 0, pose == Draw.P_DOWN ? 4 : 30);
         float bob = -Math.abs(sw) * 1.4f;
         ty += td * bob; tx += tb * bob;
         // ---- pernas / saia / toga
+        float lz = pose == Draw.P_RIDE ? 16.5f : 5.6f;
         if (robe) {
             int rc = lk.acc == Data.AC_TOGA ? 0xFF141414 : shirt;
-            box(-11, 0, -13, 11, 44, 13, rc);
-            box(-9, 0, -13.4f, 9, 44, -12.6f, Draw.shade(rc, 0.12f));
+            oct(-11, 0, -13, 11, 44, 13, rc, 1.08f, 0.9f, 0.7f);
+            bias = 2; box(-9, 0, -14.2f, 9, 44, -13.2f, Draw.shade(rc, 0.12f)); bias = 0;
         } else {
-            leg(5.6f, aHipB, aKneeB, Draw.shade(pants, -0.1f), shoe, g);
-            leg(-5.6f, aHipF, aKneeF, pants, shoe, g);
-            if (fem) box(-8, 26, -12, 8, 46, 12, shirt);
-            if (lk.hero == 4) { box(-9.5f, 10, -13.5f, 9.5f, 30, 13.5f, shirt); bias = 3; box(-9.8f, 10, -13.8f, 9.8f, 12.5f, 13.8f, 0xFFD4AF37); bias = 0; }
-            if (lk.acc == Data.AC_XANXA) { box(-9.5f, 12, -13.5f, 9.5f, 36, 13.5f, 0xFF111111); }
+            leg(lz, aHipB, aKneeB, Draw.shade(pants, -0.1f), shoe, g);
+            leg(-lz, aHipF, aKneeF, pants, shoe, g);
+            if (fem) oct(-8, 26, -12, 8, 46, 12, shirt, 1.12f, 0.9f, 0.7f);
+            if (lk.hero == 4) { oct(-9.5f, 10, -13.5f, 9.5f, 30, 13.5f, shirt, 1.1f, 0.92f, 0.7f); bias = 3; box(-10.2f, 10, -14.6f, 10.2f, 12.5f, 14.6f, 0xFFD4AF37); bias = 0; }
+            if (lk.acc == Data.AC_XANXA) { oct(-9.5f, 12, -13.5f, 9.5f, 36, 13.5f, 0xFF111111, 1.08f, 0.92f, 0.7f); }
         }
-        // ---- tronco
+        // ---- tronco (cintura mais estreita, ombros largos)
         float ch = breath * 0.4f;
         int torso = robe && lk.acc == Data.AC_TOGA ? 0xFF141414 : shirt;
-        box(-7 * g, 42, -11.5f, 7 * g + ch, 72, 11.5f, torso);
-        if (!robe && !fem) box(-7.2f * g, 40, -11.8f, 7.2f * g, 44.5f, 11.8f, 0xFF1A1A1A); // cinto
+        oct(-7 * g, 42, -11.5f, 7 * g + ch, 72, 11.5f, torso, fem ? 0.82f : 0.9f, 1f, 0.8f);
+        if (!robe && !fem) box(-6.7f * g, 40, -10.9f, 6.7f * g, 44.5f, 10.9f, 0xFF1A1A1A); // cinto
+        if (!robe && !fem && Draw.q >= 2) { bias = 2; box(5.6f * g, 40.6f, -1.8f, 6.9f * g, 43.9f, 1.8f, 0xFFBFA14A); bias = 0; } // fivela
+        if (Draw.q >= 2 && !fem && !robe && !longS) { bias = 2; box(5.5f * g, 68.5f, -5, 7.2f * g, 72.2f, 5, Draw.shade(torso, -0.18f)); bias = 0; } // gola
         bias = 3;
         if (lk.hero == 0) { box(2, 67, -11.9f, 7.3f * g, 72.3f, 11.9f, 0xFF1B8F3A); box(2, 56, -12, 6, 61, -11.4f, 0xFF1D3E9A); }
         if (lk.torn) { box(-2, 46, -12, 5, 56, -11.4f, skin); box(-6, 60, -12, -1, 64, -11.4f, 0xFF7A5A20); }
@@ -358,62 +777,121 @@ final class R3 {
             for (int i = 0; i < 7; i++) box(7.4f, 66 - (float) Math.abs(i - 3) * 1.4f, -6 + i * 1.9f, 8.6f, 68 - (float) Math.abs(i - 3) * 1.4f, -4.4f + i * 1.9f, 0xFFFFFFF0);
         }
         if (lk.acc == Data.AC_XANXA) { box(-7.3f, 58, -11.9f, 7.3f, 63, 11.9f, 0xFF111111); box(6, 62, -5, 8, 70, 5, 0xFF111111); box(7.4f, 52, -1, 8.6f, 56, 1, 0xFFD4AF37); }
+        if (mst) { // lenço vermelho no pescoço e faixa na cintura
+            int band = lk.acc == Data.AC_FOICEB ? 0xFFD32F2F : 0xFF5D4037;
+            box(-7.3f * g, 67.5f, -11.9f, 7.4f * g, 72.3f, 11.9f, lk.acc == Data.AC_FOICE ? 0xFF8E1B1B : 0xFFD32F2F);
+            box(-7.2f * g, 44.5f, -11.8f, 7.3f * g, 48, 11.8f, band);
+            if (lk.acc == Data.AC_FOICE2) { box(-7.5f * g, 46, -12.1f, 2, 68, 12.1f, 0xFF4E342E); } // colete de couro
+        }
         bias = 0;
         // ---- pescoço e cabeça
-        box(-3, 71, -3.2f, 3.4f, 76, 3.2f, Draw.shade(skin, -0.15f));
+        oct(-3, 71, -3.2f, 3.4f, 76, 3.2f, Draw.shade(skin, -0.15f));
         push();
         rot(pose == Draw.P_HURT ? 10 : (pose == Draw.P_DOWN ? 0 : -aLean * 0.6f), 0, 75);
-        box(-7, 75, -7, 7, 91, 7, skin);
+        oct(-7, 75, -7, 7, 91, 7, skin, 0.86f, 1f, 0.72f);
         bias = 3;
         box(7, 80, -1.6f, 9.6f, 84.5f, 1.6f, Draw.shade(skin, -0.1f));           // nariz
-        box(2.6f, 83, -7.4f, 5.4f, 86, -6.9f, 0xFF161616);                        // olho (lado da câmera)
-        box(2.6f, 83, 6.9f, 5.4f, 86, 7.4f, 0xFF161616);
+        if (Draw.q >= 1) { bias = 2; box(1.4f, 82.6f, -7.3f, 5.5f, 86.4f, -6.9f, 0xFFF4F4F4); box(1.4f, 82.6f, 6.9f, 5.5f, 86.4f, 7.3f, 0xFFF4F4F4); bias = 3; }
+        box(3.2f, 83, -7.5f, 5.3f, 86, -6.9f, 0xFF161616);                        // olho (lado da câmera)
+        box(3.2f, 83, 6.9f, 5.3f, 86, 7.5f, 0xFF161616);
         box(6.9f, 83, -5, 7.4f, 86, -2, 0xFF161616); box(6.9f, 83, 2, 7.4f, 86, 5, 0xFF161616); // olhos de frente
-        box(1.5f, 86.6f, -7.5f, 6.6f, 87.8f, -6.9f, Draw.shade(hair, -0.3f));     // sobrancelha
-        box(3, 78, -7.4f, 7.3f, 79.2f, -6.9f, Draw.shade(skin, -0.5f));           // boca
+        box(1.5f, 86.8f, -7.5f, 6.4f, 88, -6.9f, Draw.shade(hair, -0.3f));        // sobrancelha
+        box(3, 77.8f, -7f, 6.8f, 79f, -6.3f, Draw.shade(skin, -0.5f));            // boca
         box(-2.2f, 80.5f, -8.2f, 0.6f, 85, -7, Draw.shade(skin, -0.2f));          // orelha
         // cabelo / chapéus
-        if (lk.acc == Data.AC_KNIFE) { box(-8, 76, -8, 5, 93, 8, 0xFF1A1A1A); box(-8, 88, -8, 8, 93, 8, 0xFF1A1A1A); }
-        else if (fem) { box(-8, 87, -8, 6, 93, 8, hair); box(-8.5f, 64, -8, -3, 90, 8, hair); if (lk.hero == 4) { box(-8, 86, -8.4f, 7, 91, -6.5f, hair); box(-8, 86, 6.5f, 7, 91, 8.4f, hair); box(-10, 52, -8, -4, 66, 8, hair); } }
-        else { box(-7.6f, 87.5f, -7.6f, 5.5f, 92.6f, 7.6f, hair); box(-7.6f, 79, -7.6f, -4.2f, 90, 7.6f, hair); }
+        if (lk.acc == Data.AC_KNIFE) { box(-8, 76, -8, 5, 93, 8, 0xFF1A1A1A); oct(-8, 88, -8, 8, 93.5f, 8, 0xFF1A1A1A, 1f, 0.85f, 0.72f); }
+        else if (fem) { oct(-8, 87, -8, 6, 93.5f, 8, hair, 1f, 0.8f, 0.72f); box(-8.5f, 64, -8, -3, 90, 8, hair); if (lk.hero == 4) { box(-8, 86, -8.4f, 7, 91, -6.5f, hair); box(-8, 86, 6.5f, 7, 91, 8.4f, hair); box(-10, 52, -8, -4, 66, 8, hair); } }
+        else { oct(-7.6f, 87.5f, -7.6f, 5.8f, 93, 7.6f, hair, 1f, 0.8f, 0.72f); box(-7.6f, 79, -7.6f, -4.2f, 90, 7.6f, hair); }
         if (lk.acc == Data.AC_MULA) { box(-1, 75.5f, -7.5f, 7.6f, 80.5f, 7.5f, 0xFFF2F2F2); }
         if (lk.acc == Data.AC_MASK) { box(1, 76.5f, -7.5f, 7.7f, 82, 7.5f, 0xFFFFFFFF); box(9, 75, -8.5f, 9.8f, 92, 8.5f, 0x6680DEEA); }
         if (lk.acc == Data.AC_COAT || lk.acc == Data.AC_ANCHOR || lk.hero == 2) { box(1.8f, 82.3f, -7.8f, 6.2f, 86.8f, -7.3f, 0x8890CAF9); box(-4, 84.5f, -7.7f, 2, 85.4f, -7.3f, 0xFF222222); }
         if (lk.acc == Data.AC_SUIT) { box(1, 82.5f, -7.8f, 7.6f, 86.5f, 7.8f, 0xFF0A0A0A); }
         if (lk.acc == Data.AC_REITOR) { box(-11, 92, -11, 11, 94, 11, 0xFF111111); box(-5, 90, -5, 5, 92, 5, 0xFF111111); box(8, 86, 9, 9.5f, 94, 10.5f, 0xFFFFD400); }
+        if (lk.acc == Data.AC_FOICE) { oct(-13, 90.5f, -13, 13, 92, 13, 0xFFE0C068); oct(-7.2f, 92, -7.2f, 7.2f, 97.5f, 7.2f, 0xFFD4B052, 1f, 0.85f, 0.45f); box(-7.4f, 92, -7.4f, 7.4f, 93.5f, 7.4f, 0xFF8E1B1B); }
+        if (lk.acc == Data.AC_FOICEB) { oct(-7.8f, 87.5f, -7.8f, 7.8f, 93.5f, 7.8f, 0xFFD32F2F, 1f, 0.85f, 0.72f); box(7, 87.5f, -6, 13.5f, 89, 6, 0xFFB71C1C); }
+        if (lk.acc == Data.AC_FOICE2) { oct(-9, 89, -9, 8, 93.5f, 9, 0xFFC62828, 1f, 0.8f, 0.6f); box(0, 75.2f, -7.5f, 7.6f, 80.5f, 7.5f, 0xFF3E2723); box(-2, 75.2f, -7.4f, 3, 83, -6.9f, 0xFF3E2723); }
         if (lk.joint) { // cigarro de maconha aceso na boca + fumacinha subindo
             box(5.5f, 78.2f, -1.1f, 13, 79.8f, 1.1f, 0xFFF5F5DC);
-            box(12.4f, 77.9f, -1.3f, 14.2f, 80.1f, 1.3f, (((int) (Draw.time * 6) & 1) == 0) ? 0xFFFF6D00 : 0xFFFF9100);
-            for (int i = 0; i < 4; i++) {
-                float sp = (Draw.time * 0.55f + i * 0.25f + X * 0.002f) % 1f;
-                float sx = 14.5f + sp * 5 + (float) Math.sin(sp * 7 + i * 2) * 1.6f, sy = 81 + sp * 22, sz = 1.2f + sp * 2.6f;
-                int al = (int) ((1f - sp) * 150);
-                box(sx - sz, sy - sz, -sz, sx + sz, sy + sz, sz, (al << 24) | 0xE6E6E6);
+            glow = true; box(12.4f, 77.9f, -1.3f, 14.2f, 80.1f, 1.3f, (((int) (Draw.time * 6) & 1) == 0) ? 0xFFFF6D00 : 0xFFFF9100); glow = false;
+            for (int i = 0; i < 5; i++) {
+                float sp = (Draw.time * 0.5f + i * 0.2f + X * 0.002f) % 1f;
+                float sx = 14.5f + sp * 7 + (float) Math.sin(sp * 7 + i * 2) * 2.2f, sy = 81 + sp * 30;
+                lpuff(sx, sy, 0, 1.8f + sp * 5.5f, ((int) ((sp < 0.15f ? sp / 0.15f : 1f - sp) * 120) << 24) | 0xECECE4, false);
             }
         }
         if (lk.acc == Data.AC_DANCER) box(-7.8f, 86, -7.8f, 7.8f, 88.5f, 7.8f, 0xFFFF4081);
-        if (lk.hero == 1) { box(-7.8f, 88, -7.8f, 7.8f, 93, 7.8f, 0xFF2E7D32); box(7, 88, -6, 13, 89.5f, 6, 0xFF1B5E20); }
+        if (lk.hero == 1) { oct(-7.8f, 88, -7.8f, 7.8f, 93.5f, 7.8f, 0xFF2E7D32, 1f, 0.85f, 0.72f); box(7, 88, -6, 13, 89.5f, 6, 0xFF1B5E20); }
         bias = 0;
         pop();
         // ---- braços
         int up = fem && !lady ? skin : (lk.acc == Data.AC_COAT ? 0xFFF4F4F4 : lk.acc == Data.AC_MULA ? 0xFFB71C1C : lk.acc == Data.AC_TOGA ? 0xFF141414 : shirt);
         int fo = longS ? up : skin;
-        arm(15f, aShF, aElF, Draw.shade(up, -0.08f), Draw.shade(fo, -0.08f), skin, lk, -1, false, pose, guard);
-        arm(-15f, aShN, aElN, up, fo, skin, lk, weapon, true, pose, guard);
+        arm(15f, aShF, aElF, Draw.shade(up, -0.08f), Draw.shade(fo, -0.08f), skin, lk, -1, false, pose, guard, pt);
+        arm(-15f, aShN, aElN, up, fo, skin, lk, weapon, true, pose, guard, pt);
     }
 
-    private static void arm(float z, float sh, float el, int up, int fo, int skin, Look lk, int weapon, boolean near, int pose, boolean guard) {
+    private static void arm(float z, float sh, float el, int up, int fo, int skin, Look lk, int weapon, boolean near, int pose, boolean guard, float pt) {
         push();
         rot(sh, 0, 69);
         float ag = 1f + Math.min(0.35f, (lk.girth - 1f) * 1.3f);
-        box(-3.3f * ag, 54, z - 3.3f * ag, 3.3f * ag, 71, z + 3.3f * ag, up);
+        oct(-3.6f * ag, 54, z - 3.6f * ag, 3.6f * ag, 72, z + 3.6f * ag, up, 0.82f, 1.05f, 0.5f);
         rot(el, 0, 55);
-        box(-2.9f * ag, 41, z - 2.9f * ag, 2.9f * ag, 56, z + 2.9f * ag, fo);
-        box(-3.1f, 35.5f, z - 3.1f, 3.1f, 41.5f, z + 3.1f, skin);
-        if (near) {
+        oct(-3.1f * ag, 41, z - 3.1f * ag, 3.1f * ag, 56.5f, z + 3.1f * ag, fo, 0.78f, 1f, 0.5f);
+        oct(-3.1f, 35.5f, z - 3.1f, 3.3f, 41.5f, z + 3.1f, skin, 0.85f, 1f, 0.6f);
+        if (riderGear == 1) {
+            if (near) whip(z, sh + el, pose == Draw.P_RIDE ? pt : 0); else brFlag(z, sh + el);
+        } else if (near) {
             // o que está na mão (o antebraço aponta para -y local; "para a frente" do punho = +x local)
             if (weapon >= 0) heldWeapon(weapon, z);
             else heldAcc(lk, z, guard);
+        }
+        pop();
+    }
+
+    /** chicote de couro: cabo + tira articulada que serpenteia e estala esticada para a frente no golpe. */
+    private static void whip(float z, float armAng, float pt) {
+        box(-1.2f, 31, z - 1.2f, 1.2f, 43, z + 1.2f, 0xFF4E342E);
+        box(-1.5f, 41.5f, z - 1.5f, 1.5f, 43.5f, z + 1.5f, 0xFFD4AF37);
+        int n = 10; float len = 11.5f, yj = 31;
+        float ext = pt <= 0 ? 0 : (pt < 0.5f ? pt * 2 : 1f);
+        push();
+        boolean c0 = cast; cast = false;
+        for (int i = 0; i < n; i++) {
+            float a;
+            if (pt > 0) a = (float) Math.sin(ext * 5.2f - i * 0.75f) * 42 * (1f - ext) + (ext < 1f ? 0 : (float) Math.sin(Draw.time * 40 + i) * 1.5f);
+            else a = -(armAng * 1.25f) / n + (float) Math.sin(Draw.time * 3 + i * 0.6f) * 3; // pendurado, balançando
+            rot(a, 0, yj);
+            float w = 1.1f - i * 0.07f;
+            box(-w, yj - len, z - w, w, yj + 0.5f, z + w, i >= n - 2 ? 0xFF8D6E63 : 0xFF3E2723);
+            yj -= len;
+        }
+        if (pt > 0.35f && pt < 0.75f) { glow = true; lpuff(0, yj, z, 5, 0xCCFFFFFF, true); glow = false; } // estalo
+        cast = c0;
+        pop();
+    }
+
+    /** bandeira do Brasil no mastro (mão de trás): tremula mais quanto mais rápido o cavalo anda. */
+    private static void brFlag(float z, float armAng) {
+        push();
+        rot(-armAng + 9 + gearSpeed * 7, 0, 38);
+        oct(-1.2f, 8, z - 1.2f, 1.2f, 128, z + 1.2f, 0xFF8D6E63);
+        oct(-2, 128, z - 2, 2, 132, z + 2, 0xFFD4AF37, 1f, 0.3f, 0.45f);
+        float sp = gearSpeed, t = Draw.time;
+        float x = -1.2f, wdt = 9.5f;
+        for (int i = 0; i < 6; i++) {
+            float wave = (float) Math.sin(t * (6 + 7 * sp) - i * 0.95f);
+            rot((1f - sp) * 10 + wave * (3 + 6 * sp), x, 108);
+            float zo = z + wave * (0.6f + 2.4f * sp) * (i / 5f);
+            box(x - wdt, 90, zo - 0.6f, x, 126, zo + 0.6f, (i & 1) == 0 ? 0xFF009C3B : 0xFF00943A);
+            float u = (i + 0.5f) / 6f, hh = 15.5f * (1f - Math.abs(2 * u - 1)) ;
+            bias = 2;
+            if (hh > 2) box(x - wdt, 108 - hh, zo - 0.9f, x, 108 + hh, zo + 0.9f, 0xFFFFDF00);
+            bias = 3;
+            if (i == 2) box(x - wdt, 102.5f, zo - 1.2f, x - 2.5f, 113.5f, zo + 1.2f, 0xFF002776);
+            if (i == 3) box(x - wdt + 2.5f, 102.5f, zo - 1.2f, x, 113.5f, zo + 1.2f, 0xFF002776);
+            if (i == 2 || i == 3) { bias = 4; box(x - wdt, 107.6f, zo - 1.4f, x, 109, zo + 1.4f, 0xFFFFFFFF); }
+            bias = 0;
+            x -= wdt;
         }
         pop();
     }
@@ -443,6 +921,20 @@ final class R3 {
                 }
                 break;
             }
+            case Data.AC_FOICE: case Data.AC_FOICEB: { // foice de mão: cabo de madeira + lâmina curva
+                box(-1.2f, 33, z - 1.2f, 1.2f, 52, z + 1.2f, 0xFF6D4C41);
+                push(); float yj = 52; rot(150, 0, yj);
+                for (int i = 0; i < 6; i++) { box(-0.6f, yj - 6.5f, z - 0.5f, 2.2f - i * 0.25f, yj + 0.6f, z + 0.5f, 0xFFCFD8DC); yj -= 6.5f; rot(-36, 0, yj); }
+                pop();
+                break;
+            }
+            case Data.AC_FOICE2: { // foice grande de cabo longo
+                box(-1.4f, 4, z - 1.4f, 1.4f, 112, z + 1.4f, 0xFF5D4037);
+                push(); float yj = 111; rot(84, 0, yj);
+                for (int i = 0; i < 6; i++) { box(-0.7f, yj - 9, z - 0.6f, 4.2f - i * 0.6f, yj + 0.6f, z + 0.6f, 0xFFB0BEC5); yj -= 9; rot(-17, 0, yj); }
+                pop();
+                break;
+            }
             case Data.AC_FLAG: box(-1, 30, z - 1, 1, 108, z + 1, 0xFF8D6E63); box(1, 86, z - 0.6f, 30, 107, z + 0.6f, 0xFFD62828); break;
             case Data.AC_MEGA: box(-3, 26, z - 3, 3, 40, z + 3, 0xFFE0E0E0); box(-6, 18, z - 6, 6, 27, z + 6, 0xFFEEEEEE); break;
             case Data.AC_BOOK: box(-2, 26, z - 6, 2.5f, 40, z + 6, 0xFF5E35B1); box(-1.4f, 27, z - 6.4f, 1.9f, 39, z + 6.4f, 0xFFFFF59D); break;
@@ -467,6 +959,102 @@ final class R3 {
         if (lk.hero == 1) { box(-1.2f, 26, z - 1.2f, 1.2f, 116, z + 1.2f, 0xFF8D6E63); box(1.2f, 92, z - 0.6f, 32, 115, z + 0.6f, 0xFF1B8F3A); box(9, 97, z - 0.9f, 24, 110, z + 0.9f, 0xFFFFD400); }
         if (lk.hero == 2) { box(-1, 28, z - 4, 1.5f, 40, z + 4, 0xFF222222); box(-1.3f, 30, z - 3.2f, -0.9f, 38, z + 3.2f, 0xFF66BB6A); }
         if (lk.hero == 3) { box(-2.5f, 10, z - 2.5f, 2.5f, 38, z + 2.5f, 0xFF2E7D32); box(-3.5f, 4, z - 3.5f, 3.5f, 11, z + 3.5f, 0xFF43A047); box(-1.2f, -4, z - 1.2f, 1.2f, 4, z + 1.2f, 0xFFFFC107); }
+    }
+
+    // ---------------------------------------------------------------- cavalo com armadura leve de couro
+    private static void hLeg(float x, float z, float ang, float knee, int coat, boolean far) {
+        int cl = far ? Draw.shade(coat, -0.12f) : coat;
+        push(); rot(ang, x, 52);
+        oct(x - 5, 28, z - 4, x + 5, 54, z + 4, cl, 0.66f, 1f, 0.5f);
+        rot(knee, x, 28);
+        oct(x - 3.1f, 6, z - 3.1f, x + 3.1f, 29, z + 3.1f, cl, 0.85f, 1f, 0.5f);
+        bias = 1; oct(x - 3.6f, 9, z - 3.6f, x + 3.6f, 17, z + 3.6f, 0xFF7B4A26, 0.95f, 1f, 0.5f); bias = 0; // caneleira de couro
+        oct(x - 3.4f, 0, z - 3.6f, x + 4.6f, 6.5f, z + 3.6f, 0xFF2B2420, 1.12f, 0.9f, 0.6f);
+        pop();
+    }
+
+    /**
+     * Cavalo branco com peitoral, testeira, manta e garupeira de couro; o cavaleiro leva chicote e a bandeira do Brasil.
+     * mode: 0 normal, 1 coice (kick 0..1 = pernas traseiras esticadas), 2 comendo (cabeça no chão), 3 salto.
+     */
+    static void horse(Canvas c, float X, float H, float Z, int face, float walk, float mv, int mode, float kick, float flash,
+                      Look rider, float whipPt, float speed) {
+        shadow(c, X, Z, 58, 17, H);
+        model(X, H, Z, face, 1.2f, flash);
+        aoH = 80 * sc;
+        final int coat = 0xFFEDE6DA, mane = 0xFFBFB4A2, LE = 0xFF7B4A26, LE2 = 0xFF4E2E14, GOLD = 0xFFD4AF37;
+        float ph = walk * 0.085f, gal = mv;
+        float pitch = mode == 1 ? -20 * kick : (mode == 3 ? 7 : (float) Math.sin(ph * 2) * 2.2f * gal);
+        float bobY = Math.abs((float) Math.sin(ph)) * 3.2f * gal;
+        ty += bobY;
+        rot(pitch, 22, 0);
+        // pernas (galope: dianteiras e traseiras em oposição)
+        float fa = (float) Math.sin(ph) * 34 * gal, ra = (float) Math.sin(ph + 2.6f) * 34 * gal;
+        float fk = -Math.max(0f, (float) Math.cos(ph)) * 55 * gal, rk = Math.max(0f, -(float) Math.cos(ph + 2.6f)) * 40 * gal;
+        if (mode == 1) { fa = 20 * kick; fk = 0; ra = -78 * kick; rk = 10 * kick; }
+        if (mode == 3) { fa = 48; fk = -80; ra = -34; rk = 36; }
+        hLeg(21, 7.5f, mode == 1 ? fa : -fa * 0.8f + 4, mode == 1 ? 0 : Math.min(0, fk + 20), coat, true);
+        hLeg(-23, 7.5f, mode == 1 ? ra * 0.9f : -ra * 0.8f - 4, rk * 0.6f, coat, true);
+        hLeg(21, -7.5f, fa, fk, coat, false);
+        hLeg(-23, -7.5f, ra, rk, coat, false);
+        // corpo
+        oct(-31, 47, -11, 31, 77, 11, coat, 0.9f, 1f, 0.7f);
+        oct(-36, 52, -10, -26, 76, 10, coat, 0.85f, 1f, 0.6f);
+        oct(25, 50, -9.6f, 36, 79, 9.6f, coat, 0.85f, 1f, 0.6f);
+        // cauda (articulada, esvoaça no galope)
+        push();
+        float ty0 = 72, tx0 = -35;
+        rot(-28 - 26 * gal + (float) Math.sin(Draw.time * 3) * 5 - (mode == 1 ? 40 * kick : 0), tx0, ty0);
+        for (int i = 0; i < 4; i++) {
+            oct(tx0 - 3.2f + i * 0.4f, ty0 - 13, -3 + i * 0.4f, tx0 + 3.2f - i * 0.4f, ty0 + 1, 3 - i * 0.4f, mane);
+            ty0 -= 13;
+            rot((float) Math.sin(Draw.time * 5 + i) * 7 * (0.4f + gal) + 7 * (1 - gal), tx0, ty0);
+        }
+        pop();
+        // armadura de couro: manta sob a sela, flanqueira, garupeira com tiras e peitoral com tachas
+        bias = 2;
+        tex = TEX_V; texN = 4;
+        box(-14, 62, -11.7f, 14, 78, 11.7f, 0xFF1B8F3A);
+        tex = 0;
+        box(-14.4f, 62, -11.9f, 14.4f, 64.5f, 11.9f, 0xFFFFD400);
+        box(-36.6f, 60, -11.5f, -15, 78, 11.5f, LE);
+        for (int i = 0; i < 4; i++) box(-35.5f + i * 5.4f, 51 - (i & 1) * 2, -11.6f, -31.5f + i * 5.4f, 60, 11.6f, (i & 1) == 0 ? LE : LE2);
+        box(15, 50, -11.4f, 36.6f, 76, 11.4f, LE);
+        box(24, 46, -9, 36.8f, 52, 9, LE2);
+        bias = 3;
+        box(-36.8f, 68, -11.8f, -15, 70, 11.8f, LE2); box(15, 64, -11.7f, 36.8f, 66, 11.7f, LE2);
+        for (int i = 0; i < 4; i++) { box(18 + i * 5, 69, -11.9f, 20 + i * 5, 71, 11.9f, GOLD); box(-33 + i * 5, 73, -12, -31 + i * 5, 75, 12, GOLD); }
+        bias = 0;
+        // sela
+        oct(-12, 77, -8.5f, 9, 81.5f, 8.5f, 0xFF3E2414, 1f, 0.9f, 0.7f); box(-13, 80, -7.5f, -9, 86, 7.5f, 0xFF3E2414); box(7, 80, -4, 10, 85, 4, 0xFF3E2414);
+        box(-1, 56, -12.6f, 0.5f, 78, -12, LE2); box(-3.5f, 52, -13.6f, 3, 56, -12, 0xFF9E9E9E); // estribo
+        // ponto do assento (para posicionar o cavaleiro)
+        float seatX = ox + mir * sc * (ta * -2 + tb * 80 + tx), seatY = oy + sc * (tc * -2 + td * 80 + ty);
+        // pescoço e cabeça
+        float neck = mode == 2 ? -118 : -24 - 6 * gal + (mode == 1 ? -16 * kick : 0) + (float) Math.sin(ph * 2) * 3 * gal;
+        push(); rot(neck, 27, 70);
+        oct(20, 64, -7, 36, 108, 7, coat, 1.1f, 0.72f, 0.6f);
+        box(17.5f, 70, -1.6f, 22, 110, 1.6f, mane); box(15.5f, 78, -1.2f, 18, 104, 1.2f, mane);
+        bias = 2; for (int i = 0; i < 3; i++) box(33, 72 + i * 10, -6.6f + i * 0.5f, 36.6f - i * 0.8f, 80 + i * 10, 6.6f - i * 0.5f, LE); bias = 0; // placas do pescoço
+        rot(mode == 2 ? -18 + (float) Math.sin(Draw.time * 14) * 5 : 62 + (mode == 1 ? 10 * kick : 0), 28, 104);
+        oct(22, 97, -6, 46, 111, 6, coat, 1f, 0.9f, 0.7f);
+        oct(44, 96, -4.8f, 58, 108, 4.8f, coat, 1f, 0.85f, 0.6f);
+        box(22, 110, -5.4f, 25.5f, 118, -2.6f, coat); box(22, 110, 2.6f, 25.5f, 118, 5.4f, coat);                // orelhas
+        box(23, 110, -1.5f, 34, 113, 1.5f, mane);                                                                 // topete
+        bias = 3;
+        box(36, 104, -6.3f, 40, 107.5f, -5.8f, 0xFF1A1A1A); box(36, 104, 5.8f, 40, 107.5f, 6.3f, 0xFF1A1A1A);     // olhos
+        box(55, 100.5f, -5, 58.3f, 103, -4.4f, 0xFF4A3A36); box(50, 97, -5, 58.2f, 98, -4.4f, 0xFF3A2A26);        // narina e boca
+        box(28, 108, -5, 54, 111.6f, 5, LE); box(41, 111.4f, -1.6f, 45, 112.6f, 1.6f, GOLD);                      // testeira de couro
+        box(45, 95.6f, -5.2f, 47, 111, 5.2f, LE2); box(30, 96.6f, -6.2f, 32, 111, 6.2f, LE2);                     // cabresto
+        bias = 0;
+        pop();
+        // cavaleiro
+        if (rider != null) {
+            float old = rider.scale; rider.scale = 0.8f;
+            riderGear = 1; gearSpeed = speed; riderLean = pitch * 0.5f;
+            person(c, seatX, seatY - 42 * 0.8f * BIG + 3, Z, face, rider, 0, 0, Draw.P_RIDE, whipPt, flash, -1, false, false);
+            riderGear = 0; riderLean = 0; rider.scale = old;
+        }
     }
 
     // ---------------------------------------------------------------- velociraptor, veículos e objetos
@@ -658,6 +1246,8 @@ final class R3 {
     /** Desenha uma pessoa 3D com os pés em (sx,sy) na tela, com escala k. */
     static void icon(Canvas c, Look lk, float sx, float sy, float k, float walk, int pose) {
         float oz0 = zoom; zoom = 1f;
+        int r0 = tR, g0 = tG, b0 = tB, sh0 = shadowCol; float rm0 = rim; boolean rf0 = reflect;
+        neutral(); noCast = true;
         begin(0);
         person(c, 400, 0, 0, 1, lk, walk, 0, pose, 0, 0, -1, false, false);
         proj(400, 0, 0);
@@ -667,16 +1257,46 @@ final class R3 {
         c.translate(-px, -py);
         flush(c);
         c.restore();
+        noCast = false; tR = r0; tG = g0; tB = b0; shadowCol = sh0; rim = rm0; reflect = rf0;
         zoom = oz0;
     }
 
     // ---------------------------------------------------------------- cena completa
-    private static final int[] FOG = {0xFFBFDDF0, 0xFFC9D6DF, 0xFFCFEAF8, 0xFF8F5A66, 0xFFE8DCC0, 0xFF2A1A50, 0xFFE8A6C0, 0xFF1B3F72, 0xFFEAF2F8};
+    private static final int[] FOG = {0xFFBFDDF0, 0xFFC9D6DF, 0xFFCFEAF8, 0xFF8F5A66, 0xFFE8DCC0, 0xFF2A1A50, 0xFFE8A6C0, 0xFF1B3F72, 0xFFEAF2F8, 0xFFD9C9A8};
+
+    /** luz neutra de estúdio (menus e ícones). */
+    static void neutral() { tR = tG = tB = 256; rim = 0; shadowCol = 0x46000000; reflect = false; yawK = 1f; }
+
+    private static int lerp3(int a, int b, int c3, float d) { return d < 0.5f ? Draw.mix(a, b, d * 2) : Draw.mix(b, c3, (d - 0.5f) * 2); }
+
+    /** iluminação por cenário: cor do ambiente, luz de contorno, reflexo do piso e hora do dia (fazenda). */
+    static void light(int theme, float dusk, float time) {
+        neutral();
+        fog = FOG[theme]; Scene.dusk = dusk;
+        reflect = Draw.q >= 2 && (theme == Data.TH_PALCO || theme == Data.TH_JORNAL || theme == Data.TH_TRIBUNAL);
+        switch (theme) {
+            case Data.TH_PORTAO: tG = 228; tB = 205; rim = 0.16f; rimCol = 0xFFFFA566; break;
+            case Data.TH_PALCO: tR = 226; tG = 212; rim = 0.2f; rimCol = 0xFFE040FB; break;
+            case Data.TH_NOVELA: tG = 245; tB = 228; break;
+            case Data.TH_JORNAL: tR = 238; tG = 246; rim = 0.12f; rimCol = 0xFF4FC3F7; break;
+            case Data.TH_QUARENT: tR = 244; tG = 250; break;
+            case Data.TH_FAZENDA: {
+                int t = lerp3(0xFFFFFCF4, 0xFFFFC496, 0xFF80769F, dusk);
+                tR = ((t >> 16) & 255) * 256 / 255; tG = ((t >> 8) & 255) * 256 / 255; tB = (t & 255) * 256 / 255;
+                fog = lerp3(0xFFD9C9A8, 0xFFE08A4A, 0xFF3A1A14, dusk);
+                float fl = 0.82f + 0.12f * (float) Math.sin(time * 11) + 0.06f * (float) Math.sin(time * 27 + 1);
+                rim = (0.08f + 0.5f * dusk) * fl; rimCol = 0xFFFF7A20;
+                shadowCol = ((int) (0x46 - 0x14 * dusk) << 24);
+                break;
+            }
+            default: break;
+        }
+    }
 
     static void world(Canvas c, Game g, Look[] kindLooks, Look[] heroLooks, Look heroTorn, boolean lite) {
         int theme = g.theme();
         zoom = 1f + 0.035f * g.punch;
-        fog = FOG[theme];
+        light(theme, g.dusk(), g.time);
         Scene.bg(c, theme, g.camX, g.time, lite);
         begin(g.camX);
         floor(c, theme, g.camX);
@@ -711,7 +1331,7 @@ final class R3 {
                 float flash = e.flash;
                 if (e.st == Game.S_WIND && ((int) (e.t * 20) & 1) == 0) flash = 0.01f;
                 person(c, e.x, e.h, Z, e.face, kindLooks[e.kind], e.walk, mv, pose, pt, flash, -1, e.guardUp, true);
-                if (e.shield > 0) { model(e.x, e.h, Z, 1, k.scale, 0); box(-30, 0, -30, 30, 104, 30, 0x4480DEEA); }
+                if (e.shield > 0) { model(e.x, e.h, Z, 1, k.scale, 0); cast = false; box(-30, 0, -30, 30, 104, 30, 0x4480DEEA); }
                 break;
             }
             default: break;
@@ -749,6 +1369,22 @@ final class R3 {
             person(c, o.x - o.face * (truck ? 20 : 6), truck ? 62 : 8, Z, o.face, lk, 0, 0, Draw.P_SPEC, 0, 0, -1, false, false);
             return;
         }
+        if (g.mounted && g.horse()) {
+            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, o.face, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
+            int mode = 0; float kick = 0, wp = 0, yk = 1f;
+            boolean lance = o.st == Game.S_SPECIAL && g.spK == Game.SP_LANCE;
+            if (o.st == Game.S_SPECIAL && g.spK == Game.SP_COICE) {
+                float u = Math.min(1f, o.t / Math.max(0.1f, g.spDur));
+                mode = 1; kick = Math.abs((float) Math.sin(u * Math.PI * 5)); yk = (float) Math.cos(u * Math.PI * 4);
+            } else if (o.eat > 0) mode = 2;
+            else if (o.h > 6) mode = 3;
+            if (o.st == Game.S_ATK) wp = Math.max(0.02f, pt);
+            else if (o.st == Game.S_JKICK) wp = 0.3f + 0.4f * Math.abs((float) Math.sin(g.time * 14));
+            yawK = yk;
+            horse(c, o.x, o.h, Z, o.face, lance ? g.time * 900 : o.walk, lance ? 1.3f : mv, mode, kick, o.flash, lk, wp, lance ? 1f : (mv > 0 ? 0.85f : 0.12f));
+            yawK = 1f;
+            return;
+        }
         if (g.mounted) {
             if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, o.face, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
             boolean roar = o.st == Game.S_SPECIAL && g.spK == Game.SP_ROAR;
@@ -762,7 +1398,8 @@ final class R3 {
             lk.scale = old;
             return;
         }
-        Draw.atkArm = (o.st == Game.S_ATK && g.comboStep == 2 && g.weapon < 0) ? 1 : 0;
+        // 1º soco = braço esquerdo, 2º = braço direito (o esquerdo é o de trás quando o herói olha para a direita)
+        Draw.atkArm = (o.st == Game.S_ATK && g.weapon < 0 && g.comboStep < 3 && ((g.comboStep == 1) == (o.face > 0))) ? 1 : 0;
         person(c, o.x, o.h, Z, o.face, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false, true);
         Draw.atkArm = 0;
     }
@@ -865,7 +1502,8 @@ final class R3 {
 
     static void jetWorld(Canvas c, Jet j, Look[] heroLooks, boolean lite) {
         Scene.lake(c, j.camX, j.time, lite);
-        zoom = 1f; fog = 0xFFCFEAF8; fogK = 0.3f;
+        zoom = 1f; neutral(); Scene.dusk = 0; fog = 0xFFCFEAF8; fogK = 0.3f;
+        reflect = Draw.q >= 2; floorTone = 0xFF3A9CC0;
         begin(j.camX);
         water(c, j.camX, j.time);
         for (Jet.Whale w : j.whales) { if (w.x > j.camX - 250 && w.x < j.camX + Game.W + 250) whale(c, w, zOf(w.y), j.time); }
@@ -877,6 +1515,7 @@ final class R3 {
             if (!blink) jetski(c, q.x, zOf(q.y), q.h + (float) Math.sin(j.time * 9 + i) * 1.4f, 1, q.bank, heroLooks[q.hero], q.flash, false, j.time, q.ramT > 0);
         }
         flush(c);
+        reflect = false;
         fogK = 0.22f;
     }
 

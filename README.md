@@ -34,6 +34,8 @@ Beat 'em up de luta de rua (progressão lateral, visual low poly) para Android, 
 Feito em Java nativo, com um renderizador 3D próprio (câmera em perspectiva, modelos de blocos articulados, luz e sombra) sem bibliotecas externas, então o APK é minúsculo.
 
 - 5 missões (a 4 é dividida em 4 minifases nos estúdios), 8 fases selecionáveis, chefes com padrões próprios.
+- Fase 2.5 "Apocalipse Rural": a cavalo (armadura de couro, chicote e bandeira do Brasil) contra militantes do MST numa fazenda em chamas, do dia até a noite. Especial: 5 coices girando.
+- Renderizador 3D por software com prismas chanfrados, sombras projetadas, reflexo em pisos polidos, luz de contorno, texturas de piso em perspectiva e fumaça/fogo esfumados.
 - Heróis: Jair Bonossauro e 3 desbloqueáveis (Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a).
 - Golpes: A = soco esquerdo, soco direito e chute baixo de lado (3º toque); B+A no ar = voadora de lado; segurar A (1 s) = onda de choque; C toque = pegar item/agarrar, C segurado = defesa de boxe; D = especial (gasta 50 de Patriotismo). Menu "Como jogar" na tela inicial.
 - Fase bônus: Travessia do Lago de jet-ski, desviando (ou batendo de frente) em baleias caricatas; o especial chama patriotas de jet-ski.

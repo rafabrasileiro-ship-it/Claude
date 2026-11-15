@@ -500,7 +500,7 @@ final class GameView extends View {
             Draw.wrapText(c, r[1], 160, y + 20, 590, 14, 0xFFFFFFFF);
             y += 58;
         }
-        Draw.text(c, "No modo 2 jogadores, cada celular controla o seu herói.", 215, 424, 13, 0xFFFFE082, Paint.Align.LEFT);
+        Draw.text(c, "A cavalo (fazenda): A = chicote, C = investida, D = 5 coices. Em dupla, cada celular controla o seu herói.", 215, 424, 12, 0xFFFFE082, Paint.Align.LEFT);
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
 
@@ -563,7 +563,7 @@ final class GameView extends View {
         Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, Draw.q == 0);
         Draw.rect(c, 0x55000000, 0, 0, Game.W, Game.H);
         // motociata triunfal
-        R3.zoom = 1f;
+        R3.zoom = 1f; R3.light(Data.TH_TRIBUNAL, 0, screenT);
         R3.begin(0);
         for (int i = 0; i < 5; i++) {
             float x = ((screenT * 260 + i * 210) % 1300) - 200;
@@ -625,7 +625,7 @@ final class GameView extends View {
     }
 
     private void playStageMusic(int idx) {
-        if (Data.STAGES.get(idx).jet && sfx.stageMusic("musica_jetski")) { /* som de jet-ski de fundo */ } else if (idx == 6 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
+        if (Data.STAGES.get(idx).jet && sfx.stageMusic("musica_jetski")) { /* som de jet-ski de fundo */ } else if (Data.STAGES.get(idx).horse && sfx.stageMusic("amb_fogo")) { /* fogo crepitando na plantação */ } else if (idx == Data.ST_GROBO1 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
     }
 
     private void drawPlay(Canvas c, float dt) {
@@ -897,13 +897,16 @@ final class GameView extends View {
                     Draw.line(c, col, sx, sy, R3.px, R3.py, 4);
                     break;
                 }
-                case Game.FX_DUST: {
-                    float r = f.r * (0.5f + k * 1.4f);
-                    Draw.circle(c, ((int) ((1f - k) * 110) << 24) | (f.color & 0xFFFFFF), sx, sy - 6 * k, r);
-                    Draw.circle(c, ((int) ((1f - k) * 70) << 24) | 0xFFFFFF, sx - r * 0.2f, sy - 8 * k, r * 0.6f);
+                case Game.FX_DUST: { // poeira discreta: baforadas esfumadas que sobem e se desfazem
+                    float r = f.r * (0.6f + k * 1.5f);
+                    int da = (int) ((1f - k) * (1f - k) * 120);
+                    Draw.puff(c, (da << 24) | (f.color & 0xFFFFFF), sx, sy - 7 * k, r);
+                    Draw.puff(c, ((da * 2 / 3) << 24) | (f.color & 0xFFFFFF), sx - r * 0.7f, sy - 3 * k, r * 0.7f);
                     break;
                 }
                 case Game.FX_BOOM: {
+                    Draw.puff(c, ((int) ((1f - k) * 150) << 24) | 0x8A8078, sx, sy - 14 * k, f.r * (0.5f + k * 1.2f));
+                    Draw.puff(c, ((int) ((1f - k) * 110) << 24) | 0xB8AFA6, sx + f.r * 0.5f * k, sy - 22 * k, f.r * (0.3f + k * 0.9f));
                     for (int i = 0; i < 7; i++) {
                         float ang = i * 0.9f;
                         Draw.circle(c, col, sx + (float) Math.cos(ang) * f.r * k * 1.2f, sy + (float) Math.sin(ang) * f.r * k - 20 * k + 30 * k * k, 5 * (1f - k) + 1);
