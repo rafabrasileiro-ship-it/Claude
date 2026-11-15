@@ -78,3 +78,17 @@ th { color: #c9a060; font-size: 1.8vh; text-transform: uppercase; }
 #ui input { background: #0e0b07; border: 1px solid #7a5a2a; border-radius: 8px; color: #f0e4c4; font-size: 2.6vh; padding: 1.2vh 1vw; width: 30vw; min-width: 150px; touch-action: manipulation; user-select: text; -webkit-user-select: text; }
 .card.dis { opacity: .35; pointer-events: none; }
 tr.me td { color: #ffd870; background: rgba(232,176,32,.08); }
+
+/* menu inicial: botões lado a lado aproveitando toda a largura */
+.mm h1 { font-size: 12vh; margin: 0; }
+.mm .tag { font-size: clamp(13px, min(3.8vh, 1.9vw), 26px); margin: .4vh 0 2.2vh; }
+.mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8vh 1.6vw; }
+.mgrid .btn { font-size: clamp(16px, min(5.6vh, 2.6vw), 34px); padding: 2.2vh 1.4vw; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1.15; }
+.mgrid .btn small { font-size: clamp(11px, min(3.3vh, 1.55vw), 21px); margin-top: .8vh; line-height: 1.25; }
+.row5 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.6vw; }
+.row5 button { background: linear-gradient(#3a2a18, #20170e); border: 2px solid #7a5a2a; border-radius: 10px; color: #f0e4c4; font-weight: bold; font-size: clamp(12px, min(3.9vh, 1.8vw), 24px); padding: 1.6vh .6vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.row5 button small { font-weight: normal; font-size: clamp(10px, min(3vh, 1.45vw), 19px); color: #c9b88a; margin-top: .6vh; }
+.row5 button.on { border-color: #e8b020; color: #ffd870; }
+.row5 button.on small { color: #ffd870; }
+.row5 button:active { background: #7a5a2a; }
+.mm .note { font-size: clamp(11px, min(3vh, 1.45vw), 19px); margin-top: 1.8vh; }

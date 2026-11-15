@@ -14,21 +14,22 @@ const UI = (() => {
     if (NET.client) { NET.leave(true); loadMeta(); } else if (NET.host) NET.leave(false);
     G.mode = 'menu'; G.netClient = false; SFX.music(null);
     const cont = S && S.stage < 10 && S.mode !== 'arena';
-    show(`<h1>BR-<span>APOCALIPSE</span></h1><div class="tag">Expresso Carnificina · 3.000 km de Bauru ao Mar</div>
-      <div class="menu">
+    // grade do menu inicial: 2 colunas nas duas primeiras linhas, 5 na última (largura total da tela)
+    show(`<div class="mm"><h1>BR-<span>APOCALIPSE</span></h1><div class="tag">Expresso Carnificina · 3.000 km de Bauru ao Mar</div>
+      <div class="mgrid">
         <div class="btn go" data-a="novo">NOVA JORNADA<small>Bauru (SP) → Fortaleza (CE) · 10 cidades · 10 chefes de estrada</small></div>
         <div class="btn ${cont ? '' : 'dis'}" data-a="cont">CONTINUAR<small>${cont ? 'Oficina de ' + esc(S.stage === 0 ? 'Bauru' : STAGES[S.stage - 1].cidade) + ' · ' + esc(cName(S.cls)) + (S.mode !== 'normal' ? ' · ' + S.mode : '') : 'nenhuma jornada salva'}</small></div>
         <div class="btn" data-a="coop">CO-OP WI-FI (ATÉ 4 CELULARES)<small>Um celular é o Piloto e servidor da partida; os outros entram como Artilheiros</small></div>
         <div class="btn" data-a="modos">MODOS EXTRAS<small>${META.zerou ? 'Expresso da Meia-Noite · Fúria da Sucata · Rei da BR' : '🔒 chegue a Fortaleza para desbloquear'}</small></div>
-        <div class="btn" data-a="conq">CONQUISTAS<small>${Object.keys(META.ach).length} / ${Object.keys(CONQUISTAS).length}</small></div>
+        <div class="row5">
+          <button data-a="conq">🏆 Conquistas<small>${Object.keys(META.ach).length} de ${Object.keys(CONQUISTAS).length}</small></button>
+          <button data-o="gyro" class="${META.opts.gyro ? 'on' : ''}">📱 Giroscópio no volante<small>${META.opts.gyro ? 'ligado' : 'desligado'}</small></button>
+          <button data-o="fpp" class="${META.opts.fpp ? 'on' : ''}">🔒 Travar em 1ª pessoa<small>${META.opts.fpp ? 'ligado' : 'desligado'}</small></button>
+          <button data-o="vol">🔊 Volume<small>${Math.round(META.opts.vol * 100)}%</small></button>
+          <button data-o="ajuda">❔ Controles<small>piloto e artilheiro</small></button>
+        </div>
       </div>
-      <div class="opt">
-        <button data-o="gyro" class="${META.opts.gyro ? 'on' : ''}">📱 Giroscópio no volante</button>
-        <button data-o="fpp" class="${META.opts.fpp ? 'on' : ''}">🔒 Travar em 1ª pessoa</button>
-        <button data-o="vol">🔊 Volume ${Math.round(META.opts.vol * 100)}%</button>
-        <button data-o="ajuda">❔ Controles</button>
-      </div>
-      <div class="note">No jogo solo você controla 1 sobrevivente e troca entre VOLANTE e JANELA a qualquer momento (🔁); a IA assume os outros três.</div>`);
+      <div class="note">No jogo solo você controla 1 sobrevivente e troca entre VOLANTE e JANELA a qualquer momento (🔁); a IA assume os outros três.</div></div>`);
     on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'novo') classes('normal'); else if (a === 'cont') { G.arena = false; garage(); } else if (a === 'coop') coop(); else if (a === 'modos') modos(); else conquistas(); });
     on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
   }
