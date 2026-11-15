@@ -252,8 +252,12 @@ const UI = (() => {
     x.save(); x.translate(450, 186); x.scale(52, 52); DRAW.playerCar(x, S.veh, S.up, 0, false, 0); x.restore();
     const dmg = Math.round((1 - S.armorFrac) * 14); x.fillStyle = '#0a0a0a'; for (let i = 0; i < dmg; i++) { x.beginPath(); x.arc(400 + DRAW.hash(i * 3) * 100, 110 + DRAW.hash(i * 7) * 60, 3, 0, 7); x.fill(); }
     x.fillStyle = '#7a0a0a'; if (S.up.serra || S.up.lateral >= 2) for (let i = 0; i < 6; i++) x.fillRect(380 + i * 26, 182, 8, 4);
-    x.fillStyle = '#c9a060'; x.font = 'bold 16px Arial'; x.textAlign = 'left'; x.fillText(VEHICLES[S.veh].classe, 20, 30); x.font = '13px Arial'; x.fillStyle = '#9a8c70';
-    const mods = Object.keys(UPGRADES).filter(k => S.up[k] > 0).map(k => UPGRADES[k].niv[S.up[k] - 1].nome); mods.slice(0, 8).forEach((m, i) => x.fillText('• ' + m, 20, 54 + i * 18)); if (S.up.capo) x.fillText('• ' + CAPO[S.up.capo].nome, 640, 54);
+    // textos em tamanho fixo de tela (não encolhem junto com o desenho do carro)
+    x.setTransform(dpr, 0, 0, dpr, 0, 0); const tw = cw / 2 - 80, fs = Math.max(13, Math.min(20, ch * 0.13)), lh = fs * 1.35;
+    x.fillStyle = '#c9a060'; x.font = `bold ${fs * 1.15 | 0}px Arial`; x.textAlign = 'left'; x.fillText(VEHICLES[S.veh].classe, 12, 10 + fs * 1.15, tw); x.font = `${fs | 0}px Arial`; x.fillStyle = '#b8a888';
+    const mods = Object.keys(UPGRADES).filter(k => S.up[k] > 0).map(k => UPGRADES[k].niv[S.up[k] - 1].nome), rows = Math.max(1, Math.floor((ch - 14 - fs * 1.15) / lh));
+    mods.slice(0, rows).forEach((m, i) => x.fillText('• ' + m, 12, 14 + fs * 1.15 + lh * (i + 1), tw)); if (mods.length > rows) x.fillText('• +' + (mods.length - rows) + ' modificações', 12, 14 + fs * 1.15 + lh * rows, tw);
+    if (S.up.capo) { x.textAlign = 'right'; x.fillStyle = '#c9a060'; x.fillText('Capô: ' + CAPO[S.up.capo].nome, cw - 12, 10 + fs * 1.15, tw); }
   }
 
   function over(why) {
