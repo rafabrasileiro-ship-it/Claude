@@ -43,7 +43,7 @@
     const vx = (nx - r.x) / dt, vz = (nz - r.z) / dt, a = Math.min(1, dt * 6);
     r.vx += (vx - r.vx) * a; r.vz += (vz - r.vz) * a; r.x = nx; r.z = nz;
     r.spd = Math.hypot(r.vx, r.vz);
-    if (e.flash > 0.06 && r.fl <= 0) { r.hit = 1; r.hitDir = (hsh(G.t * 7.1 + e.id) - 0.5); }   // tiro: tranco
+    if (e.flash > 0.06 && r.fl <= 0) { r.hit = 1; r.hitDir = (hsh(G.t * 7.1 + e.id) - 0.5); if (typeof FX3D !== 'undefined') FX3D.hit(e, false); }   // tiro: tranco e esguicho
     r.fl = e.flash || 0; r.hit = Math.max(0, r.hit - dt * 3.2);
     return dt;
   }
@@ -180,19 +180,20 @@
     let a = boiAtl.get(Pl); if (a) return a;
     a = TEX3.T(() => {
       const S = 256, c = TEX3.cnv(S, S), x = c.getContext('2d'), m = TEX3.cnv(S, S), k = m.getContext('2d'), r = TEX3.rng(77 + Pl[0].length), rgb = TEX3.hexRGB, css = TEX3.css;
-      const w0 = rgb(Pl[0]), w3 = rgb(Pl[3]);
+      const w0 = rgb(Pl[0]), w3 = rgb(Pl[3]), cow = !!Pl.cow;
       k.fillStyle = '#000'; k.fillRect(0, 0, S, S);
-      TEX3.field(x, S, S, TEX3.fbm(S, S, 4, 5, 515, 0.6), [52, 40, 30], [98, 78, 60], 16, 9);
+      TEX3.field(x, S, S, TEX3.fbm(S, S, 4, 5, 515, 0.6), cow ? [176, 170, 160] : [52, 40, 30], cow ? [232, 228, 220] : [98, 78, 60], 16, 9);
       x.fillStyle = 'rgba(200,190,170,0.18)'; for (let i = 0; i < 14; i++) { x.beginPath(); x.ellipse(r() * S, r() * 128, 10 + r() * 26, 6 + r() * 16, r() * 3, 0, 7); x.fill(); }   // manchas mais claras
       x.strokeStyle = 'rgba(20,14,10,0.35)'; x.lineWidth = 1; for (let i = 0; i < 900; i++) { const X = r() * S, Y = r() * 128; x.beginPath(); x.moveTo(X, Y); x.lineTo(X + 1, Y + 3); x.stroke(); }    // pelo
-      for (let i = 0; i < 9; i++) {   // feridas luminescentes
+      for (let i = 0; i < (cow ? 0 : 9); i++) {   // feridas luminescentes
         const X = r() * S, Y = 8 + r() * 110, R = 4 + r() * 9, col = i & 1 ? w3 : w0;
         x.fillStyle = '#2a0604'; x.beginPath(); x.ellipse(X, Y, R * 1.4, R, r() * 3, 0, 7); x.fill(); x.fillStyle = css(col[0], col[1], col[2]); x.beginPath(); x.ellipse(X, Y, R, R * 0.6, r() * 3, 0, 7); x.fill();
         k.fillStyle = '#fff'; k.beginPath(); k.ellipse(X, Y, R, R * 0.6, 0, 0, 7); k.fill();
       }
       // cabeça (128..256 em y, 0..128 em x): olhos acesos nas laterais
       x.fillStyle = '#3a2c22'; x.fillRect(0, 128, 128, 128);
-      for (const ex of [32, 96]) { x.fillStyle = '#0a0604'; x.beginPath(); x.ellipse(ex, 170, 10, 8, 0, 0, 7); x.fill(); x.fillStyle = css(w0[0], w0[1], w0[2]); x.beginPath(); x.arc(ex, 170, 5, 0, 7); x.fill(); k.fillStyle = '#fff'; k.beginPath(); k.arc(ex, 170, 5.5, 0, 7); k.fill(); }
+      if (cow) { x.fillStyle = '#b8b2a8'; x.fillRect(0, 128, 128, 128); }
+      for (const ex of [32, 96]) { x.fillStyle = '#0a0604'; x.beginPath(); x.ellipse(ex, 170, 10, 8, 0, 0, 7); x.fill(); if (cow) continue; x.fillStyle = css(w0[0], w0[1], w0[2]); x.beginPath(); x.arc(ex, 170, 5, 0, 7); x.fill(); k.fillStyle = '#fff'; k.beginPath(); k.arc(ex, 170, 5.5, 0, 7); k.fill(); }
       x.fillStyle = '#1a1210'; x.fillRect(40, 228, 48, 28);   // focinho
       // patas (128..192 x, 128..256 y): casco preto embaixo
       x.fillStyle = '#2e241c'; x.fillRect(128, 128, 64, 128); x.fillStyle = '#0c0a08'; x.fillRect(128, 228, 64, 28);
@@ -388,5 +389,8 @@
     }
   }
 
-  Object.assign(Z3D, { draw, drawLatch, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; } });
+  // vaca pastando (cenário): cabeça baixa, rabo abanando, parada
+  const COW = new Float32Array(48);
+  function cowPose(seed) { COW.fill(0); const t = G.t + seed; COW[3] = 0.75 + 0.05 * Math.sin(t * 0.7); COW[4] = 0.15 * Math.sin(t * 0.3); COW[30] = 0.3; COW[31] = 0.5 * Math.sin(t * 2.4); return COW; }
+  Object.assign(Z3D, { draw, drawLatch, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; }, boiMesh: boiModel, boiAtlasFor: boiAtlas, cowPose });
 })();

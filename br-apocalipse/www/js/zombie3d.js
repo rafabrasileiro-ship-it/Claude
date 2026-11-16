@@ -23,7 +23,7 @@ const Z3D = (() => {
   function makeAtlas(P) {
     return TEX3.T(() => {
       const S = 512, c = TEX3.cnv(S, S), x = c.getContext('2d'), m = TEX3.cnv(S, S), k = m.getContext('2d');
-      const rgb = TEX3.hexRGB, css = TEX3.css, base = rgb(P[0]), shd = rgb(P[1]), brt = rgb(P[2]), con = rgb(P[3]), charcoal = shd[0] + shd[1] + shd[2] < 120;
+      const rgb = TEX3.hexRGB, css = TEX3.css, base = rgb(P[0]), shd = rgb(P[1]), brt = rgb(P[2]), con = rgb(P[3]), human = !!P.human, charcoal = !human && shd[0] + shd[1] + shd[2] < 120;
       const r = TEX3.rng(base[0] * 7 + base[1] * 13 + con[2] * 3 + 11);
       x.fillStyle = '#808080'; x.fillRect(0, 0, S, S); k.fillStyle = '#000'; k.fillRect(0, 0, S, S);
       const reg = (R, f) => {
@@ -45,19 +45,19 @@ const Z3D = (() => {
           } else if (v < 0.5) { const q = v * 2; cr = lerp(shd[0], base[0], q); cg = lerp(shd[1], base[1], q); cb = lerp(shd[2], base[2], q); gl = 0.45 + q * 0.25; }
           else { const q = (v - 0.5) * 2; cr = lerp(base[0], brt[0], q * 0.7); cg = lerp(base[1], brt[1], q * 0.7); cb = lerp(base[2], brt[2], q * 0.7); gl = 0.7 + q * 0.2; }
           im.data[j] = cr; im.data[j + 1] = cg; im.data[j + 2] = cb; im.data[j + 3] = 255;
-          mm.data[j] = mm.data[j + 1] = mm.data[j + 2] = gl * 255 * glowK; mm.data[j + 3] = 255;
+          mm.data[j] = mm.data[j + 1] = mm.data[j + 2] = human ? 0 : gl * 255 * glowK; mm.data[j + 3] = 255;
         }
         tx.putImageData(im, 0, 0); tk.putImageData(mm, 0, 0); x.drawImage(t, 0, 0); k.drawImage(tm, 0, 0);
       };
       // veias ramificadas e bolhas na cor de contraste (brilham)
-      const veins = (w, h, n, wid) => {
+      const veins = (w, h, n, wid) => { if (human) return;
         for (let i = 0; i < n; i++) {
           let X = r() * w, Y = r() * h, A = r() * TAU; const L = 6 + (r() * 10 | 0), lw = wid * (0.6 + r() * 0.8);
           const path = (q, col, lw2) => { q.strokeStyle = col; q.lineWidth = lw2; q.lineCap = 'round'; q.beginPath(); let XX = X, YY = Y, AA = A; q.moveTo(XX, YY); const rs = TEX3.rng(i * 31 + 7); for (let s = 0; s < L; s++) { AA += (rs() - 0.5) * 1.2; XX += Math.cos(AA) * 5; YY += Math.sin(AA) * 5; q.lineTo(XX, YY); } q.stroke(); };
           path(x, css(con[0], con[1], con[2], 0.35), lw * 2.4); path(x, css(con[0], con[1], con[2]), lw); path(k, '#fff', lw * 1.6);
         }
       };
-      const bubbles = (w, h, n, rmax) => {
+      const bubbles = (w, h, n, rmax) => { if (human) return;
         for (let i = 0; i < n; i++) {
           const X = r() * w, Y = r() * h, R = 1.5 + r() * rmax;
           x.fillStyle = css(con[0] * 0.55, con[1] * 0.55, con[2] * 0.55); x.beginPath(); x.arc(X, Y, R * 1.25, 0, 7); x.fill();
@@ -66,7 +66,7 @@ const Z3D = (() => {
           k.fillStyle = '#fff'; k.beginPath(); k.arc(X, Y, R * 1.15, 0, 7); k.fill();
         }
       };
-      const wounds = (w, h, n) => {
+      const wounds = (w, h, n) => { if (human) return;
         for (let i = 0; i < n; i++) {
           const X = r() * w, Y = r() * h, L = 6 + r() * 14, A = r() * PI;
           x.save(); x.translate(X, Y); x.rotate(A); x.fillStyle = '#2a0604'; x.beginPath(); x.ellipse(0, 0, L, 2.5 + r() * 2.5, 0, 0, 7); x.fill(); x.fillStyle = css(brt[0], brt[1] * 0.8, brt[2] * 0.5); x.beginPath(); x.ellipse(0, 0, L * 0.7, 1.1, 0, 0, 7); x.fill(); x.restore();
@@ -101,6 +101,12 @@ const Z3D = (() => {
         const cx = w / 2;
         // orelhas
         for (const ex of [w * 0.25, w * 0.75]) { x.fillStyle = css(shd[0], shd[1], shd[2]); x.beginPath(); x.ellipse(ex, 118, 9, 17, 0, 0, 7); x.fill(); x.fillStyle = '#1a0806'; x.beginPath(); x.ellipse(ex, 120, 3, 7, 0, 0, 7); x.fill(); }
+        if (human) {
+          for (const s2 of [-1, 1]) { const ex = cx + s2 * 17, ey = 110; x.fillStyle = '#f0ece0'; x.beginPath(); x.ellipse(ex, ey, 8, 4.5, 0, 0, 7); x.fill(); x.fillStyle = '#3a2414'; x.beginPath(); x.arc(ex, ey, 3.4, 0, 7); x.fill(); x.fillStyle = '#000'; x.beginPath(); x.arc(ex, ey, 1.6, 0, 7); x.fill(); x.fillStyle = '#2a1a0e'; x.fillRect(ex - 9, ey - 11, 18, 3.5); }
+          x.fillStyle = css(shd[0], shd[1], shd[2], 0.55); x.beginPath(); x.moveTo(cx - 5, 146); x.lineTo(cx, 124); x.lineTo(cx + 5, 146); x.fill();
+          x.fillStyle = '#6a2a22'; x.fillRect(cx - 13, 192, 26, 3.5); x.fillStyle = 'rgba(40,24,14,0.5)'; for (let i = 0; i < 260; i++) x.fillRect(cx - 34 + r() * 68, 178 + r() * 60, 1.2, 1.2);   // barba por fazer
+          return;
+        }
         // sobrancelha funda, maçãs encovadas
         x.fillStyle = css(shd[0] * 0.8, shd[1] * 0.8, shd[2] * 0.8, 0.55); x.beginPath(); x.ellipse(cx, 94, 40, 9, 0, 0, 7); x.fill();
         for (const s of [-1, 1]) { x.fillStyle = css(shd[0] * 0.7, shd[1] * 0.7, shd[2] * 0.7, 0.5); x.beginPath(); x.ellipse(cx + s * 24, 152, 11, 17, s * 0.3, 0, 7); x.fill(); }

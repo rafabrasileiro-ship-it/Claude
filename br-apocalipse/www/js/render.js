@@ -169,18 +169,39 @@ const RENDER = (() => {
     // limpadores
     if (P.wipe > 0) { const a = Math.sin((1.3 - P.wipe) / 1.3 * Math.PI * 2) * 0.5 + 0.5; c.strokeStyle = '#0a0a0a'; c.lineWidth = 6; for (const bx of [W * 0.3, W * 0.62]) { const ang = -Math.PI * 0.95 + a * Math.PI * 0.62; c.beginPath(); c.moveTo(bx, dashY); c.lineTo(bx + Math.cos(ang) * H * 0.5, dashY + Math.sin(ang) * H * 0.5); c.stroke(); } c.fillStyle = 'rgba(200,220,240,0.12)'; c.fillRect(0, 0, W, dashY); }
   }
-  function drawLatchers(scale, yb, forGunner) {
+  // onde cada agarrado aparece na tela (o mesmo cálculo serve ao desenho 2D, ao 3D e aos retângulos de tiro)
+  function latchPlace(scale, yb, forGunner) {
+    const out = [];
     for (const e of G.ents) {
-      if (e.dead || e.st !== 'latch') continue; const d = ENEMY[e.type];
+      if (e.dead || e.st !== 'latch') continue;
       let x, y = yb, k = scale; const side = forGunner ? e.side * A.look : e.side;
       if (e.side === 0) { if (forGunner && A.look < 0) continue; x = W / 2 + Math.sin(e.t * 9) * 5; if (forGunner) { k *= 0.7; y = H * 0.98; } else y = yb + Math.abs(Math.sin(e.t * 2.86)) * 14; } else { x = side < 0 ? W * 0.085 : W * 0.915; x += Math.sin(e.t * 7 + e.id) * 4; }
-      c.save(); c.translate(x, y); c.scale(k, k); if (d.veh) DRAW.vehicle(c, e, G.t, false); else DRAW.zombie(c, e, G.t, 2); c.restore();
-      if (e.flash > 0) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - d.w * k / 2, y - d.h * k, d.w * k, d.h * k); }
+      out.push({ e, x, y, k });
+    }
+    return out;
+  }
+  function drawLatchers(scale, yb, forGunner) {
+    for (const L of latchPlace(scale, yb, forGunner)) {
+      const e = L.e, d = ENEMY[e.type], x = L.x, y = L.y, k = L.k;
+      if (!use3D || d.veh) { c.save(); c.translate(x, y); c.scale(k, k); if (d.veh) DRAW.vehicle(c, e, G.t, false); else DRAW.zombie(c, e, G.t, 2); c.restore(); }
+      if (e.flash > 0 && !use3D) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - d.w * k / 2, y - d.h * k, d.w * k, d.h * k); }
       if (forGunner || G.cam === 'tpp') G.hits.push({ e, x: x - d.w * k * 0.7, y: y - d.h * k, w: d.w * k * 1.4, h: d.h * k, dz: 1.5 });
       e.sx = x; e.sy = y; e.sh = d.h * k; e.vf = G.frame;
     }
   }
   function mirrors() {
+    if (use3D) {   // espelhos em 3D: a vista de trás é desenhada pelo WebGL e o 2D só faz as molduras (vidro vazado)
+      const camH = [0, 1.2, 1.25, 1.5, 2.0, 2.6][S.veh], rv = { W: 360, H: 90, hor: 34, F: 200, dir: -1, flip: false, camX: P.x, camZ: P.z - 1, camH, N: Math.min(34, viewN), main: false };
+      const rects = [[W * 0.39, H * 0.045, W * 0.22, H * 0.085, 60, 240, true], [W * 0.012, H * 0.215, W * 0.105, H * 0.11, 0, 150, !!P.mirrorL], [W * 0.883, H * 0.215, W * 0.105, H * 0.11, 210, 150, true]];
+      const okm = W3D.mirror(rv, G.frame % 2 === 0, rects.filter(r => r[6]), Math.round(360 * MS), Math.round(90 * MS), W, H);
+      for (const r of rects) {
+        const [x, y, w, h] = r; c.fillStyle = '#0a0a0a'; c.fillRect(x - 4, y - 4, w + 8, h + 8);
+        if (r[6] && okm) { c.clearRect(x, y, w, h); c.fillStyle = 'rgba(180,200,220,0.06)'; c.fillRect(x, y, w, h * 0.4); }
+        else { c.fillStyle = '#15181a'; c.fillRect(x, y, w, h); c.strokeStyle = '#789'; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 7; i++) { c.moveTo(x + w / 2, y + h / 2); c.lineTo(x + DRAW.hash(i) * w, y + DRAW.hash(i * 5) * h); } c.stroke(); }
+      }
+      if (S.up.pneu >= 2) { c.fillStyle = '#bbb'; c.fillRect(W * 0.1, H * 0.31, 10, 3); c.fillRect(W * 0.885, H * 0.31, 10, 3); }
+      return;
+    }
     if (G.frame % 2 === 0) { mc.setTransform(MS, 0, 0, MS, 0, 0); const camH = [0, 1.2, 1.25, 1.5, 2.0, 2.6][S.veh]; world(mc, { W: 360, H: 90, hor: 34, F: 200, dir: -1, flip: false, camX: P.x, camZ: P.z - 1, camH, N: Math.min(34, viewN), main: false }); if (G.night) { mc.fillStyle = 'rgba(2,3,8,0.6)'; mc.fillRect(0, 0, 360, 90); } }
     const frame = (x, y, w, h, sx, sw, broken) => { c.fillStyle = '#0a0a0a'; c.fillRect(x - 4, y - 4, w + 8, h + 8); if (broken) { c.fillStyle = '#15181a'; c.fillRect(x, y, w, h); c.strokeStyle = '#789'; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 7; i++) { c.moveTo(x + w / 2, y + h / 2); c.lineTo(x + DRAW.hash(i) * w, y + DRAW.hash(i * 5) * h); } c.stroke(); } else c.drawImage(mcv, sx * MS, 0, sw * MS, 90 * MS, x, y, w, h); };
     frame(W * 0.39, H * 0.045, W * 0.22, H * 0.085, 60, 240, false);
@@ -191,8 +212,8 @@ const RENDER = (() => {
     const dashY = H * 0.64 + sh, v = VEHICLES[S.veh], u = S.up, cl = cls(), t = G.t;
     // capô
     const hoodH = [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H, hc = rgb(v.cor), hcol = `rgb(${hc[0] * 0.75 | 0},${hc[1] * 0.75 | 0},${hc[2] * 0.75 | 0})`;
-    c.fillStyle = hcol; c.beginPath(); c.moveTo(W * 0.1, dashY + 2); c.lineTo(W * 0.2, dashY - hoodH); c.lineTo(W * 0.8, dashY - hoodH); c.lineTo(W * 0.9, dashY + 2); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.07)'; c.fillRect(W * 0.3, dashY - hoodH, W * 0.4, 3);
+    if (!use3D) { c.fillStyle = hcol; c.beginPath(); c.moveTo(W * 0.1, dashY + 2); c.lineTo(W * 0.2, dashY - hoodH); c.lineTo(W * 0.8, dashY - hoodH); c.lineTo(W * 0.9, dashY + 2); c.fill();
+      c.fillStyle = 'rgba(255,255,255,0.07)'; c.fillRect(W * 0.3, dashY - hoodH, W * 0.4, 3); }
     const hy = dashY - hoodH;
     if (u.frente >= 1) { c.fillStyle = '#2a2a2a'; c.fillRect(W * 0.22, hy - 6, W * 0.56, 6); if (u.frente >= 3) { c.beginPath(); c.moveTo(W * 0.24, hy - 6); c.lineTo(W * 0.5, hy - 26); c.lineTo(W * 0.76, hy - 6); c.fill(); } else if (u.frente >= 2) c.fillRect(W * 0.22, hy - 16, W * 0.56, 12); }
     if (u.serra > 0 || u.frente >= 4) { const nb = u.frente >= 4 ? 6 : u.serra; for (let i = 0; i < nb; i++) { const bx = W * (0.5 + (i - (nb - 1) / 2) * (nb > 2 ? 0.09 : 0.2)), j = P.saws ? Math.sin(t * 90 + i) * 1.5 : 0; c.fillStyle = '#c85a1a'; c.fillRect(bx - 12, hy - 8 + j, 24, 10); c.fillStyle = '#999'; c.fillRect(bx - 4, hy - 46 + j, 8, 40); c.fillStyle = '#222'; for (let k = 0; k < 6; k++) c.fillRect(bx - 6, hy - 44 + k * 7 + (P.saws ? (t * 200 % 7) : 0) + j, 12, 2); if (P.saws) { if (G.frame % 3 === 0) fxSpark(bx, hy - 40, 1); c.fillStyle = 'rgba(120,140,200,0.12)'; c.beginPath(); c.arc(bx, hy - 30, 22, 0, 7); c.fill(); } } }
@@ -373,10 +394,16 @@ const RENDER = (() => {
     if (role === 'pilot' && fpp) { const camH = [0, 1.15, 1.2, 1.5, 2.0, 2.6][S.veh]; v = { W, H, hor: H * 0.4 + sy + jumpY, F: H * 0.92, dir: 1, flip: false, camX: P.x - 0.3, camZ: P.z, camH, N: viewN, main: true, pan: sx - P.steer * 14 }; }
     else if (role === 'pilot') { v = { W, H, hor: H * 0.36 + sy * 0.5 + jumpY, F: H * 0.9, dir: 1, flip: false, camX: P.x * 0.85, camZ: P.z - 7.5, camH: 3.4 + S.veh * 0.35, N: viewN, main: true, pan: sx * 0.5 }; }
     else { const seat = A.seat, camH = [0, 1.25, 1.3, 1.6, 2.1, 2.7][S.veh] + (seat === 2 ? 0.8 : 0), zoom = 1 + A.ads * 0.6; v = { W, H, hor: H * 0.47 + sy - (A.ay - H * 0.45) * 0.3, F: H * 0.9 * zoom, dir: A.look, flip: A.look < 0, camX: P.x + (seat === 0 ? -1 : seat === 1 ? 1 : 0) * G.V.w * 0.9, camZ: P.z + (A.exposed ? 0 : 0), camH, N: viewN, main: true, pan: sx - (A.ax - W / 2) * 0.35 * zoom }; }
-    if (use3D && W3D.render(v)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); }
+    let o3 = null;
+    if (use3D) {
+      if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
+      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false) }; }
+      else if (A.exposed && !(A.down > 0)) o3 = { latch: latchPlace(H * 0.46, H * 1.12, true) };
+    }
+    if (use3D && W3D.render(v, o3)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); }
     else { world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v); }
     if (role === 'pilot' && fpp) cockpit(sy * 0.4);
-    else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
+    else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; if (!use3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
     else gunnerView();
     hud(role);
   }

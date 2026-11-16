@@ -69,7 +69,7 @@ void main() {
   vP = w.xyz; vN = n; vUV = aUV; vMat = aExt.y;
   gl_Position = uP * w;
 }`;
-  const FS_MOD = LIGHT + `uniform sampler2D uT; uniform vec3 uTint1; uniform vec3 uTint2; uniform float uFlash; uniform float uGlow;
+  const FS_MOD = LIGHT + `uniform sampler2D uT; uniform vec3 uTint1; uniform vec3 uTint2; uniform float uFlash; uniform float uGlow; uniform float uSpec;
 varying vec3 vP; varying vec3 vN; varying vec2 vUV; varying vec3 vC; varying float vMat;
 void main() {
   vec4 t = texture2D(uT, vUV);
@@ -86,6 +86,11 @@ void main() {
   if (dot(n, vP) > 0.0) n = -n;
 #endif
   vec3 col = base * max(lightAt(vP, n), vec3(em * uGlow));
+  if (uSpec > 0.0) {   // pintura brilhante: reflexo do sol, do céu e dos faróis
+    vec3 v = normalize(-vP), h = normalize(uSunD + v);
+    col += uSpec * (uSunC * pow(max(dot(n, h), 0.0), 40.0) + uAmbS * 0.25 * pow(1.0 - max(dot(n, v), 0.0), 3.0));
+    if (uHL.x > 0.0) { vec3 hl = normalize(normalize(uHLp - vP) + v); col += uSpec * uHLc * uHL.x * 0.4 * pow(max(dot(n, hl), 0.0), 30.0) * clamp(1.0 - length(vP - uHLp) * uHL.y, 0.0, 1.0); }
+  }
   float f = fogF(vP.z);
   col = mix(col, uFogC, mix(f, f * f * 0.85, em));
   col = mix(col, vec3(1.0), uFlash);
@@ -161,7 +166,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       for (const p of [P_SKY, P_GND, P_MOD, P_MODA, P_SKIN, P_MODI, P_MODIA, P_DEC, P_ADD, P_QUAD]) if (p) p.use();   // compila já: erro aqui = cai para o 2D
     } catch (e) { console.error(e); ok = false; return false; }
     for (const k of ['grass', 'dirt', 'asf', 'water', 'cliff', 'deck']) D[k] = new Dyn(k === 'grass' ? 560 : 300);
-    D.dec = new Dyn(900); D.add = new Dyn(1200); D.scr = new Dyn(64); D.sh = new Dyn(500);
+    D.dec = new Dyn(900); D.add = new Dyn(1200); D.scr = new Dyn(64); D.sh = new Dyn(500); D.part = new Dyn(480);
     white = TEX3.T(() => ({ w: 4, h: 4, data: new Uint8Array(64).fill(255) }), { mip: false });
     quad = new Float32Array([-1, -1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0]);
     quad = new GL3.Mesh(quad, new Uint16Array([0, 1, 2, 0, 2, 3]));
@@ -194,7 +199,8 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     // faróis: saem da frente do carro e iluminam para a frente da estrada
     L.HL = [0, 0, 0, 0];
     if (night) {
-      const lv = P.lights, carZ = dir * (P.z + 1.6 - v.camZ), carX = fs * (P.x - v.camX);
+      const tpp = G.role === 'pilot' && G.cam === 'tpp', front = tpp && typeof V3D !== 'undefined' ? V3D.playerModel(S.veh, S.up).len : 1.8;
+      const lv = P.lights, carZ = dir * (P.z + front - v.camZ), carX = fs * (P.x - v.camX);
       const fwd = [0, lv === 2 ? -0.012 : -0.05, dir], fl = Math.hypot(fwd[0], fwd[1], fwd[2]);
       L.HLp = [carX, -v.camH + 0.75, carZ]; L.HLd = fwd.map(c => c / fl);
       L.HL = lv === 2 ? [2.6, 1 / 150, 0.965, 0.86] : lv === 1 ? [2.3, 1 / 78, 0.94, 0.8] : [0.5, 1 / 14, 0.9, 0.6];
@@ -227,16 +233,18 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       const p = useProg(o && o.atest ? P_MODA : P_MOD), u = p.u;
       gl.uniformMatrix4fv(u.uM, false, M); (tex || white).bind(0); gl.uniform1i(u.uT, 0);
       gl.uniform3fv(u.uTint1, (o && o.t1) || ONE); gl.uniform3fv(u.uTint2, (o && o.t2) || ONE);
-      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow);
+      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, (o && o.spec) || 0);
       mesh.draw();
     },
     skin(mesh, tex, M, bones, o) {
       const p = useProg(P_SKIN), u = p.u;
       gl.uniformMatrix4fv(u.uM, false, M); gl.uniform4fv(u.uB, bones); (tex || white).bind(0); gl.uniform1i(u.uT, 0);
       gl.uniform3fv(u.uTint1, (o && o.t1) || ONE); gl.uniform3fv(u.uTint2, (o && o.t2) || ONE);
-      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow);
+      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, 0.06);
       mesh.draw();
     },
+    // buffer dinâmico já na vista (capô do carro)
+    hood(d) { if (!d.ni) return; d.mesh.set(d.f, d.nv, d.ix, d.ni); R.model(d.mesh, V3D.tex(), IDM, { glow: 0 }); },
     // cópias instanciadas (cenário): agrupadas por malha+textura e desenhadas no fim
     inst(mesh, tex, atest, x, y, z, fx, fz, k, shade, ky) {
       let b = batches.get(mesh); if (!b) { b = { mesh, tex, atest, a: new Float32Array(64 * 8), n: 0 }; batches.set(mesh, b); }
@@ -250,10 +258,11 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     // brilho aditivo virado para a câmera
     glow(x, y, z, w, h, r, g, b, a) { addQuad(GLOW_UV, x, y, z, w, h, r, g, b, a); },
     flame(x, y, z, w, h, a) { addQuad(GLOW_UV, x, y, z, w, h, 1, 0.55, 0.15, a); },
+    particle(x, y, z, s, r, g, b, a) { const d = D.part; if (!d.room(4)) return; const i0 = d.v(x - s, y - s, z, 0, 0, 0, 1, r, g, b, a, 1), i1 = d.v(x + s, y - s, z, 0, 0, 1, 1, r, g, b, a, 1), i2 = d.v(x + s, y + s, z, 0, 0, 1, 0, r, g, b, a, 1), i3 = d.v(x - s, y + s, z, 0, 0, 0, 0, r, g, b, a, 1); d.q(i0, i1, i2, i3); },
     proj(x, y, z) { return [CX + VF * x / z, CY - VF * y / z]; },   // vista → tela (px virtuais)
     get F() { return VF; }, get cx() { return CX; }, get cy() { return CY; },
   };
-  const ONE = new Float32Array([1, 1, 1]);
+  const ONE = new Float32Array([1, 1, 1]), IDM = M4.make();
   const batches = new Map(), decalList = [];
   const BLOB_UV = [0, 0, 1, 1], GLOW_UV = [0, 0, 1, 1];
   let VF = 500, CX = 480, CY = 216;
@@ -366,6 +375,13 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     TEX3.blob().bind(0); D.sh.draw();
     gl.disable(gl.POLYGON_OFFSET_FILL); gl.depthMask(true); gl.disable(gl.BLEND);
   }
+  function drawParts() {
+    if (!D.part.ni) return;
+    const p = useProg(P_DEC); gl.uniform1i(p.u.uT, 0);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+    TEX3.glow().bind(0); D.part.draw();
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  }
   function drawAdd() {
     if (!D.add.ni) return;
     const p = useProg(P_ADD); gl.uniform1i(p.u.uT, 0);
@@ -379,7 +395,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       if (P_MODI) {
         const p = useProg(b.atest ? P_MODIA : P_MODI), u = p.u;
         gl.uniform1f(u.uDet, DET); (b.tex || white).bind(0); gl.uniform1i(u.uT, 0);
-        gl.uniform3fv(u.uTint1, ONE); gl.uniform3fv(u.uTint2, ONE); gl.uniform1f(u.uFlash, 0); gl.uniform1f(u.uGlow, L.glow);
+        gl.uniform3fv(u.uTint1, ONE); gl.uniform3fv(u.uTint2, ONE); gl.uniform1f(u.uFlash, 0); gl.uniform1f(u.uGlow, L.glow); gl.uniform1f(u.uSpec, b.spec || 0);
         b.mesh.drawInst(b.a, b.n);
       } else {   // sem instanciamento: uma chamada por cópia
         for (let j = 0; j < b.n; j++) { const a = b.a, o = j * 8; M4.place(mtx2, a[o], a[o + 1], a[o + 2], a[o + 4], a[o + 5], DET, a[o + 3], a[o + 7]); R.model(b.mesh, b.tex, mtx2, { atest: b.atest, t1: shadeV(a[o + 6]) }); }
@@ -478,13 +494,25 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     drawSky(v, W, H);
     gl.disable(gl.CULL_FACE);
     buildGround(v, base, off, N); drawGround();
-    D.dec.reset(); D.add.reset(); D.sh.reset();
+    D.dec.reset(); D.add.reset(); D.sh.reset(); D.part.reset();
     roadDecals(v, base, off, N);
     gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); gl.frontFace(DET > 0 ? gl.CW : gl.CCW);
     objects(v, W, H, base, off, N, maxD);
+    if (opt && opt.player && typeof V3D !== 'undefined') V3D.drawPlayer(R, fs * (P.x - v.camX), -camH + opt.player.jumpH, 7.5 + V3D.playerModel(S.veh, S.up).rear, -camH, P.steer, G.t);
     flushInst();
     gl.disable(gl.CULL_FACE);
-    flushDecals(); drawDecals(); drawShadows(); drawAdd();
+    flushDecals(); drawDecals(); drawShadows(); drawParts(); drawAdd();
+    // capô (1ª pessoa) e zumbis agarrados no carro: por cima do mundo, na mesma posição/escala que o 2D usava
+    if (opt && (opt.hood || (opt.latch && opt.latch.length))) {
+      gl.clear(gl.DEPTH_BUFFER_BIT); gl.enable(gl.CULL_FACE); gl.frontFace(DET > 0 ? gl.CW : gl.CCW);
+      if (opt.hood && typeof V3D !== 'undefined') V3D.drawHood(R, W, H, F, W / 2 + pan, hor, opt.hood.dashY, opt.hood.hoodH);
+      if (opt.latch && typeof Z3D !== 'undefined') for (const L of opt.latch) {
+        if (ENEMY[L.e.type].veh) continue;
+        const z = F / L.k, x = (L.x - (W / 2 + pan)) * z / F, y = (hor - L.y) * z / F, side = L.e.side || 0, a = side ? -side * 0.55 * fs : 0;
+        Z3D.drawLatch(R, L.e, x, y, z, [Math.sin(a), -Math.cos(a)]);
+      }
+      gl.disable(gl.CULL_FACE);
+    }
     return true;
   }
 
@@ -534,10 +562,22 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       if (typeof S3D !== 'undefined') S3D.add(R, s, vx, y0, vz, ctx); else placeholder(vx, y0, vz, 2, 4, 2, '#4a5a3a', 0);
     }
     if (typeof Z3D !== 'undefined' && Z3D.corpses) Z3D.corpses(R, ctx);
+    if (typeof S3D !== 'undefined') S3D.clutter(R, v, base, off, N, ctx);
+    if (typeof FX3D !== 'undefined') FX3D.draw(R, ctx);
   }
 
+  const mirT = new GL3.Target();
+  // rv = vista de trás (como o 2D usava); rects = [[x, y, w, h, sx, sw], ...] em px virtuais da tela principal
+  function mirror(rv, update, rects, tw, th, W, H) {
+    if (!ok || GL3.lost) return false;
+    if (update || !mirT.ok || mirT.w !== tw || mirT.h !== th) { if (!mirT.begin(tw, th)) { mirT.end(); return false; } render(rv, { target: true, vp: [0, 0, tw, th] }); mirT.end(); }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, glcv.width, glcv.height); gl.disable(gl.DEPTH_TEST); gl.depthMask(false);
+    for (const r of rects) screenQuad(mirT, r[0], r[1], r[0] + r[2], r[1] + r[3], W, H, r[4] / 360, 1, (r[4] + r[5]) / 360, 0, [1, 1, 1], 1);
+    gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
+    return true;
+  }
   function resize(w, h) { if (!glcv) return; if (glcv.width !== w || glcv.height !== h) { glcv.width = w; glcv.height = h; } }
   function clear() { if (!ok || GL3.lost) return; gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, glcv.width, glcv.height); gl.clearColor(0.043, 0.039, 0.031, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }
 
-  return { init, render, resize, clear, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
+  return { init, render, resize, clear, mirror, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
 })();

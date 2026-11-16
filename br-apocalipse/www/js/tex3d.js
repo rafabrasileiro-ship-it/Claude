@@ -203,6 +203,8 @@ const TEX3 = (() => {
       cell(9, (a, b) => { a.fillStyle = '#3a0403'; a.fillRect(0, 0, 128, 128); const g = b.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,0.8)'); g.addColorStop(1, 'rgba(255,255,255,0.9)'); b.fillStyle = g; b.beginPath(); b.moveTo(50, 0); b.quadraticCurveTo(40, 70, 44, 128); b.lineTo(84, 128); b.quadraticCurveTo(88, 70, 76, 0); b.fill(); });
       // 10 marca de queimado / explosão
       cell(10, (a, b) => { a.fillStyle = '#060504'; a.fillRect(0, 0, 128, 128); const g = b.createRadialGradient(64, 64, 6, 64, 64, 62); g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(0.6, 'rgba(255,255,255,0.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); b.fillStyle = g; b.fillRect(0, 0, 128, 128); });
+      // 12 anel de mira (tingido: aviso de fogo/queda)
+      cell(12, (a, b) => { a.fillStyle = '#ffffff'; a.fillRect(0, 0, 128, 128); b.strokeStyle = '#fff'; b.lineWidth = 9; b.beginPath(); b.arc(64, 64, 52, 0, 7); b.stroke(); b.lineWidth = 4; b.beginPath(); b.arc(64, 64, 30, 0, 7); b.moveTo(64, 4); b.lineTo(64, 124); b.moveTo(4, 64); b.lineTo(124, 64); b.stroke(); });
       // 11 poça de ácido (verde luminescente)
       cell(11, (a, b) => { a.fillStyle = '#4ac014'; a.fillRect(0, 0, 128, 128); b.fillStyle = 'rgba(255,255,255,0.85)'; blobPath(b, 64, 64, 44, 20, 0.6); b.fill(); });
       return pack(c, m);
