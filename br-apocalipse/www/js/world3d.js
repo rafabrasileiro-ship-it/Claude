@@ -45,7 +45,7 @@ void main() {
   gl_FragColor = vec4(tone(col), 1.0);
 }`;
   const VS_MOD = `attribute vec3 aPos; attribute vec3 aNor; attribute vec2 aUV; attribute vec3 aCol; attribute vec2 aExt;
-uniform mat4 uP; uniform mat4 uM;
+uniform mat4 uP; uniform mat4 uM; uniform vec2 uUV;
 #ifdef INST
 attribute vec4 iA; attribute vec4 iB; uniform float uDet;
 #endif
@@ -66,7 +66,7 @@ void main() {
 #else
   vec4 w = uM * p; n = (uM * vec4(n, 0.0)).xyz;
 #endif
-  vP = w.xyz; vN = n; vUV = aUV; vMat = aExt.y;
+  vP = w.xyz; vN = n; vUV = aUV + uUV; vMat = aExt.y;
   gl_Position = uP * w;
 }`;
   const FS_MOD = LIGHT + `uniform sampler2D uT; uniform vec3 uTint1; uniform vec3 uTint2; uniform float uFlash; uniform float uGlow; uniform float uSpec;
@@ -180,7 +180,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
   const mixA = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
   const SUN = { limpo: 0.95, chuva: 0.22, neblina: 0.16, fumaca: 0.32, queimada: 0.45, areia: 0.42 };
   const CLIMA_FOG = { chuva: '#59626a', neblina: null, fumaca: '#3a2a20', queimada: '#6a4a30', areia: '#c8a050' };
-  function scene(v, maxD) {
+  function scene(v, maxD, opt) {
     const st = G.st, night = G.night, cl = G.clima, fs = v.flip ? -1 : 1, dir = v.dir;
     const fogHex = (cl !== 'limpo' && CLIMA_FOG[cl]) || st.fog, fogc = rgbN(night && cl === 'limpo' ? '#0a0e14' : fogHex), fogK = cl === 'limpo' ? st.fogK : 1;
     L.fogC = fogc; L.fogK = fogK; L.fogP = [1 / maxD, fogK, 0.2, 1.25]; L.maxD = maxD;
@@ -206,6 +206,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       L.HL = lv === 2 ? [3.2, 1 / 160, 0.965, 0.85] : lv === 1 ? [2.9, 1 / 82, 0.94, 0.79] : [0.6, 1 / 14, 0.9, 0.6];
     }
     L.PL = [0, 0, 0, 0];
+    if (opt && opt.light) { L.PL = opt.light.p; L.PLc = opt.light.c; }
     L.glow = 0.92; L.gGlow = night ? 0.16 : 0; L.wet = cl === 'chuva' ? 0.75 : 0; L.night = night;
     L.gen++;
   }
@@ -234,13 +235,15 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       gl.uniformMatrix4fv(u.uM, false, M); (tex || white).bind(0); gl.uniform1i(u.uT, 0);
       gl.uniform3fv(u.uTint1, (o && o.t1) || ONE); gl.uniform3fv(u.uTint2, (o && o.t2) || ONE);
       gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, (o && o.spec) || 0);
+      if (o && o.uv) gl.uniform2f(u.uUV, o.uv[0], o.uv[1]); else gl.uniform2f(u.uUV, 0, 0);
       mesh.draw();
     },
     skin(mesh, tex, M, bones, o) {
       const p = useProg(P_SKIN), u = p.u;
       gl.uniformMatrix4fv(u.uM, false, M); gl.uniform4fv(u.uB, bones); (tex || white).bind(0); gl.uniform1i(u.uT, 0);
       gl.uniform3fv(u.uTint1, (o && o.t1) || ONE); gl.uniform3fv(u.uTint2, (o && o.t2) || ONE);
-      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, 0.06);
+      gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, o && o.spec !== undefined ? o.spec : 0.06);
+      gl.uniform2f(u.uUV, 0, 0);
       mesh.draw();
     },
     // buffer dinâmico já na vista (capô do carro)
@@ -490,7 +493,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     const near = 0.25, far = maxD + 280;
     M4.proj(proj, F, W / 2 + pan, hor, W, H, near, far); pgen++;
-    scene(v, maxD);
+    scene(v, maxD, opt);
     drawSky(v, W, H);
     gl.disable(gl.CULL_FACE);
     buildGround(v, base, off, N); drawGround();
@@ -502,16 +505,21 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     flushInst();
     gl.disable(gl.CULL_FACE);
     flushDecals(); drawDecals(); drawShadows(); drawParts(); drawAdd();
-    // capô (1ª pessoa) e zumbis agarrados no carro: por cima do mundo, na mesma posição/escala que o 2D usava
-    if (opt && (opt.hood || (opt.latch && opt.latch.length))) {
-      gl.clear(gl.DEPTH_BUFFER_BIT); gl.enable(gl.CULL_FACE); gl.frontFace(DET > 0 ? gl.CW : gl.CCW);
-      if (opt.hood && typeof V3D !== 'undefined') V3D.drawHood(R, W, H, F, W / 2 + pan, hor, opt.hood.dashY, opt.hood.hoodH);
+    /* primeiro plano: cabine, capô, lataria, braços, armas e zumbis agarrados no carro. Profundidade própria e plano
+       próximo de 3 cm (o mundo usa 25 cm), com a mesma focal e o mesmo centro: a projeção na tela não muda. */
+    if (opt && (opt.hood || opt.near || (opt.latch && opt.latch.length))) {
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+      M4.proj(proj, F, W / 2 + pan, hor, W, H, 0.03, 160); pgen++;
+      D.add.reset(); D.part.reset(); gl.disable(gl.CULL_FACE);
+      if (opt.near) opt.near(R, { W, H, F, cx: W / 2 + pan, cy: hor, fs, dir, camH, v });
+      else if (opt.hood && typeof V3D !== 'undefined') V3D.drawHood(R, W, H, F, W / 2 + pan, hor, opt.hood.dashY, opt.hood.hoodH);
       if (opt.latch && typeof Z3D !== 'undefined') for (const L of opt.latch) {
         if (ENEMY[L.e.type].veh) continue;
         const z = F / L.k, x = (L.x - (W / 2 + pan)) * z / F, y = (hor - L.y) * z / F, side = L.e.side || 0, a = side ? -side * 0.55 * fs : 0;
         Z3D.drawLatch(R, L.e, x, y, z, [Math.sin(a), -Math.cos(a)]);
       }
-      gl.disable(gl.CULL_FACE);
+      if (opt.nearAfter) opt.nearAfter(R);
+      drawParts(); drawAdd();
     }
     return true;
   }
@@ -576,6 +584,12 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
     return true;
   }
+  // só atualiza a imagem do retrovisor (a cabine 3D cola essa imagem nos espelhos de verdade)
+  function mirrorTex(rv, update, tw, th) {
+    if (!ok || GL3.lost) return null;
+    if (update || !mirT.ok || mirT.w !== tw || mirT.h !== th || mirT.gen !== GL3.gen) { if (!mirT.begin(tw, th)) { mirT.end(); return null; } render(rv, { target: true, vp: [0, 0, tw, th] }); mirT.end(); }
+    return mirT.ok ? mirT : null;
+  }
   /* aquecimento: gera texturas e compila tudo aos poucos enquanto o jogador está no menu (evita travadinha ao começar) */
   function warm() {
     if (!ok) return;
@@ -595,5 +609,5 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
   function resize(w, h) { if (!glcv) return; if (glcv.width !== w || glcv.height !== h) { glcv.width = w; glcv.height = h; } }
   function clear() { if (!ok || GL3.lost) return; gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, glcv.width, glcv.height); gl.clearColor(0.043, 0.039, 0.031, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }
 
-  return { init, render, resize, clear, mirror, warm, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
+  return { init, render, resize, clear, mirror, mirrorTex, warm, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
 })();

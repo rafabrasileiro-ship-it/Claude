@@ -112,7 +112,7 @@ const BOSS = (() => {
         follow(32, 6, Math.sin(b.t * 0.5) * 3.5, 2, dt);
         if (every(0, 5, dt) && Math.abs(b.x - P.x) < 3.5) { P.oil = 1; splat(3, '#0a0a0a'); say('JATO DE ÓLEO no para-brisa! Limpador!', 'ai', 2.5); SFX.splat(); }
         if (every(1, 9, dt)) { G.gas = 5; say('Granada de gás lacrimogêneo!', 'ai', 2.5); }
-        if (every(2, 1, dt)) { armorDmg(1.6 * (S.up.janela >= 2 ? 0.5 : 1)); gunnerDmg(5); if (Math.random() < 0.5) SFX.shotFar(); if (Math.random() < 0.04) crack(); }
+        if (every(2, 1, dt)) { armorDmg(1.6 * (S.up.janela >= 2 ? 0.5 : 1)); gunnerDmg(5); SFX.gun('lmg', { dist: Math.max(6, Math.abs(b.rel)), pan: clamp((b.x - P.x) / 8, -0.8, 0.8) }); if (Math.random() < 0.04) crack(); }
         break; }
       case 'ceifador': {
         if (b.ph === 'contramao') {
@@ -141,7 +141,7 @@ const BOSS = (() => {
         b.chainOn = false;
         for (const e of esc) {
           const flank = b.pt % 16 < 10; e.rel += clamp((flank ? 1 : 16) - e.rel, -9 * dt, 9 * dt); const tx = flank ? P.x + e.side * (V.w + 2.6) : e.side * 4; e.x += clamp(tx - e.x, -4 * dt, 4 * dt); e.z = P.z + e.rel;
-          if (flank && Math.abs(e.rel) < 4) { if (S.up.lateral >= 2 && P.saws && Math.abs(e.x - P.x) < V.w + 2.9) { e.hp -= 320 * dt; G.stats.bossSrc.serralat = 1; if (G.frame % 3 === 0) fxSpark(e.side < 0 ? 60 : G.W - 60, G.H * 0.6, 3); if (e.hp <= 0) killEnt(e, { by: 'car' }); } if (every(e.side < 0 ? 2 : 3, 0.8, dt)) { armorDmg(2.2); gunnerDmg(5); SFX.shotFar(); } }
+          if (flank && Math.abs(e.rel) < 4) { if (S.up.lateral >= 2 && P.saws && Math.abs(e.x - P.x) < V.w + 2.9) { e.hp -= 320 * dt; G.stats.bossSrc.serralat = 1; if (G.frame % 3 === 0) fxSpark(e.side < 0 ? 60 : G.W - 60, G.H * 0.6, 3); if (e.hp <= 0) killEnt(e, { by: 'car' }); } if (every(e.side < 0 ? 2 : 3, 0.8, dt)) { armorDmg(2.2); gunnerDmg(5); SFX.gun('fer', { dist: 3 + Math.abs(e.rel), pan: e.side * 0.8 }); } }
         }
         if (esc.length === 2 && Math.abs(esc[0].rel) < 4 && Math.abs(esc[1].rel) < 4) { b.chainOn = true; b.ct = (b.ct || 0) + dt; if (b.ct > 3.5 && !b.cw) { b.cw = true; say('CORRENTE INCANDESCENTE! Freia pra sair do meio!', 'ai', 2.5); SFX.horn(); } if (b.ct > 5.8) { b.ct = 0; b.cw = false; armorDmg(20, 'Cortado pela corrente incandescente.'); crack(); crack(); G.shake = 2; SFX.crash(); } if (P.brakeT > 0.3 || (G.role !== 'pilot' && b.cw)) { for (const e of esc) e.rel = 14; b.ct = 0; b.cw = false; } } else { b.ct = 0; b.cw = false; }
         if (!G.qte && every(0, 8, dt)) { G.qte = { txt: 'CHUTAR A DINAMITE!', t: 3, max: 3 }; say('BANANA DE DINAMITE ACESA NA CAÇAMBA!', 'ai', 3); SFX.beep(); }
@@ -150,7 +150,7 @@ const BOSS = (() => {
       case 'iluminado': {
         follow(40, 6, Math.sin(b.t * 0.35) * 3, 2, dt); const g = alive().length;
         const face = clamp(1 - Math.abs(b.x - P.x) / 9, 0.3, 1); G.blind = Math.max(G.blind, (g / 4) * (0.72 + 0.25 * Math.sin(b.t * 5)) * face * (G.role === 'pilot' ? 1 : 0.55));
-        if (every(0, 1.1, dt) && g > 0) { armorDmg(1.5 * (g / 4 + 0.4)); gunnerDmg(4); SFX.shotFar(); }
+        if (every(0, 1.1, dt) && g > 0) { armorDmg(1.5 * (g / 4 + 0.4)); gunnerDmg(4); SFX.gun('tiro', { dist: Math.max(8, Math.abs(b.rel)), pan: clamp((b.x - P.x) / 8, -0.8, 0.8) }); }
         if (every(1, 2.2, dt)) for (let i = 0; i < 2; i++) spawn('corredor', (Math.random() < 0.5 ? -1 : 1) * rnd(5, 9), P.z + rnd(60, 110));
         if (G.role === 'pilot' && every(2, 2.8, dt) && g > 1) { const bl = bestLane(); if (Math.abs(bl - P.x) > 1.4) say((G.ai[0] ? G.ai[0].cls.nome : 'Rádio') + ': "' + (bl < P.x ? 'VIRA PRA ESQUERDA AGORA!' : 'VIRA PRA DIREITA AGORA!') + '"', 'ai', 2); }
         break; }
@@ -159,13 +159,13 @@ const BOSS = (() => {
           follow(40, 6, Math.sin(b.t * 0.3) * 2.5, 1.5, dt);
           if (!b.parts[0].dead && every(0, 3.6, dt)) { spawn('buggy', b.x, P.z + b.rel - 3, { rel: b.rel - 3 }); if (Math.random() < 0.4) say('Buggy suicida saindo da rampa!', 'ai', 2); }
           if (every(1, 3, dt)) G.haz.push({ x: clamp(P.x + rnd(-2.5, 2.5), -6, 6), z: P.z + P.speed * 1.6 + 5, r: 2.4, kind: 'alvo', delay: 1.6, life: 3, t: 0, dmg: 14 });
-          if (every(2, 1, dt)) { armorDmg(1.8); gunnerDmg(4); SFX.shotFar(); }
+          if (every(2, 1, dt)) { armorDmg(1.8); gunnerDmg(4); SFX.gun('fz762', { dist: Math.max(10, Math.abs(b.rel)), pan: clamp((b.x - P.x) / 8, -0.8, 0.8) }); }
         } else if (b.fase === 2) {
           follow(11, 8, -4.2, 2, dt);
           if (P.x < b.x + b.w / 2 + V.w + 0.2) { P.x = b.x + b.w / 2 + V.w + 0.2; armorDmg(6 * dt, 'Rasgado pelos espinhos do Leviatã.'); if (G.frame % 4 === 0) fxSpark(40, G.H * 0.6, 4); G.shake = Math.max(G.shake, 0.5); }
           if (every(0, 4.5, dt)) { const e = spawn('corredor', P.x - 2, P.z, {}); if (latch(e, -1)) say('BANDIDO PULOU DA PASSARELA! Motosserra nele!', 'ai', 2.5); else e.dead = true; }
           if (Math.abs(P.x - b.x) < 6 && every(1, 0.5, dt)) { armorDmg(1.6, 'Torrado pelos lança-chamas.'); G.smokeIn = Math.min(0.5, G.smokeIn + 0.1); }
-          if (every(2, 1.2, dt)) { armorDmg(1.6); gunnerDmg(4); SFX.shotFar(); }
+          if (every(2, 1.2, dt)) { armorDmg(1.6); gunnerDmg(4); SFX.gun('smg9', { dist: 6, pan: -0.7 }); }
           if (every(3, 4, dt)) G.haz.push({ x: clamp(P.x + rnd(-1, 3), 0, 6.5), z: P.z + P.speed * 1.6 + 5, r: 2.2, kind: 'alvo', delay: 1.6, life: 3, t: 0, dmg: 14 });
         } else {
           const left = b.dist - P.z; G.portoLeft = left; if (b.ramp) b.ramp.z = b.dist;

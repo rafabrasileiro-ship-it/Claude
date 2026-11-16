@@ -14,7 +14,7 @@ const NET = (() => {
   const N = {
     host: false, client: false, connected: false, scanning: false, kind: '',
     peers: {}, rooms: [], myId: 0, myCls: null, lobby: null, garage: null,
-    msgq: [], sfxq: [], gd: 0, hitq: {}, fuelUse: 0, pullUse: 0, emap: {},
+    msgq: [], sfxq: [], gunq: [], shq: [], gd: 0, hitq: {}, fuelUse: 0, pullUse: 0, emap: {},
     lastRx: 0, snapT: 0, hbT: 0, flushT: 0, wrapped: false, lastScore: null, lastOver: null,
   };
 
@@ -60,17 +60,17 @@ const NET = (() => {
   /* ---------------- sessão ---------------- */
   function startHost() {
     if (!transport()) return false; leave(true);
-    N.host = true; N.peers = {}; N.msgq = []; N.sfxq = []; N.gd = 0; N.lastScore = N.lastOver = null;
+    N.host = true; N.peers = {}; N.msgq = []; N.sfxq = []; N.gunq = []; N.gd = 0; N.lastScore = N.lastOver = null; SFX.onGun = hostGun;
     if (!N.wrapped) { N.wrapped = true; for (const n of FWD) { const f = SFX[n]; SFX[n] = function () { f.apply(SFX, arguments); if (N.host && G.mode === 'play' && N.sfxq.length < 8) N.sfxq.push(n); }; } }
     return !!tr.host(roomName());
   }
   function roomName() { return (META.nick || 'Piloto') + ' · ' + (S ? CLASSES.find(c => c.id === S.cls).nome : ''); }
   function scan(on) { if (!transport()) return false; N.scanning = !!on; if (on) N.rooms = []; tr.scan(!!on); return true; }
-  function join(ip) { if (!transport()) return; if (N.host) leave(true); N.client = true; N.connected = false; N.myCls = null; N.lobby = null; tr.join(String(ip).trim()); }
+  function join(ip) { if (!transport()) return; if (N.host) leave(true); N.client = true; N.connected = false; N.myCls = null; N.lobby = null; N.shq = []; SFX.onGun = clientGun; tr.join(String(ip).trim()); }
   function leave(silent) {
     if (tr) { if (N.host && !silent) try { tr.broadcast('{"t":"close","why":"O Piloto fechou a sala."}'); } catch (e) {} try { tr.stop(); } catch (e) {} }
     const was = N.host || N.client;
-    N.host = N.client = N.connected = N.scanning = false; N.peers = {}; N.emap = {}; N.hitq = {}; N.myCls = null;
+    N.host = N.client = N.connected = N.scanning = false; N.peers = {}; N.emap = {}; N.hitq = {}; N.myCls = null; N.gunq = []; N.shq = []; SFX.onGun = null;
     G.netClient = false; G.humanCls = []; G.drvCls = null; G.hostPaused = false;
     return was;
   }
@@ -92,8 +92,8 @@ const NET = (() => {
         if (N.host) { if (N.peers[from]) N.peers[from].rx = performance.now(); onHost(from, m); continue; }
         N.lastRx = performance.now();
         if (m.t === 's') {   // snapshots atrasados: só o último é aplicado, mas os eventos de todos são mantidos
-          if (carry) { m.m = carry.m.concat(m.m || []); m.x = carry.x.concat(m.x || []); m.d = (m.d || 0) + carry.d; }
-          if (i === last) { applySnap(m); carry = null; } else carry = { m: m.m || [], x: m.x || [], d: m.d || 0 };
+          if (carry) { m.m = carry.m.concat(m.m || []); m.x = carry.x.concat(m.x || []); m.gn = carry.gn.concat(m.gn || []); m.d = (m.d || 0) + carry.d; }
+          if (i === last) { applySnap(m); carry = null; } else carry = { m: m.m || [], x: m.x || [], gn: m.gn || [], d: m.d || 0 };
         } else onClient(m);
       }
     }
@@ -150,6 +150,8 @@ const NET = (() => {
   }
   function applyHits(from, m) {
     if (m.f) P.fuel = Math.max(0, P.fuel - m.f); if (m.pl) P.pull += clamp(+m.pl, -12, 12);
+    // tiros do artilheiro deste celular: o Piloto ouve e repassa aos outros
+    if (Array.isArray(m.g)) for (const q of m.g.slice(0, 24)) { const k = String(q[0]), pan = clamp(+q[1] || 0, -100, 100) | 0; SFX.gun(k, { pan: pan / 100, dist: 1.5, net: true }); if (N.gunq.length < 32) N.gunq.push([k, pan, 2, from, performance.now()]); }
     for (const h of m.a || []) {
       const id = h[0], d = +h[1] || 0, pen = +h[2] || 1, fl = h[3] | 0;
       const src = { by: 'player', peer: from, head: !!(fl & 1), melee: !!(fl & 2), saw: !!(fl & 4), ads: !!(fl & 16), wid: h[4] || undefined };
@@ -200,6 +202,7 @@ const NET = (() => {
     };
     if (N.msgq.length) { s.m = N.msgq; N.msgq = []; }
     if (N.sfxq.length) { s.x = N.sfxq; N.sfxq = []; }
+    if (N.gunq.length) { const now = performance.now(); s.gn = N.gunq.map(q => [q[0], q[1], q[2], q[3], Math.round(now - q[4])]); N.gunq = []; }
     if (N.gd) { s.d = r2(N.gd); N.gd = 0; }
     return s;
   }
@@ -260,9 +263,18 @@ const NET = (() => {
   }
   function flush() {
     const a = []; for (const k in N.hitq) { const q = N.hitq[k]; q[1] = Math.round(q[1] * 10) / 10; a.push(q); } N.hitq = {};
-    if (!a.length && N.fuelUse < 1e-5 && Math.abs(N.pullUse) < 0.01) return;
-    send({ t: 'hits', a, f: Math.round(N.fuelUse * 1e5) / 1e5, pl: r2(N.pullUse) }); N.fuelUse = 0; N.pullUse = 0;
+    if (!a.length && !N.shq.length && N.fuelUse < 1e-5 && Math.abs(N.pullUse) < 0.01) return;
+    const o = { t: 'hits', a, f: Math.round(N.fuelUse * 1e5) / 1e5, pl: r2(N.pullUse) }; if (N.shq.length) { o.g = N.shq; N.shq = []; }
+    send(o); N.fuelUse = 0; N.pullUse = 0;
   }
+  /* som dos tiros na rede: lado do assento de quem atirou (esq./dir./teto) e distância */
+  const seatPan = () => (A.seat === 0 ? -55 : A.seat === 1 ? 55 : 0);
+  function hostGun(key, o) {
+    if (!N.host || G.mode !== 'play' || N.gunq.length >= 32 || !Object.keys(N.peers).length) return;
+    const pilot = G.role === 'pilot', pan = o.me ? (pilot ? 0 : seatPan()) : Math.round((o.pan || 0) * 100), dist = o.me ? (pilot ? 3 : 2) : Math.round(o.dist || 0);
+    N.gunq.push([key, pan, dist, 0, performance.now()]);
+  }
+  function clientGun(key, o) { if (o.me && N.client && N.connected && G.netClient && N.shq.length < 24) N.shq.push([key, seatPan()]); }
   function deathFx(e) {
     if (!(e.vf >= G.frame - 2) || e.st === 'latch') return; const d = ENEMY[e.type]; if (!d || d.estatico) return;
     const x = e.sx, y = e.sy - (e.sh || 0) * 0.5;
@@ -284,6 +296,8 @@ const NET = (() => {
     if (s.bn && (!G.banner || G.banner.a !== s.bn[0])) G.banner = { a: s.bn[0], b: s.bn[1], t: s.bn[2] };
     for (const mm of s.m || []) say(mm[0], mm[1], mm[2], true);
     for (const n of s.x || []) if (SFX[n]) SFX[n]();
+    // tiros dos outros (Piloto, outros artilheiros, IA e inimigos), espaçados como aconteceram no host
+    for (const q of s.gn || []) if (q[3] !== N.myId) SFX.gun(q[0], { pan: (q[1] || 0) / 100, dist: q[2] || 0, net: true, delay: clamp((1000 / SNAP_HZ - (q[4] || 0)) / 1000, 0, 0.08) });
     if (s.d) gunnerDmg(s.d);
     // entidades
     const seen = {}, ents = [];

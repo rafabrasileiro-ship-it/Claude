@@ -61,6 +61,9 @@ const CAPO = [
   { nome: 'Canhão 30mm UT30BR', dmg: 850, rof: 5, pen: 6, heat: 6, expl: 6, custo: 0, city: 10, veh: 4 },
 ];
 
+/* som de cada arma fixa do capô (audio.js) */
+const CAPO_GUN = [null, 'smg9', 'cal12a', 'lmg', 'm2x2', 'c25', 'c30'];
+
 const VEHICLES = [
   null,
   { nome: 'Uno de Firma (com escada)', classe: 'Nível 1 · Compacto Popular', vmax: 150, armor: 100, mass: 1, w: 1.0, cor: '#c9c5b4', custo: 0, city: 0, seats: ['Janela Esq.', 'Janela Dir.', 'Janela Tras.'] },

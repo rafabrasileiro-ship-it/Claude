@@ -40,7 +40,7 @@ const callCd = {};
 function callout(kind, led) { if ((callCd[kind] || 0) > G.t) return; callCd[kind] = G.t + 7; const n = G.ai.length ? pick(G.ai).cls.nome : 'Rádio'; say(n + ': "' + pick(CALLOUTS[kind]) + '"', 'ai'); if (led) G.led[led] = 2.5; SFX.beep(); }
 function fxBlood(x, y, n, cor) { for (let i = 0; i < n; i++) G.fx.push({ x, y, vx: rnd(-160, 160), vy: rnd(-220, 60), g: 500, life: rnd(0.3, 0.7), cor: cor || '#8a0a0a', s: rnd(2, 6) }); }
 function fxSpark(x, y, n) { for (let i = 0; i < n; i++) G.fx.push({ x, y, vx: rnd(-200, 200), vy: rnd(-200, 100), g: 300, life: rnd(0.15, 0.4), cor: '#ffd060', s: 2 }); }
-function fxBoom(x, y, size, silent) { G.fx.push({ x, y, vx: 0, vy: 0, g: 0, life: 0.45, max: 0.45, cor: 'boom', s: size }); for (let i = 0; i < 10; i++) G.fx.push({ x, y, vx: rnd(-260, 260), vy: rnd(-300, 40), g: 300, life: rnd(0.3, 0.8), cor: i % 2 ? '#ff8a1a' : '#333', s: rnd(3, 8) }); if (!silent) SFX.boom(); G.shake = Math.max(G.shake, Math.min(1.5, size / 80)); }
+function fxBoom(x, y, size, silent) { G.fx.push({ x, y, vx: 0, vy: 0, g: 0, life: 0.45, max: 0.45, cor: 'boom', s: size }); for (let i = 0; i < 10; i++) G.fx.push({ x, y, vx: rnd(-260, 260), vy: rnd(-300, 40), g: 300, life: rnd(0.3, 0.8), cor: i % 2 ? '#ff8a1a' : '#333', s: rnd(3, 8) }); if (!silent) SFX.boom(size / 90); G.shake = Math.max(G.shake, Math.min(1.5, size / 80)); }
 function tracer(x1, y1, x2, y2, cor) { G.tracers.push({ x1, y1, x2, y2, life: 0.07, cor: cor || '#ffe9a0' }); }
 function splat(n, cor) { for (let i = 0; i < n; i++) P.splats.push({ x: Math.random(), y: Math.random() * 0.8, r: rnd(0.03, 0.09), cor: cor || '#7a0808' }); if (P.splats.length > 40) P.splats.splice(0, P.splats.length - 40); P.blood = clamp(P.blood + n * 0.05, 0, 1); }
 function crack() { if (P.cracks.length < 9) P.cracks.push({ x: rnd(0.15, 0.85), y: rnd(0.1, 0.7), r: rnd(0.05, 0.12), a: Math.random() * 6 }); SFX.glass(); }
@@ -238,7 +238,7 @@ function updateVeh(e, dt) {
     if (e.ph === 'chega') { tgt(-0.5, 14); lane(P.x + e.side * (V.w + 2.6), 5); if (e.rel > -8) callout('moto', e.side < 0 ? 'L' : 'R'); if (e.rel > -1.5) { e.ph = 'ataca'; e.t = 0; } }
     else if (e.ph === 'ataca') {
       tgt(-0.5, 10); lane(P.x + e.side * (V.w + 1.15), 3.2); e.at = (e.at || 0) + dt;
-      if (e.at > 0.9 && Math.abs(e.x - P.x) < V.w + 1.6) { e.at = 0; armorDmg(S.up.lateral >= 1 ? 0.8 : 1.4); gunnerDmg(6); fxSpark(e.side < 0 ? 30 : G.W - 30, G.H * 0.62, 5); SFX.ric(); }
+      if (e.at > 0.9 && Math.abs(e.x - P.x) < V.w + 1.6) { e.at = 0; armorDmg(S.up.lateral >= 1 ? 0.8 : 1.4); gunnerDmg(6); fxSpark(e.side < 0 ? 30 : G.W - 30, G.H * 0.62, 5); SFX.gun('pist9', { pan: e.side * 0.8, dist: 2 + Math.abs(e.rel) }); if (Math.random() < 0.6) SFX.ric(); }
       if (S.up.lateral >= 2 && P.saws && Math.abs(e.x - P.x) < V.w + 1.3) { killEnt(e, { by: 'car' }); return; }
       if (e.t > 10) { e.ph = 'recua'; e.t = 0; }
     } else { tgt(-35, 9); lane(P.x + e.side * 4, 3); if (e.t > 5) { e.ph = 'chega'; e.side = -e.side; } }
@@ -249,7 +249,7 @@ function updateVeh(e, dt) {
     else if (e.ph === 'lado') { tgt(0, 8); lane(P.x + e.side * (V.w + ENEMY[e.type].w / 2 + (e.t > 2 && e.t % 3 < 1 ? -0.2 : 1.2)), 3.5); if (e.t > 8) { e.ph = 'frente'; e.t = 0; } }
     else if (e.ph === 'frente') { tgt(22, 9); lane(P.x * 0.6, 2); if (e.t > 9) { e.ph = 'chega'; e.t = 0; e.side = -e.side; } }
     e.at = (e.at || 0) + dt;
-    if (e.at > 0.6 && Math.abs(e.rel) < 40) { e.at = 0; const dm = (e.type === 'blindado' ? 1.8 : 0.9) * (S.up.janela >= 2 ? 0.5 : 1); armorDmg(dm); gunnerDmg(4); if (Math.random() < 0.3) SFX.ric(); else SFX.shotFar(); if (Math.random() < 0.04 && P.mirrorL && e.side < 0) { P.mirrorL = false; say('Tiro quebrou o retrovisor esquerdo! Ponto cego até a próxima cidade.', 'sys', 4); SFX.glass(); } if (Math.random() < 0.05) crack(); }
+    if (e.at > 0.6 && Math.abs(e.rel) < 40) { e.at = 0; const dm = (e.type === 'blindado' ? 1.8 : 0.9) * (S.up.janela >= 2 ? 0.5 : 1); armorDmg(dm); gunnerDmg(4); SFX.gun(e.type === 'blindado' ? 'm2' : 'fz762', { pan: clamp((e.x - P.x) / 6, -0.9, 0.9), dist: Math.hypot(e.rel, e.x - P.x) }); if (Math.random() < 0.3) SFX.ric(); if (Math.random() < 0.04 && P.mirrorL && e.side < 0) { P.mirrorL = false; say('Tiro quebrou o retrovisor esquerdo! Ponto cego até a próxima cidade.', 'sys', 4); SFX.glass(); } if (Math.random() < 0.05) crack(); }
   } else if (e.type === 'buggy' || e.type === 'carrobomba') {
     e.rel -= (e.type === 'buggy' ? 34 : 22) * dt; if (e.type === 'buggy') lane(P.x, 3.5);
     if (e.rel < -30) { e.dead = true; return; }
@@ -370,7 +370,7 @@ function updateCar(dt) {
 }
 function pilotFire(g) {
   P.gcd = 1 / g.rof; P.gfire = 0.06; P.gheat += g.heat * 0.011 * (drv() === 'cobra' ? 0.5 : 1); if (P.gheat >= 1) { P.glock = true; say('Cano da arma fixa superaquecido!', 'sys', 2, true); }
-  SFX.shot(g.pen); G.shake = Math.max(G.shake, 0.15 + g.pen * 0.05);
+  SFX.gun(CAPO_GUN[CAPO.indexOf(g)] || 'tiro', { me: 1 }); G.shake = Math.max(G.shake, 0.15 + g.pen * 0.05);
   const inc = G.abil.on > 0 && S.cls === 'cobra';
   // linha reta à frente do carro
   let best = null, bd = 220;
@@ -398,7 +398,7 @@ function gunnerFire() {
   if ((A.mag[A.w] || 0) <= 0) { SFX.click(); A.cd = 0.3; if (S.ammo[w.ammo] > 0) startReload(); else callout('semmun'); return; }
   if (w.heat && A.hlock) { SFX.click(); A.cd = 0.3; return; }
   A.mag[A.w] -= w.cost || 1; if (A.mag[A.w] < 0) A.mag[A.w] = 0; A.cd = 1 / w.rof; A.flash = 0.05; A.kick = 1; if (w.cat === 'escopeta') A.pump = 1;
-  G.stats.shots++; SFX.shot(w.pen); if (w.pen >= 4) SFX.vibrate(30);
+  G.stats.shots++; SFX.gun(A.w, { me: 1 }); if (w.pen >= 4) SFX.vibrate(30);
   if (w.heat) { A.heat += w.heat * 0.012 * (c.id === 'cobra' ? 0.5 : 1); if (A.heat >= 1) { A.hlock = true; say('Cano incandescente! Deixe esfriar.', 'sys', 2, true); } }
   const falc = G.abil.on > 0 && c.id === 'falcao', inc = G.abil.on > 0 && c.id === 'cobra';
   const spread = w.spread * (A.ads > 0.5 ? 0.25 : 1) * (1 + G.shake * 1.5);
@@ -458,6 +458,15 @@ function updateGunner(dt) {
 }
 
 /* ---------- artilheiros controlados pela IA ---------- */
+/* arma que cada companheiro usa (só define o som do tiro; o dano da IA cresce com a cidade):
+   Falcão = fuzil de ferrolho de precisão; Cobra = armas pesadas; Trovão = escopeta/fuzil; Graxa = pistola/submetralhadora */
+function aiGun(a) {
+  const c = cityLevel(), id = a.cls.id;
+  if (id === 'falcao') return 'fer';
+  if (id === 'cobra') return c >= 7 ? 'm2' : c >= 5 ? 'lmg' : c >= 4 ? 'fz762' : c >= 3 ? 'cal12' : 'cal20';
+  if (id === 'trovao') return c >= 4 ? 'fz762' : c >= 3 ? 'cal12' : c >= 1 ? 'cal20' : 'rev38';
+  return c >= 3 ? 'smg10' : c >= 2 ? 'smg9' : c >= 1 ? 'pist9' : 'rev38';
+}
 function updateAI(dt) {
   const city = cityLevel(), gun = aiGunners();
   for (const a of G.ai) aiAbility(a, dt);
@@ -472,11 +481,11 @@ function updateAI(dt) {
     }
     const bf = a.buff > 0, falc = bf && a.cls.id === 'falcao', inc = bf && a.cls.id === 'cobra';
     const dmg = (45 + city * 30) * (inc ? 1.5 : 1), pen = Math.min(6, 1 + (city / 2 | 0) + (falc ? 2 : 0)), tc = inc ? '#ff8a30' : '#ffe9a0';
-    if (G.boss && (!tgt || pr < 80) && Math.random() < 0.75) { const part = BOSS.aiTarget(); if (part) { const bb = G.boss; if (bb.vf >= G.frame - 1) tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, bb.sx + rnd(-20, 20), bb.sy - bb.sh * 0.5, tc); SFX.shotFar(); BOSS.hitPart(part, dmg * 0.5, pen, { by: 'ai' }); if (G.mode !== 'play') return; continue; } }
+    if (G.boss && (!tgt || pr < 80) && Math.random() < 0.75) { const part = BOSS.aiTarget(); if (part) { const bb = G.boss; if (bb.vf >= G.frame - 1) tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, bb.sx + rnd(-20, 20), bb.sy - bb.sh * 0.5, tc); SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); BOSS.hitPart(part, dmg * 0.5, pen, { by: 'ai' }); if (G.mode !== 'play') return; continue; } }
     if (!tgt) continue;
     if (tgt.vf >= G.frame - 1 && tgt.st !== 'latch') tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, tgt.sx, tgt.sy - tgt.sh * 0.6, tc);
     if (tgt.st === 'latch') { SFX.swing(); damageEnt(tgt, 140 + city * 40, 3, { by: 'ai', ai: a, saw: true }); }
-    else { SFX.shotFar(); if (Math.random() < (falc ? 0.9 : 0.72)) { const head = Math.random() < (falc ? 0.65 : 0.3); if (head) a.heads++; damageEnt(tgt, dmg, pen, { by: 'ai', ai: a, head }); if (inc && !tgt.dead) aoe(tgt.x, tgt.z, 3, dmg * 0.4, tgt); } }
+    else { SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); if (Math.random() < (falc ? 0.9 : 0.72)) { const head = Math.random() < (falc ? 0.65 : 0.3); if (head) a.heads++; damageEnt(tgt, dmg, pen, { by: 'ai', ai: a, head }); if (inc && !tgt.dead) aoe(tgt.x, tgt.z, 3, dmg * 0.4, tgt); } }
   }
   // avisos
   if (G.frame % 20 === 0) for (const e of G.ents) { if (e.dead) continue; const dz = e.z - P.z; if (dz < 20 || dz > 150) continue; if (Math.abs(e.x - P.x) > 3) continue; if (e.type === 'boiadeiro') callout('boiadeiro'); else if (e.type === 'colosso') callout('colosso'); else if (e.type === 'cangaceiro' && dz < 60 && S.up.pneu < 1) callout('cang'); }
