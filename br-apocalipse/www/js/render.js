@@ -2,7 +2,7 @@
 /* Renderização: pista pseudo-3D, cockpit diegético, retrovisores em tempo real, visão do artilheiro */
 const RENDER = (() => {
   let cv, c, mcv, mc, W = 960, H = 540, SX = 1, SY = 1, MS = 1, devW = 0, devH = 0;
-  const glowList = [];
+  const glowList = [], occl = [];
   const rgbC = {}; const rgb = (h) => rgbC[h] || (rgbC[h] = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
   const mix = (a, b, f) => `rgb(${a[0] + (b[0] - a[0]) * f | 0},${a[1] + (b[1] - a[1]) * f | 0},${a[2] + (b[2] - a[2]) * f | 0})`;
   const X = new Float32Array(160);
@@ -96,7 +96,7 @@ const RENDER = (() => {
     if (G.haz) for (const h of G.haz) { const dz = dir * (h.z - v.camZ); if (dz > 1 && dz < maxD) list.push({ dz, wx: center(dz) + h.x, haz: h }); }
     list.sort((a, b) => b.dz - a.dz);
     const falc = G.abil.on > 0 && S.cls === 'falcao' && v.main, glowOn = v.main && G.night;
-    if (v.main) glowList.length = 0;
+    if (v.main) { glowList.length = 0; occl.length = 0; } let di = 0;
     for (const s of list) {
       const dzr = s.rdz || s.dz, k = F / dzr, sx = W / 2 + pan + fs * (s.wx - v.camX) * (F / s.dz) * (s.rdz ? s.dz / dzr : 1), sy = hor + camH * k, f = fogF(s.dz / maxD);
       if (sx < -W * 0.6 || sx > W * 1.6) continue;
@@ -106,8 +106,8 @@ const RENDER = (() => {
         if (h.kind === 'fogo') { if (h.t > h.delay) { c.fillStyle = `rgba(255,${110 + Math.sin(G.t * 20 + h.x) * 50 | 0},10,0.8)`; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(sx - rx, sy); c.lineTo(sx - rx * 0.3, sy - rx * (1 + Math.sin(G.t * 14 + h.z) * 0.3)); c.lineTo(sx, sy - rx * 0.4); c.lineTo(sx + rx * 0.4, sy - rx * (1.2 + Math.cos(G.t * 11) * 0.3)); c.lineTo(sx + rx, sy); c.fill(); } else { c.strokeStyle = '#ff8a1a'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.stroke(); } }
         else if (!h.done) { const p = h.t / h.delay; c.fillStyle = `rgba(0,0,0,${0.25 + p * 0.4})`; c.beginPath(); c.ellipse(sx, sy, rx * (0.4 + p * 0.6), ry * (0.4 + p * 0.6), 0, 0, 7); c.fill(); c.strokeStyle = Math.sin(G.t * 20) > 0 ? '#ff2a2a' : '#ffd040'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.stroke(); c.fillStyle = '#5a4a3a'; const fy = sy - (1 - p) * (1 - p) * H * 0.9; c.fillRect(sx - rx * 0.5, fy - rx * 0.6, rx, rx * 0.6); }
         continue; }
-      c.save(); c.translate(sx, sy); c.scale(k, k);
-      if (s.boss) { BOSS.draw(c, G.t, b.front); c.restore(); if (v.main) { b.sx = sx; b.sy = sy; b.sh = b.h * k; b.k = k; b.vf = G.frame; if (!(b.key === 'reidograu' && b.front)) for (const p of b.parts) if (!p.dead && p.vuln) G.hits.push({ part: p, x: sx + (p.ox - p.w / 2) * k - 2, y: sy - (p.oy + p.h) * k - 2, w: p.w * k + 4, h: p.h * k + 4, dz: dzr }); } continue; }
+      c.save(); c.translate(sx, sy); c.scale(k, k); di++;
+      if (s.boss) { BOSS.draw(c, G.t, b.front); c.restore(); if (glowOn) occl.push([di, sx - b.w * k / 2, sy - b.h * k, sx + b.w * k / 2, sy]); if (v.main) { b.sx = sx; b.sy = sy; b.sh = b.h * k; b.k = k; b.vf = G.frame; if (!(b.key === 'reidograu' && b.front)) for (const p of b.parts) if (!p.dead && p.vuln) G.hits.push({ part: p, x: sx + (p.ox - p.w / 2) * k - 2, y: sy - (p.oy + p.h) * k - 2, w: p.w * k + 4, h: p.h * k + 4, dz: dzr }); } continue; }
       if (s.e) { const e = s.e, d = ENEMY[e.type], hpx = d.h * k, lod = hpx < 9 ? 0 : hpx < 30 ? 1 : 2;
         DRAW.fog(fogc, f);
         if (e.type === 'rampa') { DRAW.R(c, -9, -0.2, 18, 0.2, '#666'); c.fillStyle = '#4a4f55'; c.beginPath(); c.moveTo(-3.5, 0); c.lineTo(3.5, 0); c.lineTo(3, -2.6); c.lineTo(-3, -2.6); c.fill(); c.fillStyle = '#e8c020'; c.fillRect(-3.2, -0.5, 6.4, 0.2); c.fillStyle = '#3a3f44'; c.fillRect(-16, -9, 32, 5); c.fillStyle = '#c22'; c.fillRect(-16, -5, 32, 0.6); c.fillStyle = '#ddd'; c.fillRect(4, -13, 6, 4); }
@@ -115,7 +115,7 @@ const RENDER = (() => {
         else if (d.veh || d.estatico) DRAW.vehicle(c, e, G.t, dir < 0 || e.type === 'buggy' || e.type === 'carrobomba');
         else DRAW.zombie(c, e, G.t, lod);
         DRAW.fog(null);
-        if (glowOn && !d.veh && !d.estatico) glowList.push({ e, sx, sy, k, lod, f });
+        if (glowOn) { if (d.veh || d.estatico) occl.push([di, sx - d.w * k / 2, sy - d.h * k, sx + d.w * k / 2, sy]); else glowList.push({ e, sx, sy, k, lod, f, fc: fogc, i: di }); }
         if (e.flash > 0) { c.globalAlpha = 0.6; c.fillStyle = '#fff'; c.fillRect(-d.w / 2, -d.h, d.w, d.h); }
         if (falc && !d.estatico) { c.globalAlpha = 0.9; c.fillStyle = '#ff1a1a'; if (d.veh) { c.fillRect(-d.w / 2, -d.h * 0.2, d.w * 0.25, d.h * 0.2); c.fillRect(d.w / 4, -d.h * 0.2, d.w * 0.25, d.h * 0.2); } else c.fillRect(-0.2, -d.h, 0.4, d.h * 0.22); }
         c.restore();
@@ -306,22 +306,26 @@ const RENDER = (() => {
     for (let i = G.msgs.length - 1; i >= 0; i--) { const m = G.msgs[i]; c.globalAlpha = Math.min(1, m.t * 2); const wd = Math.min(W * 0.8, c.measureText(m.txt).width + 20); c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(W / 2 - wd / 2, y - 15, wd, 21); c.fillStyle = m.who === 'ai' ? '#ffd870' : m.who === 'sys' ? '#ff8a6a' : '#9adfff'; c.fillText(m.txt, W / 2, y, W * 0.78); y -= 24; } c.globalAlpha = 1;
   }
 
-  /* zumbis luminescentes à noite: por cima da escuridão, só a pele, os olhos e as feridas brilham (com halo) */
+  /* zumbis luminescentes à noite: redesenhados opacos por cima da escuridão, de trás para a frente — o corpo escurece como a cena,
+     a pele, os olhos e as feridas continuam acesos (com halo fora do facho do farol). Quem está atrás de um veículo/chefe não é redesenhado. */
   function glowPass(c, v) {
     if (!glowList.length) return;
     const lv = P.lights, r0 = H * 0.06, r1 = H * (lv === 2 ? 0.95 : lv === 1 ? 0.62 : 0.2), cx = W / 2 + (v.pan || 0), cy = v.hor + H * 0.16;
     for (const g of glowList) {
       const e = g.e, d = ENEMY[e.type], k = g.k, u = clamp((Math.hypot(g.sx - cx, g.sy - d.h * k * 0.6 - cy) - r0) / Math.max(1, r1 - r0), 0, 1);
-      const dark = u < 0.5 ? 0.05 + u * 0.8 : 0.45 + (u - 0.5) * 0.98, a = dark * (1 - g.f * 0.6);   // mesma escuridão do farol (atmosphere)
-      if (a < 0.1) continue;
-      if (dark > 0.6) {   // halo só no escuro, fora do facho do farol (no facho ele embaçaria os zumbis da frente)
+      const dark = u < 0.5 ? 0.05 + u * 0.8 : 0.45 + (u - 0.5) * 0.98;   // mesma escuridão do farol (atmosphere)
+      if (dark < 0.1) continue;
+      const x0 = g.sx - d.w * k * 0.9, x1 = g.sx + d.w * k * 0.9, y0 = g.sy - d.h * k;
+      if (occl.some(o => o[0] > g.i && o[1] < x1 && o[3] > x0 && o[2] < g.sy && o[4] > y0)) continue;
+      if (dark > 0.6) {
         const hw = d.w * k * 1.5, hh = d.h * k * 0.7;
         c.globalCompositeOperation = 'lighter'; c.globalAlpha = (dark - 0.6) * (1 - g.f * 0.6); c.drawImage(DRAW.halo(e), g.sx - hw, g.sy - d.h * k * 0.6 - hh, hw * 2, hh * 2);
         c.globalCompositeOperation = 'source-over';
       }
-      c.globalAlpha = a; c.save(); c.translate(g.sx, g.sy); c.scale(k, k); DRAW.glow(true);
+      const s = clamp((dark - 0.1) / 0.5, 0, 1);   // força do brilho: some suavemente perto do facho
+      c.globalAlpha = 1; c.save(); c.translate(g.sx, g.sy); c.scale(k, k); DRAW.fog(g.fc, g.f); DRAW.night(dark, dark * (1 - 0.88 * s));
       if (e.type === 'boi') DRAW.boi(c, e, G.t, g.lod); else DRAW.zombie(c, e, G.t, g.lod);
-      DRAW.glow(false); c.restore();
+      DRAW.night(0, 0); DRAW.fog(null); c.restore();
     }
     c.globalAlpha = 1; glowList.length = 0;
   }

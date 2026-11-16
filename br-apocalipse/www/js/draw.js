@@ -3,19 +3,23 @@
 const DRAW = (() => {
   /* Névoa como mistura de cor OPACA: o sprite nunca fica transparente (antes dava para ver a pista através dos zumbis).
      FOG = cor da névoa [r,g,b]; FF = fração aplicada no corpo; FE = fração na pele luminescente (o brilho atravessa melhor a névoa).
-     GLOW = passada noturna: o corpo vira silhueta escura e só a pele, os olhos e as feridas acendem. */
-  let FOG = null, FF = 0, FE = 0, fogKey = '', GLOW = false;
-  const HEX = {}, MIX = new Map();
+     Escuridão da noite (passada noturna): depois da névoa, o corpo escurece como o resto da cena (NB) e a pele quase nada (NE). */
+  let FOG = null, FF = 0, FE = 0, fogKey = '', NB = 0, NE = 0;
+  const NOITE = [3, 4, 9], HEX = {}, MIX = new Map();
   const hex = (h) => HEX[h] || (HEX[h] = h.length === 4 ? [parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16), parseInt(h[3] + h[3], 16)] : [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
   function col(cor, em) {
-    if (GLOW) return em ? cor : '#060708';
-    const f = em ? FE : FF; if (!FOG || f < 0.03 || cor.charCodeAt(0) !== 35) return cor;
-    const q = Math.min(32, Math.round(f * 32)), key = cor + q; let v = MIX.get(key);
-    if (!v) { const a = hex(cor), t = q / 32; v = `rgb(${a[0] + (FOG[0] - a[0]) * t | 0},${a[1] + (FOG[1] - a[1]) * t | 0},${a[2] + (FOG[2] - a[2]) * t | 0})`; if (MIX.size > 5000) MIX.clear(); MIX.set(key, v); }
+    if ((!FOG && !NB) || cor.charCodeAt(0) !== 35) return cor;
+    const q1 = FOG ? Math.min(32, Math.round((em ? FE : FF) * 32)) : 0, q2 = Math.min(32, Math.round((em ? NE : NB) * 32)); if (!q1 && !q2) return cor;
+    const key = cor + q1 + '/' + q2; let v = MIX.get(key);
+    if (!v) {
+      const a = hex(cor), t = q1 / 32, n = q2 / 32, F = FOG || a;
+      const ch = (i) => { const x = a[i] + (F[i] - a[i]) * t; return x + (NOITE[i] - x) * n | 0; };
+      v = `rgb(${ch(0)},${ch(1)},${ch(2)})`; if (MIX.size > 6000) MIX.clear(); MIX.set(key, v);
+    }
     return v;
   }
   function fog(rgb, f) { if (!rgb) { FOG = null; return; } const k = rgb[0] + ',' + rgb[1] + ',' + rgb[2]; if (k !== fogKey) { fogKey = k; MIX.clear(); } FOG = rgb; FF = f; FE = f * f * 0.85; }
-  function glow(on) { GLOW = !!on; }
+  function night(body, skin) { NB = body || 0; NE = skin || 0; }
   const R = (c, x, y, w, h, cor) => { c.fillStyle = col(cor, 0); c.fillRect(x, y, w, h); };
   const L = (c, x, y, w, h, cor) => { c.fillStyle = col(cor, 1); c.fillRect(x, y, w, h); };   // partes que brilham: pele, olhos, brasas
   const FS = (c, cor, em) => { c.fillStyle = col(cor, em); };
@@ -286,5 +290,5 @@ const DRAW = (() => {
     c.restore();
   }
 
-  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R, fog, glow, halo, pele };
+  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R, fog, night, halo, pele };
 })();
