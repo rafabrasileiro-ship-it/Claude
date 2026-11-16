@@ -10,8 +10,14 @@ const RENDER = (() => {
   const CLIMA_N = { limpo: 110, chuva: 62, neblina: 30, fumaca: 17, queimada: 22, areia: 15 };
   const CLIMA_FOG = { chuva: '#59626a', neblina: null, fumaca: '#3a2a20', queimada: '#6a4a30', areia: '#c8a050' };
 
+  let use3D = false, glcv = null;
   function init(canvas) {
-    cv = canvas; c = cv.getContext('2d'); mcv = document.createElement('canvas'); mc = mcv.getContext('2d'); resize(); window.addEventListener('resize', resize);
+    cv = canvas; c = cv.getContext('2d'); mcv = document.createElement('canvas'); mc = mcv.getContext('2d');
+    // motor 3D (WebGL) por baixo do canvas 2D; se o aparelho não tiver WebGL, ou o jogador escolher, fica o desenho 2D clássico
+    glcv = document.getElementById('gl');
+    if (glcv && typeof W3D !== 'undefined' && META.opts.gfx !== '2d') { try { use3D = W3D.init(glcv); } catch (e) { console.error(e); use3D = false; } }
+    document.body.classList.toggle('gl3d', use3D); if (glcv) glcv.style.display = use3D ? 'block' : 'none';
+    resize(); window.addEventListener('resize', resize);
     // tamanho exato da tela em pixels físicos: 1 pixel do desenho = 1 pixel da tela, sem reamostragem
     if (window.ResizeObserver) try {
       const ro = new ResizeObserver((en) => { const b = en[0] && en[0].devicePixelContentBoxSize; if (b && b[0]) { devW = b[0].inlineSize; devH = b[0].blockSize; } resize(); });
@@ -32,6 +38,7 @@ const RENDER = (() => {
     let bh = opt.h || ph, bw = !opt.h && a === ar ? pw : Math.round(bh * a);
     const cap = 3200 / Math.max(bw, bh); if (cap < 1) { bw = Math.round(bw * cap); bh = Math.round(bh * cap); }   // limite de memória do canvas
     if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+    if (use3D) W3D.resize(bw, bh);
     SX = bw / W; SY = bh / H; MS = Math.min(3, Math.max(1, SY));
     const mw = Math.round(360 * MS), mh = Math.round(90 * MS); if (mcv.width !== mw || mcv.height !== mh) { mcv.width = mw; mcv.height = mh; }
     G.W = W; G.H = H;
@@ -128,9 +135,9 @@ const RENDER = (() => {
     if (b && b.cable && v.main && b.vf === G.frame) { c.strokeStyle = '#c8c8c8'; c.lineWidth = 3; c.beginPath(); c.moveTo(b.sx, b.sy - b.k * 1); c.lineTo(W / 2 + pan, H * 0.72); c.stroke(); }
   }
 
-  function atmosphere(c, W, H, hor, pan) {
+  function atmosphere(c, W, H, hor, pan, no3dNight) {
     const cl = G.clima;
-    if (G.night) { const lv = P.lights, r1 = H * (lv === 2 ? 0.95 : lv === 1 ? 0.62 : 0.2), cx = W / 2 + pan, cy = hor + H * 0.16; const g = c.createRadialGradient(cx, cy, H * 0.06, cx, cy, r1); g.addColorStop(0, 'rgba(255,240,200,0.05)'); g.addColorStop(0.5, 'rgba(4,6,12,0.45)'); g.addColorStop(1, 'rgba(2,3,8,0.94)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+    if (G.night && !no3dNight) { const lv = P.lights, r1 = H * (lv === 2 ? 0.95 : lv === 1 ? 0.62 : 0.2), cx = W / 2 + pan, cy = hor + H * 0.16; const g = c.createRadialGradient(cx, cy, H * 0.06, cx, cy, r1); g.addColorStop(0, 'rgba(255,240,200,0.05)'); g.addColorStop(0.5, 'rgba(4,6,12,0.45)'); g.addColorStop(1, 'rgba(2,3,8,0.94)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
     if (cl === 'chuva') { c.fillStyle = 'rgba(60,70,85,0.22)'; c.fillRect(0, 0, W, H); c.strokeStyle = 'rgba(200,215,230,0.45)'; c.lineWidth = 1.2; c.beginPath(); for (let i = 0; i < 70; i++) { const x = Math.random() * W, y = Math.random() * H; c.moveTo(x, y); c.lineTo(x - 8 - P.steer * 10, y + 34); } c.stroke(); }
     else if (cl === 'fumaca' || cl === 'queimada') { c.fillStyle = cl === 'fumaca' ? 'rgba(30,18,10,0.35)' : 'rgba(90,50,20,0.3)'; c.fillRect(0, 0, W, H); c.fillStyle = '#ffb040'; for (let i = 0; i < 26; i++) { const x = (Math.sin(i * 91.7 + G.t * (0.6 + i % 5 * 0.2)) * 0.5 + 0.5) * W, y = ((i * 53 + G.t * (90 + i % 7 * 30)) % H); c.fillRect(x, H - y, 2.5, 2.5); } }
     else if (cl === 'areia') { c.fillStyle = 'rgba(200,160,70,0.32)'; c.fillRect(0, 0, W, H); c.strokeStyle = 'rgba(240,210,140,0.3)'; c.lineWidth = 1; c.beginPath(); for (let i = 0; i < 40; i++) { const x = Math.random() * W, y = Math.random() * H; c.moveTo(x, y); c.lineTo(x + 60, y + 4); } c.stroke(); }
@@ -306,6 +313,31 @@ const RENDER = (() => {
     for (let i = G.msgs.length - 1; i >= 0; i--) { const m = G.msgs[i]; c.globalAlpha = Math.min(1, m.t * 2); const wd = Math.min(W * 0.8, c.measureText(m.txt).width + 20); c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(W / 2 - wd / 2, y - 15, wd, 21); c.fillStyle = m.who === 'ai' ? '#ffd870' : m.who === 'sys' ? '#ff8a6a' : '#9adfff'; c.fillText(m.txt, W / 2, y, W * 0.78); y -= 24; } c.globalAlpha = 1;
   }
 
+  /* por cima do mundo 3D: o que ainda é desenhado em 2D na posição projetada (corrente/cabo dos chefes, marcação do Falcão, perigos) */
+  function overlay3D(v) {
+    const W = v.W, H = v.H, b = G.boss, F = v.F, fs = v.flip ? -1 : 1, pan = v.pan || 0, Xs = W3D.X;
+    if (typeof FX3D === 'undefined' && G.haz && G.haz.length) {
+      const base = Math.floor(v.camZ / SEG), frac = v.camZ / SEG - base, off = v.dir > 0 ? frac : 1 - frac;
+      const center = (dz) => { const nf = dz / SEG + off, n0 = Math.max(0, Math.floor(nf)), t = nf - n0; return Xs[n0] + (Xs[n0 + 1] - Xs[n0]) * t; };
+      for (const h of G.haz) {
+        const dz = v.dir * (h.z - v.camZ); if (dz < 1 || dz > v.N * SEG) continue;
+        const k = F / dz, sx = W / 2 + pan + fs * (center(dz) + h.x - v.camX) * k, sy = v.hor + v.camH * k, rx = h.r * k, ry = Math.max(1.5, h.r * v.camH * k / dz * 1.4);
+        if (h.kind === 'fogo') { if (h.t > h.delay) { c.fillStyle = `rgba(255,${110 + Math.sin(G.t * 20 + h.x) * 50 | 0},10,0.8)`; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.fill(); } else { c.strokeStyle = '#ff8a1a'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.stroke(); } }
+        else if (!h.done) { const p = h.t / h.delay; c.strokeStyle = Math.sin(G.t * 20) > 0 ? '#ff2a2a' : '#ffd040'; c.lineWidth = 2; c.beginPath(); c.ellipse(sx, sy, rx, ry, 0, 0, 7); c.stroke(); c.fillStyle = '#5a4a3a'; const fy = sy - (1 - p) * (1 - p) * H * 0.9; c.fillRect(sx - rx * 0.5, fy - rx * 0.6, rx, rx * 0.6); }
+      }
+    }
+    if (b && b.chainOn && b.esc) { const es = b.esc.filter(e => !e.dead && e.vf === G.frame); if (es.length === 2) { c.strokeStyle = `rgb(255,${100 + Math.sin(G.t * 30) * 60 | 0},20)`; c.lineWidth = 5; c.beginPath(); c.moveTo(es[0].sx, es[0].sy - es[0].sh * 0.5); c.quadraticCurveTo(W / 2, H * 0.62, es[1].sx, es[1].sy - es[1].sh * 0.5); c.stroke(); } }
+    if (b && b.cable && b.vf === G.frame) { c.strokeStyle = '#c8c8c8'; c.lineWidth = 3; c.beginPath(); c.moveTo(b.sx, b.sy - b.k * 1); c.lineTo(W / 2 + pan, H * 0.72); c.stroke(); }
+    if (G.abil.on > 0 && S.cls === 'falcao') {
+      c.fillStyle = '#ff1a1a'; c.globalAlpha = 0.9;
+      for (const e of G.ents) { if (e.dead || e.vf !== G.frame || e.st === 'latch') continue; const d = ENEMY[e.type]; if (d.estatico) continue; const k = e.sh / d.h; if (d.veh) { c.fillRect(e.sx - d.w * k / 2, e.sy - d.h * k * 0.2, d.w * k * 0.25, d.h * k * 0.2); c.fillRect(e.sx + d.w * k / 4, e.sy - d.h * k * 0.2, d.w * k * 0.25, d.h * k * 0.2); } else c.fillRect(e.sx - 0.2 * k, e.sy - e.sh, 0.4 * k, e.sh * 0.22); }
+      c.globalAlpha = 1;
+    }
+    if (b && b.vf === G.frame && b.parts) {   // barra de vida dos pontos fracos
+      for (const p of b.parts) { if (p.dead || !p.vuln || (p.id === 'cabo' && !p.vuln)) continue; c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(b.sx + (p.ox - p.w / 2) * b.k, b.sy - (p.oy + p.h + 0.25) * b.k, p.w * b.k, Math.max(2, 0.1 * b.k)); c.fillStyle = '#e22'; c.fillRect(b.sx + (p.ox - p.w / 2) * b.k, b.sy - (p.oy + p.h + 0.25) * b.k, p.w * b.k * (p.hp / p.max), Math.max(2, 0.1 * b.k)); }
+    }
+  }
+
   /* zumbis luminescentes à noite: redesenhados opacos por cima da escuridão, de trás para a frente — o corpo escurece como a cena,
      a pele, os olhos e as feridas continuam acesos (com halo fora do facho do farol). Quem está atrás de um veículo/chefe não é redesenhado. */
   function glowPass(c, v) {
@@ -341,11 +373,12 @@ const RENDER = (() => {
     if (role === 'pilot' && fpp) { const camH = [0, 1.15, 1.2, 1.5, 2.0, 2.6][S.veh]; v = { W, H, hor: H * 0.4 + sy + jumpY, F: H * 0.92, dir: 1, flip: false, camX: P.x - 0.3, camZ: P.z, camH, N: viewN, main: true, pan: sx - P.steer * 14 }; }
     else if (role === 'pilot') { v = { W, H, hor: H * 0.36 + sy * 0.5 + jumpY, F: H * 0.9, dir: 1, flip: false, camX: P.x * 0.85, camZ: P.z - 7.5, camH: 3.4 + S.veh * 0.35, N: viewN, main: true, pan: sx * 0.5 }; }
     else { const seat = A.seat, camH = [0, 1.25, 1.3, 1.6, 2.1, 2.7][S.veh] + (seat === 2 ? 0.8 : 0), zoom = 1 + A.ads * 0.6; v = { W, H, hor: H * 0.47 + sy - (A.ay - H * 0.45) * 0.3, F: H * 0.9 * zoom, dir: A.look, flip: A.look < 0, camX: P.x + (seat === 0 ? -1 : seat === 1 ? 1 : 0) * G.V.w * 0.9, camZ: P.z + (A.exposed ? 0 : 0), camH, N: viewN, main: true, pan: sx - (A.ax - W / 2) * 0.35 * zoom }; }
-    world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v);
+    if (use3D && W3D.render(v)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); }
+    else { world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v); }
     if (role === 'pilot' && fpp) cockpit(sy * 0.4);
     else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
     else gunnerView();
     hud(role);
   }
-  return { init, frame, resize, base, get W() { return W; }, get H() { return H; }, get resW() { return cv.width; }, get resH() { return cv.height; } };
+  return { init, frame, resize, base, get W() { return W; }, get H() { return H; }, get resW() { return cv.width; }, get resH() { return cv.height; }, get is3D() { return use3D; } };
 })();

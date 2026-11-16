@@ -2,6 +2,8 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: none; }
 html, body { margin: 0; height: 100%; background: #0b0a08; color: #e8e0c8; font-family: Arial, Helvetica, sans-serif; overflow: hidden; overscroll-behavior: none; }
 #cv { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #0b0a08; }
+#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #0b0a08; pointer-events: none; }
+body.gl3d #cv { background: transparent; }
 .hide { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; }
 

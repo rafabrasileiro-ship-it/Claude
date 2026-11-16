@@ -124,7 +124,7 @@ function damageEnt(e, dmg, pen, src) {
   return dmg;
 }
 function killEnt(e, src) {
-  if (e.dead) return; e.dead = true; src = src || {}; const d = ENEMY[e.type];
+  if (e.dead) return; e.dead = true; src = src || {}; const d = ENEMY[e.type]; e.killed = src.by || 'x'; e.kHead = !!src.head;   // para o cadáver 3D
   const vis = e.vf >= G.frame - 1, sx = e.sx || G.W / 2, sy = (e.sy || G.H / 2) - (e.sh || 0) * 0.5;
   if (e.st === 'latch' && src.by === 'player') { if (src.peer) NET.peerStat(src.peer, 'salva'); else G.stats.salva++; }
   if (e.st === 'latch' && src.ai) src.ai.salva++;
