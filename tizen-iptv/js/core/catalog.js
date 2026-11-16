@@ -6,11 +6,12 @@
  *     profile,                      // perfil salvo no Storage
  *     info,                         // dados da conta (Xtream) ou null
  *     isLoaded(kind),               // a seção já está em memória?
- *     loadSection(kind, options)    // Promise<Section>; kind = 'live' | 'vod'
+ *     loadSection(kind, options),   // Promise<Section>; kind = 'live' | 'vod' | 'series'
+ *     loadEpisodes(serie, options)  // Promise<[{ id, name, items }]> (temporadas)
  *   }
  *   Section = { categories: [{ id, name, items }], all: [Item], total }
  *
- * M3U: as duas seções saem de um único parse. Xtream: cada seção é baixada
+ * M3U: as três seções saem de um único parse. Xtream: cada seção é baixada
  * só quando o usuário entra nela (listas de filmes costumam ser enormes).
  */
 (function (IPTV) {
@@ -33,6 +34,20 @@
     section.all = all;
     section.total = all.length;
     return section;
+  }
+
+  /** M3U: separa os episódios de uma série em temporadas. */
+  function groupSeasons(series) {
+    const bySeason = new Map();
+    series.episodes.forEach((episode) => {
+      if (!bySeason.has(episode.season)) bySeason.set(episode.season, []);
+      bySeason.get(episode.season).push(episode);
+    });
+    return Array.from(bySeason.keys()).sort((a, b) => a - b).map((season) => ({
+      id: 'season:' + season,
+      name: 'Temporada ' + season,
+      items: bySeason.get(season).sort((a, b) => a.num - b.num)
+    }));
   }
 
   async function openM3U(profile, options) {
@@ -68,14 +83,16 @@
 
     const sections = {
       live: finalizeSection(parsed.live),
-      vod: finalizeSection(parsed.vod)
+      vod: finalizeSection(parsed.vod),
+      series: finalizeSection(parsed.series)
     };
 
     return {
       profile,
       info: null,
       isLoaded: () => true,
-      loadSection: (kind) => Promise.resolve(sections[kind])
+      loadSection: (kind) => Promise.resolve(sections[kind]),
+      loadEpisodes: (series) => Promise.resolve(groupSeasons(series))
     };
   }
 
@@ -100,6 +117,10 @@
       loadSection: async (kind, sectionOptions) => {
         if (!cache[kind]) cache[kind] = finalizeSection(await client.loadSection(kind, sectionOptions));
         return cache[kind];
+      },
+      loadEpisodes: async (series, episodeOptions) => {
+        if (!series._seasons) series._seasons = await client.loadEpisodes(series, episodeOptions);
+        return series._seasons;
       }
     };
   }

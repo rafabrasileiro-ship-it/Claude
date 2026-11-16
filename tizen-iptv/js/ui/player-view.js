@@ -103,7 +103,8 @@
     // OSD
     els.osdNum.textContent = item.num != null ? item.num : '';
     els.osdName.textContent = item.name;
-    els.osdGroup.textContent = (item.kind === 'vod' ? 'Filme' : 'Canal') + (item.group ? ' · ' + item.group : '');
+    els.osdGroup.textContent = (item.isEpisode ? 'Temporada ' + item.season : (item.kind === 'vod' ? 'Filme' : 'Canal')) +
+      (item.group ? ' · ' + item.group : '');
     els.osdLogoText.textContent = Utils.initials(item.name);
     if (els.osdLogo._url !== item.logo) {
       els.osdLogo._url = item.logo;

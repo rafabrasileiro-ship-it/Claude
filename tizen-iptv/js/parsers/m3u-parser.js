@@ -3,7 +3,9 @@
  *
  * Extrai tvg-id, tvg-name, tvg-logo e group-title de cada #EXTINF, a URL do
  * stream da linha seguinte, e agrupa por categoria. Entradas cujo link aponta
- * para arquivo de vídeo (.mp4, .mkv, /movie/ ...) vão para a seção "vod".
+ * para arquivo de vídeo (.mp4, .mkv, /movie/ ...) vão para a seção "vod"; links
+ * com /series/ ou títulos no padrão "Nome S01E02" viram episódios agrupados
+ * por série na seção "series".
  *
  * O texto é percorrido linha a linha com indexOf (sem split, para não duplicar
  * a lista inteira na memória) e em fatias de tempo: a cada ~12 ms de trabalho o
@@ -11,7 +13,7 @@
  * itens não travam a TV e o carregamento pode ser cancelado com Voltar.
  *
  * Resultado:
- *   { live: Section, vod: Section, epgUrl, total }
+ *   { live: Section, vod: Section, series: Section, epgUrl, total }
  *   Section  = { categories: [Category], total }
  *   Category = { id, name, items: [Item] }
  *   Item     = { id, num, name, tvgId, tvgName, logo, group, url, kind }
@@ -23,7 +25,10 @@
 
   const ATTRIBUTE_RE = /([A-Za-z0-9_-]+)="([^"]*)"/g;
   const VOD_FILE_RE = /\.(mp4|mkv|avi|mov|wmv|flv|webm|m4v|mpg|mpeg)$/i;
-  const VOD_PATH_RE = /\/(movie|movies|series|vod)\//i;
+  const VOD_PATH_RE = /\/(movie|movies|vod)\//i;
+  const SERIES_PATH_RE = /\/series\//i;
+  /* "Nome da Série S01E02" → [1] nome, [2] temporada, [3] episódio */
+  const EPISODE_RE = /^(.*?)\bS(\d{1,3})\s*[._-]?\s*E(\d{1,4})\b/i;
   const HAS_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
   const STREAM_URL_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
   const HLS_STREAM_RE = /#EXT-X-(STREAM-INF|TARGETDURATION|MEDIA-SEQUENCE|MEDIA:|VERSION|INDEPENDENT-SEGMENTS)/;
@@ -46,9 +51,12 @@
     return { attrs, title, group: '' };
   }
 
-  function classify(url) {
+  function classify(url, title) {
     const path = url.split('#')[0].split('?')[0];
-    return VOD_FILE_RE.test(path) || VOD_PATH_RE.test(path) ? 'vod' : 'live';
+    if (SERIES_PATH_RE.test(path)) return 'series';
+    const isFile = VOD_FILE_RE.test(path);
+    if (isFile && EPISODE_RE.test(title)) return 'series';
+    return isFile || VOD_PATH_RE.test(path) ? 'vod' : 'live';
   }
 
   function resolveUrl(url, baseUrl) {
@@ -71,7 +79,7 @@
   }
 
   function createSection() {
-    return { categories: [], total: 0, _byName: new Map() };
+    return { categories: [], total: 0, _byName: new Map(), _series: new Map() };
   }
 
   function categoryFor(section, name, prefix) {
@@ -102,7 +110,7 @@
     const token = opts.cancelToken;
     const baseUrl = opts.sourceUrl || '';
     const sliceMs = IPTV.Config.PARSE_SLICE_MS;
-    const result = { live: createSection(), vod: createSection(), epgUrl: '', total: 0 };
+    const result = { live: createSection(), vod: createSection(), series: createSection(), epgUrl: '', total: 0 };
 
     if (typeof text !== 'string' || !text.trim()) {
       throw new Error('A playlist está vazia');
@@ -111,24 +119,56 @@
     function addEntry(meta, rawUrl) {
       const attrs = meta ? meta.attrs : {};
       const url = resolveUrl(rawUrl, baseUrl);
-      const kind = classify(url);
-      const section = result[kind];
       const tvgName = attrs['tvg-name'] || '';
       const name = (meta && meta.title) || tvgName || fileName(url) || 'Sem nome';
+      const kind = classify(url, name);
+      const section = result[kind];
       const groupName = (attrs['group-title'] || (meta && meta.group) || '').trim() || UNGROUPED;
       const tvgId = attrs['tvg-id'] || '';
-      section.total++;
+      const logo = Utils.safeImageUrl(attrs['tvg-logo'] || attrs.logo);
+      const id = 'm3u:' + Utils.hash(tvgId + '|' + name + '|' + url);
       result.total++;
+      if (kind === 'series') {
+        addEpisode(section, groupName, name, logo, id, url);
+        return;
+      }
+      section.total++;
       categoryFor(section, groupName, kind).items.push({
-        id: 'm3u:' + Utils.hash(tvgId + '|' + name + '|' + url),
-        num: section.total,
-        name,
-        tvgId,
-        tvgName,
-        logo: Utils.safeImageUrl(attrs['tvg-logo'] || attrs.logo),
-        group: groupName,
+        id, num: section.total, name, tvgId, tvgName, logo, group: groupName, url, kind
+      });
+    }
+
+    /** Episódios são agrupados em um item "série" (kind: 'series') por grupo + nome. */
+    function addEpisode(section, groupName, title, logo, id, url) {
+      const match = EPISODE_RE.exec(title);
+      const seriesName = (match && match[1].replace(/[\s._-]+$/, '')) || title;
+      const key = groupName + '|' + seriesName.toLowerCase();
+      let series = section._series.get(key);
+      if (!series) {
+        section.total++;
+        series = {
+          id: 'm3u:series:' + Utils.hash(key),
+          num: section.total,
+          name: seriesName,
+          logo,
+          group: groupName,
+          url: '',
+          kind: 'series',
+          episodes: []
+        };
+        section._series.set(key, series);
+        categoryFor(section, groupName, 'series').items.push(series);
+      }
+      series.episodes.push({
+        id,
+        num: match ? parseInt(match[3], 10) : series.episodes.length + 1,
+        season: match ? parseInt(match[2], 10) : 1,
+        name: title,
+        logo: logo || series.logo,
+        group: seriesName,
         url,
-        kind
+        kind: 'vod',
+        isEpisode: true
       });
     }
 
@@ -181,8 +221,10 @@
     if (result.total === 0) {
       throw new Error('Nenhum canal encontrado. O endereço aponta mesmo para um arquivo M3U?');
     }
-    delete result.live._byName;
-    delete result.vod._byName;
+    ['live', 'vod', 'series'].forEach((kind) => {
+      delete result[kind]._byName;
+      delete result[kind]._series;
+    });
     if (typeof opts.onProgress === 'function') opts.onProgress(1, result.total);
     return result;
   }

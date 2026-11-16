@@ -5,12 +5,14 @@
  *   player_api.php?username=U&password=P&action=get_account_info   (autenticação)
  *   ...&action=get_live_categories | get_live_streams
  *   ...&action=get_vod_categories  | get_vod_streams
+ *   ...&action=get_series_categories | get_series | get_series_info&series_id=N
  *
  * URLs finais de reprodução:
  *   Ao vivo: {host}/live/{user}/{pass}/{stream_id}.ts   ou   .m3u8
  *   Filmes:  {host}/movie/{user}/{pass}/{stream_id}.{container_extension}
+ *   Séries:  {host}/series/{user}/{pass}/{id_do_episódio}.{container_extension}
  *
- * loadSection('live' | 'vod') devolve o mesmo formato do parser M3U:
+ * loadSection('live' | 'vod' | 'series') devolve o mesmo formato do parser M3U:
  *   { categories: [{ id, name, items: [Item] }], total }
  */
 (function (IPTV) {
@@ -121,6 +123,18 @@
       return this._call('get_vod_streams', null, options);
     }
 
+    getSeriesCategories(options) {
+      return this._call('get_series_categories', null, options);
+    }
+
+    getSeries(options) {
+      return this._call('get_series', null, options);
+    }
+
+    getSeriesInfo(seriesId, options) {
+      return this._call('get_series_info', { series_id: seriesId }, options);
+    }
+
     _credentialsPath() {
       return encodeURIComponent(this.username) + '/' + encodeURIComponent(this.password);
     }
@@ -135,6 +149,52 @@
         (extension || 'mp4');
     }
 
+    buildSeriesUrl(episodeId, extension) {
+      return this.base + '/series/' + this._credentialsPath() + '/' + episodeId + '.' +
+        (extension || 'mp4');
+    }
+
+    /**
+     * Temporadas e episódios de uma série: [{ id, name, items: [episódio] }].
+     * O campo "episodes" da API vem como objeto { "1": [...], "2": [...] }
+     * (ou array, em alguns painéis).
+     */
+    async loadEpisodes(series, options) {
+      const data = await this.getSeriesInfo(series.seriesId, options);
+      const raw = (data && data.episodes) || {};
+      const seasons = [];
+      Object.keys(raw).forEach((key) => {
+        const list = Array.isArray(raw[key]) ? raw[key] : [];
+        const items = [];
+        list.forEach((episode, index) => {
+          if (!episode || episode.id == null) return;
+          const number = parseInt(episode.episode_num, 10) || (index + 1);
+          const season = parseInt(episode.season, 10) || parseInt(key, 10) || 1;
+          const info = episode.info && !Array.isArray(episode.info) ? episode.info : {};
+          items.push({
+            id: 'xt:episode:' + episode.id,
+            num: number,
+            season,
+            name: String(episode.title || '').trim() || ('Episódio ' + number),
+            logo: Utils.safeImageUrl(info.movie_image) || series.logo,
+            group: series.name,
+            url: this.buildSeriesUrl(episode.id, episode.container_extension),
+            kind: 'vod',
+            isEpisode: true
+          });
+        });
+        if (!items.length) return;
+        items.sort((a, b) => a.num - b.num);
+        seasons.push({ season: items[0].season, items });
+      });
+      seasons.sort((a, b) => a.season - b.season);
+      return seasons.map((entry) => ({
+        id: 'season:' + entry.season,
+        name: 'Temporada ' + entry.season,
+        items: entry.items
+      }));
+    }
+
     /**
      * Baixa categorias + streams de uma seção e normaliza para o modelo do app.
      * options: { cancelToken, onStatus(mensagem, fração|null) }
@@ -144,13 +204,16 @@
       const token = opts.cancelToken;
       const status = typeof opts.onStatus === 'function' ? opts.onStatus : function () {};
       const isLive = kind === 'live';
-      const label = isLive ? 'canais' : 'filmes';
+      const isSeries = kind === 'series';
+      const label = isLive ? 'canais' : (isSeries ? 'séries' : 'filmes');
 
       status('Baixando categorias de ' + label + '…', null);
-      const rawCategories = await (isLive ? this.getLiveCategories(opts) : this.getVodCategories(opts));
+      const rawCategories = await (isLive ? this.getLiveCategories(opts)
+        : isSeries ? this.getSeriesCategories(opts) : this.getVodCategories(opts));
 
       status('Baixando lista de ' + label + '…', null);
-      const rawStreams = await (isLive ? this.getLiveStreams(opts) : this.getVodStreams(opts));
+      const rawStreams = await (isLive ? this.getLiveStreams(opts)
+        : isSeries ? this.getSeries(opts) : this.getVodStreams(opts));
 
       if (!Array.isArray(rawStreams)) {
         throw new Error('O servidor não retornou a lista de ' + label);
@@ -175,7 +238,8 @@
 
       for (let i = 0; i < total; i++) {
         const raw = rawStreams[i];
-        if (raw && raw.stream_id != null) {
+        const rawId = raw ? (isSeries ? raw.series_id : raw.stream_id) : null;
+        if (rawId != null) {
           let category = byId.get(String(raw.category_id));
           if (!category) {
             if (!ungrouped) {
@@ -184,18 +248,20 @@
             }
             category = ungrouped;
           }
-          const name = String(raw.name || '').trim() || ('Stream ' + raw.stream_id);
+          const name = String(raw.name || '').trim() || ('Stream ' + rawId);
           category.items.push({
-            id: 'xt:' + kind + ':' + raw.stream_id,
+            id: 'xt:' + kind + ':' + rawId,
             num: parseInt(raw.num, 10) || (i + 1),
             name,
             tvgId: raw.epg_channel_id || '',
             tvgName: name,
-            logo: Utils.safeImageUrl(raw.stream_icon),
+            logo: Utils.safeImageUrl(raw.stream_icon || raw.cover),
             group: category.name,
-            url: isLive
-              ? this.buildLiveUrl(raw.stream_id)
-              : this.buildVodUrl(raw.stream_id, raw.container_extension),
+            // Séries não têm URL própria: os episódios vêm de loadEpisodes().
+            url: isSeries ? '' : (isLive
+              ? this.buildLiveUrl(rawId)
+              : this.buildVodUrl(rawId, raw.container_extension)),
+            seriesId: isSeries ? rawId : undefined,
             kind
           });
         }

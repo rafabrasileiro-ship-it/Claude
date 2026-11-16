@@ -5,6 +5,7 @@
  *   modal/teclado aberto → fecha
  *   OSD visível (tela cheia) → oculta
  *   tela cheia → volta para a lista de canais
+ *   episódios de uma série → volta para a lista de séries
  *   lista de canais → volta para as playlists
  *   playlists → confirmação → tizen.application.getCurrentApplication().exit()
  */

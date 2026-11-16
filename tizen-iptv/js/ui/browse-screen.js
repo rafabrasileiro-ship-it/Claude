@@ -6,7 +6,8 @@
  *   OK num canal            reproduz no mini-player
  *   OK no canal já tocando  tela cheia (ou seja: OK duas vezes)
  *   VERMELHO  volta para as playlists     VERDE  favorita/desfavorita
- *   AMARELO   alterna Ao Vivo / Filmes    AZUL   busca por nome
+ *   AMARELO   alterna Ao Vivo / Filmes / Séries    AZUL   busca por nome
+ *   OK numa série abre as temporadas (coluna esquerda) e os episódios (centro)
  *   CH+ / CH- pula uma página na lista em foco
  *   VOLTAR    volta para as playlists
  */
@@ -21,8 +22,9 @@
   const Player = IPTV.Player;
   const Storage = IPTV.Storage;
 
-  const SECTION_LABEL = { live: 'Ao Vivo', vod: 'Filmes' };
-  const SECTION_NOUN = { live: 'canais', vod: 'filmes' };
+  const SECTIONS = ['live', 'vod', 'series'];
+  const SECTION_LABEL = { live: 'Ao Vivo', vod: 'Filmes', series: 'Séries' };
+  const SECTION_NOUN = { live: 'canais', vod: 'filmes', series: 'séries' };
 
   const state = {
     source: null,
@@ -36,6 +38,7 @@
     searchCategory: null,
     focusedItem: null,
     playing: null,          // { item, list, index } — list é a fila usada no zapping
+    drill: null,            // série aberta: { series, categories, category, cursor }
     busy: false
   };
 
@@ -61,7 +64,7 @@
   function renderCategoryRow(row, category) {
     const parts = row._parts;
     parts.name.textContent = category.name;
-    parts.count.textContent = Utils.formatNumber(category.items.length);
+    parts.count.textContent = category.back ? '' : Utils.formatNumber(category.items.length);
     if (row._icon !== (category.icon || '')) {
       row._icon = category.icon || '';
       parts.iconBox.textContent = '';
@@ -125,6 +128,10 @@
   }
 
   function onCategorySelect(category) {
+    if (category.back) {
+      closeSeries();
+      return;
+    }
     pendingCategory = category;
     flushPendingCategory();
     if (state.channels.length) channelList.focusIndex(channelList.cursor);
@@ -135,7 +142,9 @@
     els.channelsEmpty.hidden = !empty;
     if (!empty) return;
     let message = 'Nenhum item nesta categoria.';
-    if (state.category === state.favoritesCategory) {
+    if (state.category && state.category.back) {
+      message = 'Pressione OK para voltar à lista de séries.';
+    } else if (state.category === state.favoritesCategory) {
       message = 'Nenhum favorito ainda. Pressione o botão VERDE sobre um canal para favoritar.';
     } else if (state.category === state.searchCategory) {
       message = 'Nada encontrado para essa busca.';
@@ -203,6 +212,10 @@
   }
 
   function onChannelSelect(item, index) {
+    if (item.kind === 'series') {
+      openSeries(item);
+      return;
+    }
     const status = Player.getState().status;
     const alreadyPlaying = !!state.playing && state.playing.item === item &&
       status !== 'idle' && status !== 'error' && status !== 'ended';
@@ -283,7 +296,9 @@
     }
     const isFavorite = state.favorites.has(item.id);
     els.infoName.textContent = item.name;
-    els.infoMeta.textContent = (item.kind === 'vod' ? 'Filme' : 'Canal') + ' ' + item.num;
+    els.infoMeta.textContent = item.isEpisode
+      ? 'Temporada ' + item.season + ' · Episódio ' + item.num
+      : (item.kind === 'series' ? 'Série' : item.kind === 'vod' ? 'Filme' : 'Canal') + ' ' + item.num;
     els.infoGroup.textContent = item.group || '';
     els.infoLogoText.textContent = Utils.initials(item.name);
     if (els.infoLogo._url !== item.logo) {
@@ -336,6 +351,10 @@
 
   function toggleFavorite(item) {
     if (!item) return;
+    if (item.isEpisode) {
+      UI.Toast.show('Para favoritar, use o botão VERDE sobre a série na lista de séries');
+      return;
+    }
     const added = Storage.toggleFavorite(state.source.profile.id, item.id);
     if (added) state.favorites.add(item.id);
     else state.favorites.delete(item.id);
@@ -360,6 +379,7 @@
   }
 
   function applySearch(term) {
+    state.drill = null;
     if (term) {
       const needle = Utils.normalizeText(term);
       const items = state.data.all.filter((item) => {
@@ -389,15 +409,87 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Seções (Ao Vivo / Filmes)                                           */
+  /* Séries: temporadas na coluna esquerda, episódios no centro          */
+  /* ------------------------------------------------------------------ */
+  async function openSeries(series) {
+    if (state.busy) return;
+    state.busy = true;
+    const token = new IPTV.CancelToken();
+    UI.Loader.show('Carregando episódios de "' + series.name + '"…', { onCancel: () => token.cancel() });
+    try {
+      const seasons = await state.source.loadEpisodes(series, { cancelToken: token });
+      token.throwIfCancelled();
+      UI.Loader.hide();
+      if (!seasons.length) {
+        UI.Toast.show('Nenhum episódio disponível para esta série', 'error');
+        return;
+      }
+      state.drill = {
+        series,
+        categories: state.categories,
+        category: state.category,
+        cursor: channelList.cursor
+      };
+      showCategoryDebounced.cancel();
+      state.categories = [{ id: '@back', name: 'Voltar às séries', icon: 'back', items: [], back: true }]
+        .concat(seasons);
+      // Reabre na temporada do episódio em reprodução, se for desta série.
+      let start = 1;
+      if (state.playing) {
+        const found = state.categories.findIndex((c) => c.items.indexOf(state.playing.item) !== -1);
+        if (found !== -1) start = found;
+      }
+      categoryList.setItems(state.categories, start);
+      showCategory(state.categories[start]);
+      els.title.textContent = series.name;
+      focusLists();
+    } catch (error) {
+      UI.Loader.hide();
+      if (!error.cancelled) UI.Toast.show('Não foi possível carregar os episódios: ' + error.message, 'error');
+    } finally {
+      state.busy = false;
+    }
+  }
+
+  function closeSeries() {
+    const drill = state.drill;
+    if (!drill) return;
+    state.drill = null;
+    showCategoryDebounced.cancel();
+    state.categories = drill.categories;
+    categoryList.setItems(state.categories, Math.max(0, state.categories.indexOf(drill.category)));
+    showCategory(drill.category);
+    els.title.textContent = state.source.profile.name;
+    if (state.channels.length) channelList.focusIndex(drill.cursor);
+    else focusLists();
+  }
+
+  /** Fim de um episódio: emenda no próximo da mesma temporada. */
+  function playNextEpisode() {
+    const playing = state.playing;
+    if (!playing || !playing.item.isEpisode || playing.index >= playing.list.length - 1) return;
+    if (Player.getState().item !== playing.item) return;
+    zap(1);
+    // Fora da tela cheia, o foco acompanha o episódio que começou.
+    const next = state.playing;
+    if (!UI.PlayerView.isFullscreen() && channelList.hasFocus() && next.list === state.channels) {
+      channelList.focusIndex(next.index);
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Seções (Ao Vivo / Filmes / Séries)                                  */
   /* ------------------------------------------------------------------ */
   function applySection(kind, data) {
     state.section = kind;
     state.data = data;
+    state.drill = null;
     state.searchCategory = null;
     state.focusedItem = null;
+    els.title.textContent = state.source.profile.name;
     els.tabLive.classList.toggle('selected', kind === 'live');
     els.tabVod.classList.toggle('selected', kind === 'vod');
+    els.tabSeries.classList.toggle('selected', kind === 'series');
     buildCategories();
     const start = state.categories[1]; // "Todos"
     categoryList.setItems(state.categories, 1);
@@ -454,7 +546,7 @@
         toggleFavorite(targetItem());
         return true;
       case 'yellow':
-        switchSection(state.section === 'live' ? 'vod' : 'live');
+        switchSection(SECTIONS[(SECTIONS.indexOf(state.section) + 1) % SECTIONS.length]);
         return true;
       case 'blue':
         openSearch();
@@ -496,6 +588,7 @@
         title: byId('browse-title'),
         tabLive: byId('tab-live'),
         tabVod: byId('tab-vod'),
+        tabSeries: byId('tab-series'),
         tabSearch: byId('tab-search'),
         tabHome: byId('tab-home'),
         clock: byId('browse-clock'),
@@ -521,7 +614,8 @@
         favoriteLabel: byId('btn-favorite-label')
       };
       this.root = els.root;
-      this.layer = { root: els.root, onKey, onBack: goHome };
+      // Voltar: dentro de uma série, retorna à lista de séries; senão, às playlists.
+      this.layer = { root: els.root, onKey, onBack: () => (state.drill ? closeSeries() : goHome()) };
 
       categoryList = new UI.VirtualList(els.categoryList, {
         rowHeightRem: 4.25,
@@ -542,6 +636,7 @@
 
       els.tabLive.addEventListener('click', () => switchSection('live'));
       els.tabVod.addEventListener('click', () => switchSection('vod'));
+      els.tabSeries.addEventListener('click', () => switchSection('series'));
       els.tabSearch.addEventListener('click', openSearch);
       els.tabHome.addEventListener('click', goHome);
       els.slot.addEventListener('click', enterFullscreen);
@@ -550,8 +645,10 @@
       els.infoLogoImg.addEventListener('load', () => els.infoLogo.classList.add('has-image'));
       els.infoLogoImg.addEventListener('error', () => els.infoLogo.classList.remove('has-image'));
 
-      Player.on('change', () => {
-        if (state.source) renderNowPlaying();
+      Player.on('change', (player) => {
+        if (!state.source) return;
+        renderNowPlaying();
+        if (player.status === 'ended') playNextEpisode();
       });
       window.addEventListener('resize', Utils.debounce(() => {
         if (!IPTV.App.isCurrent('browse')) return;
@@ -565,19 +662,21 @@
      * A renderização acontece em onShow, quando a tela já tem dimensões.
      */
     async load(source, options) {
+      // Abre na primeira seção que tiver conteúdo (Ao Vivo → Filmes → Séries).
       let kind = 'live';
       let data = await source.loadSection('live', options);
-      if (!data.total) {
-        const vod = await source.loadSection('vod', options);
-        if (vod.total) {
-          kind = 'vod';
-          data = vod;
+      for (let i = 1; i < SECTIONS.length && !data.total; i++) {
+        const other = await source.loadSection(SECTIONS[i], options);
+        if (other.total) {
+          kind = SECTIONS[i];
+          data = other;
         }
       }
       state.source = source;
       state.section = kind;
       state.data = data;
       state.playing = null;
+      state.drill = null;
       state.favorites = Storage.getFavorites(source.profile.id);
     },
 
@@ -602,6 +701,7 @@
       categoryList.setItems([], 0);
       channelList.setItems([], 0);
       state.source = null;
+      state.drill = null;
       state.data = null;
       state.categories = [];
       state.category = null;

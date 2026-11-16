@@ -7,6 +7,8 @@ Vanilla JavaScript (ES2017), HTML5 e CSS3 — sem frameworks, sem etapa de build
 - **Motor de vídeo híbrido**: `webapis.avplay` na TV; `<video>` + hls.js (CDN) no navegador do PC.
 - **Navegação espacial** por controle remoto, com foco visível a distância.
 - **Listas virtualizadas**: dezenas de milhares de canais sem travar a TV.
+- **Séries**: Xtream (`get_series` / `get_series_info`) e M3U (links `/series/` ou títulos `Nome S01E02`),
+  com temporadas, episódios e reprodução automática do próximo episódio.
 - Favoritos, busca por nome, mini-player, tela cheia com OSD e reconexão automática.
 
 O app não inclui nenhum conteúdo: você informa a sua playlist. A "lista de teste" embutida usa
@@ -52,11 +54,11 @@ tizen-iptv/
 | Controle Samsung | Teclado no PC | Tela de canais | Tela cheia |
 | --- | --- | --- | --- |
 | Setas | Setas | Mover o foco | ▲▼ trocar canal · ◄► ±10 s (filmes) |
-| OK | Enter | Reproduzir; no canal que já toca, abre tela cheia | Mostrar/ocultar OSD |
-| Voltar | Esc ou Backspace | Voltar às playlists | Fecha o OSD; depois volta à lista |
+| OK | Enter | Reproduzir; no canal que já toca, abre tela cheia; numa série, abre os episódios | Mostrar/ocultar OSD |
+| Voltar | Esc ou Backspace | Dentro de uma série, volta às séries; senão, às playlists | Fecha o OSD; depois volta à lista |
 | Vermelho | R | Playlists (na tela inicial: remover) | — |
 | Verde | G | Favoritar (na tela inicial: editar) | Favoritar |
-| Amarelo | Y | Alternar Ao Vivo / Filmes | — |
+| Amarelo | Y | Alternar Ao Vivo / Filmes / Séries | — |
 | Azul | B | Buscar | — |
 | CH+ / CH- | PageUp / PageDown | Página acima / abaixo | Próximo / anterior |
 | Play/Pause, Stop | Espaço, S | Pausar / parar | Pausar / parar |
@@ -130,6 +132,7 @@ tizen install -n <arquivo-gerado>.wgt -t <nome-da-tv> -- /caminho/tizen-iptv/.bu
 - **Listas grandes**: o parser trabalha em fatias de ~12 ms e devolve o controle à UI; as listas só
   mantêm no DOM as linhas visíveis; logos só são baixados quando a rolagem para.
 - **Xtream**: os canais ao vivo são carregados ao abrir a playlist; os filmes só quando você entra na
-  aba Filmes. Séries e EPG não fazem parte desta estrutura inicial.
+  aba Filmes, e as séries só na aba Séries (os episódios, ao abrir cada série). EPG não faz parte
+  desta estrutura inicial.
 - **Credenciais**: URLs, usuário e senha ficam em `localStorage` da TV, em texto puro (requisito do
   projeto). Não use o app em aparelhos compartilhados se isso for um problema.
