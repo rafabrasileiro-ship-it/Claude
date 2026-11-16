@@ -11,6 +11,14 @@ const UI = (() => {
   function on(sel, fn) { ui().querySelectorAll(sel).forEach(el => el.addEventListener('click', (e) => { SFX.init(); SFX.ui(); fn(el, e); })); }
 
   /* resolução do desenho: rótulo no formato dos celulares (lado curto × lado longo) e troca cíclica */
+  // volume da música (0..1; saves antigos sem o campo = 100%) — controle deslizante igual no menu e na pausa
+  const musV = () => (META.opts.mus == null ? 1 : META.opts.mus);
+  const musSlider = (full) => `<div class="vrow${full ? ' full' : ''}"><span>🎵 Música</span><input type="range" id="musR" min="0" max="100" step="5" value="${Math.round(musV() * 100)}"><b id="musP">${Math.round(musV() * 100)}%</b></div>`;
+  function bindMus() {
+    const r = $('#musR'); if (!r) return;
+    const set = () => { META.opts.mus = r.value / 100; SFX.setMusVol(META.opts.mus); $('#musP').textContent = r.value + '%'; };
+    r.addEventListener('input', set); r.addEventListener('change', () => { set(); saveAll(); });
+  }
   function resTxt(br) { const o = RESOLUCOES.find(r => r.id === META.opts.res) || RESOLUCOES[0], n = o.h ? o.info.split(' · ')[0] : RENDER.resH + ' × ' + RENDER.resW; return o.nome + (br ? '<br>' : ' · ') + n.replace(/ × /g, '\u00a0×\u00a0'); }
   function nextRes() { const i = Math.max(0, RESOLUCOES.findIndex(r => r.id === (META.opts.res || 'auto'))); META.opts.res = RESOLUCOES[(i + 1) % RESOLUCOES.length].id; saveAll(); RENDER.resize(); if (G.st && (G.mode === 'pause' || G.mode === 'play')) RENDER.frame(); }
 
@@ -35,8 +43,10 @@ const UI = (() => {
           <button data-o="gfx" class="${RENDER.is3D ? 'on' : ''}">🧊 Gráficos<small>${RENDER.is3D ? '3D' : META.opts.gfx === '2d' ? '2D clássico' : '2D (sem WebGL)'}</small></button>
           <button data-o="ajuda">❔ Controles<small>piloto e artilheiro</small></button>
         </div>
+        ${musSlider(true)}
       </div>
       <div class="note">No jogo solo você controla 1 sobrevivente e troca entre VOLANTE e JANELA a qualquer momento (🔁); a IA assume os outros três.</div></div>`);
+    bindMus();
     on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'novo') classes('normal'); else if (a === 'cont') { G.arena = false; garage(); } else if (a === 'coop') coop(); else if (a === 'modos') modos(); else conquistas(); });
     on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else if (o === 'res') nextRes(); else if (o === 'gfx') { META.opts.gfx = RENDER.is3D ? '2d' : '3d'; saveAll(); location.reload(); return; } else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
   }
@@ -281,12 +291,12 @@ const UI = (() => {
   function pause() {
     if (G.netClient) {   // no co-op o Artilheiro não para a partida: só abre o menu por cima
       if (G.mode !== 'play' || ui().classList.contains('show')) return;
-      show(`<h2 style="text-align:center;margin-top:10vh">MENU</h2><div class="note" style="margin-bottom:2vh">A partida continua no celular do Piloto.</div><div class="m2"><div class="btn go" data-a="c">VOLTAR AO JOGO</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div><div class="btn" data-a="x">SAIR DA SALA</div></div>`, true);
+      show(`<h2 style="text-align:center;margin-top:10vh">MENU</h2><div class="note" style="margin-bottom:2vh">A partida continua no celular do Piloto.</div><div class="m2"><div class="btn go" data-a="c">VOLTAR AO JOGO</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div>${musSlider(true)}<div class="btn" data-a="x">SAIR DA SALA</div></div>`, true); bindMus();
       on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'r') { nextRes(); el.querySelector('small').textContent = resTxt(); } else if (a === 'c') hide(); else if (a === 'h') ajuda(() => { hide(); pause(); }); else menu(); });
       return;
     }
     if (G.mode !== 'play') return; G.mode = 'pause'; NET.hostPause(true); SFX.engine(0, 0, false); SFX.saw(false, 0); SFX.wind(0, false);
-    show(`<h2 style="text-align:center;margin-top:10vh">PAUSA</h2><div class="m2"><div class="btn go" data-a="c">CONTINUAR</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div><div class="btn" data-a="m">ABANDONAR O TRECHO<small>volta ao menu${NET.host ? ' e fecha a sala' : ''}</small></div></div>`, true);
+    show(`<h2 style="text-align:center;margin-top:10vh">PAUSA</h2><div class="m2"><div class="btn go" data-a="c">CONTINUAR</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div>${musSlider(true)}<div class="btn" data-a="m">ABANDONAR O TRECHO<small>volta ao menu${NET.host ? ' e fecha a sala' : ''}</small></div></div>`, true); bindMus();
     on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'r') { nextRes(); el.querySelector('small').textContent = resTxt(); } else if (a === 'c') { G.mode = 'play'; NET.hostPause(false); hide(); } else if (a === 'h') ajuda(() => { G.mode = 'play'; pause(); }); else { if (G.snap && !G.arena) { S = JSON.parse(G.snap); saveAll(); } menu(); } });
   }
   function ending() {
@@ -353,7 +363,7 @@ const UI = (() => {
     else if (G.mode === 'end') drawEnding(dt);
     try { NET.tick(); } catch (e) { console.error(e); }
   }
-  function boot() { loadMeta(); if (/[?&]unlock/.test(location.search)) META.zerou = true; SFX.setVol(META.opts.vol); window.UI_safe(); RENDER.init($('#cv')); bind(); menu(); requestAnimationFrame(loop); }
+  function boot() { loadMeta(); if (/[?&]unlock/.test(location.search)) META.zerou = true; SFX.setVol(META.opts.vol); SFX.setMusVol(musV()); window.UI_safe(); RENDER.init($('#cv')); bind(); menu(); requestAnimationFrame(loop); }
   window.UI_pause = () => pause();
   // furo da câmera: o Android informa a margem segura (px CSS) e os controles/telas se afastam dela
   window.UI_safe = () => { try { if (!window.BRApp || !BRApp.insets) return; const v = String(BRApp.insets()).split(',').map(Number); if (v.length < 4) return; const st = document.documentElement.style; ['--sl', '--st', '--sr', '--sb'].forEach((k, i) => st.setProperty(k, Math.max(0, v[i] || 0) + 'px')); } catch (e) {} };

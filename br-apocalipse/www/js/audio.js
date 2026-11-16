@@ -2,7 +2,7 @@
 /* Áudio (WebAudio): tiros e explosões com as gravações de js/sons.js (uma por arma, adaptadas quando não há
    gravação própria); motor, motosserra, vento, rádio e efeitos sintetizados. */
 const SFX = (() => {
-  let ac = null, master, eng, engG, eng2, saw, sawG, windG, noiseBuf, musG, dist, muffle, comp, gunBus, gunLP, hasPan = false;
+  let musVol = 1, ac = null, master, eng, engG, eng2, saw, sawG, windG, noiseBuf, musG, dist, muffle, comp, gunBus, gunLP, hasPan = false;
   let musOn = null, musT = 0, musStep = 0, musTimer = null, vol = 0.8;
   const buf = {}, ons = {}, voices = []; let decoding = false;
 
@@ -35,7 +35,7 @@ const SFX = (() => {
     const wf = ac.createBiquadFilter(); wf.type = 'bandpass'; wf.frequency.value = 500; wf.Q.value = 0.4;
     windG = ac.createGain(); windG.gain.value = 0; wn.connect(wf); wf.connect(windG); windG.connect(master); wn.start();
     // música
-    musG = ac.createGain(); musG.gain.value = 0.16;
+    musG = ac.createGain(); musG.gain.value = 0.16 * musVol;
     dist = ac.createWaveShaper(); const c = new Float32Array(257);   // nº ímpar de pontos: silêncio sai como zero (sem nível DC)
     for (let i = 0; i < 257; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 6); } dist.curve = c;
     const ml = ac.createBiquadFilter(); ml.type = 'lowpass'; ml.frequency.value = 2600;
@@ -132,6 +132,7 @@ const SFX = (() => {
     init,
     get ok() { return !!ac; },
     setVol(v) { vol = v; if (master) master.gain.value = v; },
+    setMusVol(v) { musVol = Math.max(0, Math.min(1, v)); if (musG) musG.gain.value = 0.16 * musVol; },   // volume só da música (0..1)
     engine(rpm, load, on) {
       if (!ac) return; const t = ac.currentTime;
       const f = 38 + rpm * 110;
@@ -207,7 +208,7 @@ const SFX = (() => {
       if (kind === musOn) return; musOn = kind; musStep = 0;
       if (musTimer) { clearInterval(musTimer); musTimer = null; }
       if (!ac || !kind) return;
-      if (kind === 'marinha') { musTimer = setInterval(() => { noise(0.5, 2500 + Math.random() * 2000, 0.3, 0.05, 'bandpass'); if (Math.random() < 0.3) tone(880, 0.25, 'sine', 0.05); }, 420); return; }
+      if (kind === 'marinha') { musTimer = setInterval(() => { noise(0.5, 2500 + Math.random() * 2000, 0.3, 0.05 * musVol, 'bandpass'); if (Math.random() < 0.3) tone(880, 0.25, 'sine', 0.05 * musVol); }, 420); return; }
       const P = PATTERNS[kind]; musT = ac.currentTime + 0.1;
       musTimer = setInterval(() => {
         while (musT < ac.currentTime + 0.25) {

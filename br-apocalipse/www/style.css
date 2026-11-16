@@ -110,3 +110,9 @@ tr.me td { color: #ffd870; background: rgba(232,176,32,.08); }
 .row5 button.on small { color: #ffd870; }
 .row5 button:active { background: #7a5a2a; }
 .mm .note { font-size: clamp(11px, min(3vh, 1.45vw), 19px); margin-top: 1.8vh; }
+
+/* volume da música: menu de opções e pausa */
+.vrow { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.6vw; background: linear-gradient(#3a2a18, #20170e); border: 2px solid #7a5a2a; border-radius: 10px; padding: .5vh 2vw; color: #f0e4c4; font-weight: bold; font-size: clamp(12px, min(3.4vh, 1.6vw), 22px); }
+.vrow span { white-space: nowrap; }
+.vrow b { min-width: 3.4em; text-align: right; color: #ffd870; }
+.vrow input[type=range] { flex: 1; height: 4vh; min-height: 24px; accent-color: #e8b020; touch-action: pan-y; }
