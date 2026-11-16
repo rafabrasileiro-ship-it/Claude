@@ -4,6 +4,20 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 res = pickle.load(open(sys.argv[1], "rb")); saida = sys.argv[2]; csv_out = sys.argv[3]
+PEQ = len(sys.argv) > 4 and sys.argv[4] == "pequenos"
+# Série A e B de 2025 (e grupos ligados) + nomes estrangeiros que escaparam do filtro
+GRANDES = {"atletico mg", "bahia", "botafogo", "ceara", "corinthians", "cruzeiro", "flamengo", "fluminense",
+    "fortaleza", "gremio", "internacional", "inter", "juventude", "mirassol sp", "palmeiras", "rb bragantino",
+    "bragantino", "red bull", "rb brasil", "santos", "sao paulo", "sport", "sport recife", "recife", "vasco",
+    "vasco da gama", "vitoria", "amazonas", "america mg", "athletic", "athletico", "athletico pr", "atletico pr",
+    "atletico go", "avai", "botafogo sp", "chapecoense", "coritiba", "crb", "criciuma", "cuiaba mt", "ferroviaria",
+    "goias", "novorizontino", "novorizont", "operario pr", "remo", "vila nova", "volta redonda", "v redonda"}
+FORA = {"al jazira", "anadia", "kryvbas", "r strasbourg", "estrela", "van"}
+if PEQ:
+    sys.path.insert(0, ".")
+    from bidscraper import fontes
+    for k in res:
+        res[k] = [c for c in res[k] if fontes.clube_matriz(c["clube_credor"]) not in GRANDES | FORA]
 def soma(tag, cls, dst):
     return sum(c["valor_credito_eur"] for c in res[tag] if c["cls"] in cls and c["dst"] in dst)
 BR = ("BRA", "provBRA")
@@ -44,15 +58,19 @@ def tabela(cab, rows, larg=None):
             for p in c.paragraphs:
                 for r in p.runs: r.font.size = Pt(9.5)
     doc.add_paragraph()
-doc.add_heading("Estimativa de créditos a recuperar", 0)
+doc.add_heading("Estimativa de créditos a recuperar" + (" – clubes pequenos" if PEQ else ""), 0)
 doc.add_paragraph("Mecanismo de solidariedade e compensação por treinamento (FIFA RSTP) – clubes formadores brasileiros. "
                   "Elaborado em 16/11/2026. Valores em euros.")
+if PEQ:
+    doc.add_paragraph("Clube pequeno, neste relatório: clube brasileiro que não disputou a Série A nem a Série B de 2025. "
+        "Ficaram de fora 40 clubes dessas duas divisões e o Red Bull Brasil, do mesmo grupo do RB Bragantino.")
 doc.add_heading("1. Resultado", 1)
 tabela(["Cenário", "Crédito gerado em 2 anos", "Parcela ainda não recebida", "Crédito a recuperar"],
        [(l[0], e(l[9]), f"{l[10]*100:.0f}%", e(l[11])) for l in linhas])
 doc.add_paragraph("A estimativa é uma ordem de grandeza, não uma apuração. Ela se apoia em uma única fonte de dados "
     "(transferências do Transfermarkt) e em três premissas de julgamento, explicadas na seção 3. O BID da CBF ainda "
-    "não foi coletado e, portanto, não entrou no cálculo.")
+    "não foi coletado e, portanto, não entrou no cálculo. O crédito gerado inclui valores já pagos e não pagos; "
+    "a parcela não recebida é um percentual presumido, não uma verificação caso a caso.")
 doc.add_heading("2. O que foi medido", 1)
 for t in [
  "Fonte: conjunto transfermarkt-datasets (50.149 atletas, 175.165 transferências, atualizado até 6/7/2026), processado pelo módulo de apuração do programa.",
