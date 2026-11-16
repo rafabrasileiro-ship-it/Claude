@@ -373,6 +373,21 @@
   color: var(--warn);
 }
 
+/* Quanto do filme/episódio já foi visto */
+.ch-progress {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.3rem;
+  max-width: calc(100% - 1.5rem);
+  height: 0.25rem;
+  border-radius: 0.125rem;
+  background: var(--accent);
+}
+
+.channel-row.focused .ch-progress {
+  background: #ffffff;
+}
+
 .channel-row.is-playing .ch-playing,
 .channel-row.is-favorite .ch-favorite {
   display: inline-flex;

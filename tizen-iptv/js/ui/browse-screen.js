@@ -38,6 +38,7 @@
     searchCategory: null,
     focusedItem: null,
     playing: null,          // { item, list, index } — list é a fila usada no zapping
+    progress: {},           // onde parei: ver Storage.getProgress
     drill: null,            // série aberta: { series, categories, category, cursor }
     busy: false
   };
@@ -47,6 +48,10 @@
   let channelList = null;
   let pendingCategory = null;
   let zapTimer = null;
+  let choosingResume = false;
+  const lastSaved = { id: null, position: 0 };
+  const RESUME_MIN_SECONDS = 10;   // abaixo disso não vale a pena retomar
+  const SAVE_EVERY_SECONDS = 5;
   let clockTimer = null;
 
   /* ------------------------------------------------------------------ */
@@ -172,8 +177,9 @@
     const name = h('span', { class: 'ch-name' });
     const playing = h('span', { class: 'ch-playing' }, Utils.icon('play'));
     const favorite = h('span', { class: 'ch-favorite' }, Utils.icon('star'));
-    const row = h('div', { class: 'row channel-row' }, [num, logo, name, playing, favorite]);
-    row._parts = { num, logo, logoText, logoImg, name };
+    const progress = h('span', { class: 'ch-progress' });
+    const row = h('div', { class: 'row channel-row' }, [num, logo, name, playing, favorite, progress]);
+    row._parts = { num, logo, logoText, logoImg, name, progress };
     row._logo = '';
     row._logoPending = false;
     logoImg.addEventListener('load', () => logo.classList.add('has-image'));
@@ -192,6 +198,11 @@
       parts.logo.classList.remove('has-image');
       parts.logoImg.removeAttribute('src');
     }
+    // Barra fina no rodapé da linha: quanto do filme/episódio já foi visto.
+    const saved = item.kind === 'vod' ? state.progress[item.id] : null;
+    const fraction = saved && saved.d > 0 ? Math.min(1, saved.p / saved.d) : 0;
+    parts.progress.hidden = !fraction;
+    if (fraction) parts.progress.style.width = Math.max(2, Math.round(fraction * 100)) + '%';
     row.classList.toggle('is-favorite', state.favorites.has(item.id));
     row.classList.toggle('is-playing', !!state.playing && state.playing.item === item);
   }
@@ -219,22 +230,112 @@
     const status = Player.getState().status;
     const alreadyPlaying = !!state.playing && state.playing.item === item &&
       status !== 'idle' && status !== 'error' && status !== 'ended';
-    if (alreadyPlaying) enterFullscreen();
-    else playItem(item, state.channels, index, false);
+    if (alreadyPlaying) {
+      enterFullscreen();
+      return;
+    }
+    const point = resumePoint(item);
+    if (point) chooseResume(item, state.channels, index, point);
+    else playItem(item, state.channels, index, false, 0);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Onde parei (filmes e episódios)                                     */
+  /* ------------------------------------------------------------------ */
+  /** Segundo salvo para retomar o item, ou 0 se não houver. */
+  function resumePoint(item) {
+    if (!item || item.kind !== 'vod') return 0;
+    const saved = state.progress[item.id];
+    return saved && saved.p >= RESUME_MIN_SECONDS ? saved.p : 0;
+  }
+
+  function persistProgress() {
+    Storage.saveProgress(state.source.profile.id, state.progress);
+  }
+
+  /**
+   * Guarda a posição do filme/episódio em reprodução. Chamado a cada mudança
+   * do player; grava a cada SAVE_EVERY_SECONDS, ou na hora se force = true.
+   * Perto do fim, o registro é apagado (item assistido até o final).
+   */
+  function saveProgress(force) {
+    const player = Player.getState();
+    const item = player.item;
+    if (!state.source || !item || item.kind !== 'vod') return;
+    if (player.status !== 'playing' && player.status !== 'paused') return;
+    const position = player.position;
+    const duration = player.duration;
+    if (!(position > 0)) return;
+    if (!force && lastSaved.id === item.id && Math.abs(position - lastSaved.position) < SAVE_EVERY_SECONDS) return;
+    lastSaved.id = item.id;
+    lastSaved.position = position;
+
+    if (duration > 0 && position >= duration - Math.max(15, duration * 0.03)) {
+      if (!state.progress[item.id]) return;
+      delete state.progress[item.id];
+    } else if (position >= RESUME_MIN_SECONDS) {
+      state.progress[item.id] = { p: Math.floor(position), d: Math.floor(duration), t: Date.now() };
+    } else {
+      return;
+    }
+    persistProgress();
+    if (channelList) channelList.refresh();
+  }
+
+  function forgetProgress(item) {
+    if (!item || !state.progress[item.id]) return;
+    delete state.progress[item.id];
+    persistProgress();
+  }
+
+  /** Pergunta se continua de onde parou ou recomeça. Voltar cancela a reprodução. */
+  async function chooseResume(item, list, index, point) {
+    if (choosingResume) return;
+    choosingResume = true;
+    const choice = await UI.Dialog.open({
+      title: item.name,
+      message: 'Você parou em ' + Utils.formatTime(point) + '.',
+      dismissValue: null,
+      buttons: [
+        { label: 'Continuar de ' + Utils.formatTime(point), value: 'resume', kind: 'primary', autofocus: true },
+        { label: 'Começar do início', value: 'restart' }
+      ]
+    });
+    choosingResume = false;
+    if (!choice || !state.source) return;
+    playItem(item, list, index, false, choice === 'resume' ? point : 0);
   }
 
   /* ------------------------------------------------------------------ */
   /* Reprodução                                                          */
   /* ------------------------------------------------------------------ */
-  function playItem(item, list, index, debounced) {
+  /**
+   * startAt: segundo inicial. Se omitido (zapping, próximo episódio), filmes e
+   * episódios retomam sozinhos do ponto salvo.
+   */
+  function playItem(item, list, index, debounced, startAt) {
+    saveProgress(true);   // guarda a posição do que estava tocando antes de trocar
+    let start = startAt;
+    if (start === undefined) {
+      start = resumePoint(item);
+      if (start) UI.Toast.show('Continuando de ' + Utils.formatTime(start));
+    }
+    // Volta 3 s para o usuário retomar o fio da cena.
+    start = start > 3 ? start - 3 : 0;
+
     state.playing = { item, list, index };
+    if (item.isEpisode && item.seriesRef) {
+      // A série lembra qual foi o último episódio aberto.
+      state.progress[item.seriesRef] = { e: item.id, s: item.season, n: item.num, t: Date.now() };
+      persistProgress();
+    }
     UI.PlayerView.setItem(item, { favorite: state.favorites.has(item.id) });
     clearTimeout(zapTimer);
     if (debounced) {
       // Zapping rápido: só abre o stream quando o usuário para de trocar de canal.
-      zapTimer = setTimeout(() => Player.play(item), IPTV.Config.ZAP_DEBOUNCE);
+      zapTimer = setTimeout(() => Player.play(item, start), IPTV.Config.ZAP_DEBOUNCE);
     } else {
-      Player.play(item);
+      Player.play(item, start);
     }
     channelList.refresh();
     renderNowPlaying();
@@ -242,6 +343,7 @@
 
   function stopPlayback() {
     clearTimeout(zapTimer);
+    saveProgress(true);
     Player.stop();
     state.playing = null;
     UI.PlayerView.setItem(null);
@@ -299,6 +401,12 @@
     els.infoMeta.textContent = item.isEpisode
       ? 'Temporada ' + item.season + ' · Episódio ' + item.num
       : (item.kind === 'series' ? 'Série' : item.kind === 'vod' ? 'Filme' : 'Canal') + ' ' + item.num;
+    const saved = state.progress[item.id];
+    if (saved && item.kind === 'series') {
+      els.infoMeta.textContent += ' · parou na T' + saved.s + ' E' + saved.n;
+    } else if (saved && item.kind === 'vod' && saved.p >= RESUME_MIN_SECONDS) {
+      els.infoMeta.textContent += ' · parou em ' + Utils.formatTime(saved.p);
+    }
     els.infoGroup.textContent = item.group || '';
     els.infoLogoText.textContent = Utils.initials(item.name);
     if (els.infoLogo._url !== item.logo) {
@@ -434,13 +542,28 @@
       state.categories = [{ id: '@back', name: 'Voltar às séries', icon: 'back', items: [], back: true }]
         .concat(seasons);
       // Reabre na temporada do episódio em reprodução, se for desta série.
+      // Sem nada tocando, reabre na temporada e no episódio em que o usuário parou.
       let start = 1;
+      let episodeIndex = -1;
       if (state.playing) {
         const found = state.categories.findIndex((c) => c.items.indexOf(state.playing.item) !== -1);
         if (found !== -1) start = found;
       }
+      const last = state.progress[series.id];
+      if (last && !(state.playing && start !== 1)) {
+        state.categories.forEach((category, categoryIndex) => {
+          const found = category.items.findIndex((episode) => episode.id === last.e);
+          if (found !== -1 && episodeIndex === -1) {
+            start = categoryIndex;
+            episodeIndex = found;
+          }
+        });
+      }
       categoryList.setItems(state.categories, start);
       showCategory(state.categories[start]);
+      if (episodeIndex !== -1 && !(state.playing && state.channels.indexOf(state.playing.item) !== -1)) {
+        channelList.setCursor(episodeIndex);
+      }
       els.title.textContent = series.name;
       focusLists();
     } catch (error) {
@@ -648,7 +771,12 @@
       Player.on('change', (player) => {
         if (!state.source) return;
         renderNowPlaying();
-        if (player.status === 'ended') playNextEpisode();
+        if (player.status === 'ended') {
+          forgetProgress(player.item);   // assistido até o fim
+          playNextEpisode();
+        } else {
+          saveProgress(player.status === 'paused');
+        }
       });
       window.addEventListener('resize', Utils.debounce(() => {
         if (!IPTV.App.isCurrent('browse')) return;
@@ -678,6 +806,7 @@
       state.playing = null;
       state.drill = null;
       state.favorites = Storage.getFavorites(source.profile.id);
+      state.progress = Storage.getProgress(source.profile.id);
     },
 
     onShow() {
@@ -701,6 +830,7 @@
       categoryList.setItems([], 0);
       channelList.setItems([], 0);
       state.source = null;
+      state.progress = {};
       state.drill = null;
       state.data = null;
       state.categories = [];

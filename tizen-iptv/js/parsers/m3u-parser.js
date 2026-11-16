@@ -168,7 +168,8 @@
         group: seriesName,
         url,
         kind: 'vod',
-        isEpisode: true
+        isEpisode: true,
+        seriesRef: series.id
       });
     }
 

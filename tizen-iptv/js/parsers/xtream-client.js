@@ -180,7 +180,8 @@
             group: series.name,
             url: this.buildSeriesUrl(episode.id, episode.container_extension),
             kind: 'vod',
-            isEpisode: true
+            isEpisode: true,
+            seriesRef: series.id
           });
         });
         if (!items.length) return;

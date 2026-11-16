@@ -523,13 +523,13 @@
       this._stableTimer = null;
     }
 
-    /** item: { url, name, kind: 'live' | 'vod', ... } */
-    play(item) {
+    /** item: { url, name, kind: 'live' | 'vod', ... }; startAt: segundo inicial (filmes/episódios) */
+    play(item, startAt) {
       if (!item || !item.url) return;
       this._clearTimers();
       this._retries = 0;
       this._resume = null;
-      this._start(item, 0);
+      this._start(item, startAt > 0 ? startAt : 0);
     }
 
     _start(item, startAt) {

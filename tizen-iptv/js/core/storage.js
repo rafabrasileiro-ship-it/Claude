@@ -4,6 +4,7 @@
  * Chaves:
  *   iptv.profiles            → [{ id, name, type: 'm3u'|'xtream', url | host+username+password }]
  *   iptv.favorites.<perfil>  → [idDoCanal, ...]
+ *   iptv.progress.<perfil>   → { id: ponto em que parei } (filmes, episódios, séries)
  *   iptv.settings            → { chave: valor }
  */
 (function (IPTV) {
@@ -11,6 +12,7 @@
 
   const PREFIX = IPTV.Config.STORAGE_PREFIX;
   const memory = {};
+  const PROGRESS_LIMIT = 300;
 
   function read(key, fallback) {
     try {
@@ -70,6 +72,7 @@
     removeProfile(id) {
       write('profiles', this.getProfiles().filter((p) => p.id !== id));
       remove('favorites.' + id);
+      remove('progress.' + id);
     },
 
     /* ---------------- Favoritos ---------------- */
@@ -86,6 +89,27 @@
       else favorites.delete(itemId);
       write('favorites.' + profileId, Array.from(favorites));
       return nowFavorite;
+    },
+
+    /* ---------------- Onde parei (filmes e séries) ---------------- */
+    /**
+     * Mapa por playlist:
+     *   idDoFilmeOuEpisódio → { p: segundos, d: duração, t: quando }
+     *   idDaSérie           → { e: idDoEpisódio, s: temporada, n: episódio, t: quando }
+     */
+    getProgress(profileId) {
+      const map = read('progress.' + profileId, {});
+      return map && typeof map === 'object' && !Array.isArray(map) ? map : {};
+    },
+
+    /** Grava o mapa, mantendo só os registros mais recentes (remove os antigos do próprio mapa). */
+    saveProgress(profileId, map) {
+      const keys = Object.keys(map);
+      if (keys.length > PROGRESS_LIMIT) {
+        keys.sort((a, b) => (map[b].t || 0) - (map[a].t || 0));
+        keys.slice(PROGRESS_LIMIT).forEach((key) => { delete map[key]; });
+      }
+      write('progress.' + profileId, map);
     },
 
     /* ---------------- Preferências ---------------- */

@@ -9,6 +9,7 @@ Vanilla JavaScript (ES2017), HTML5 e CSS3 — sem frameworks, sem etapa de build
 - **Listas virtualizadas**: dezenas de milhares de canais sem travar a TV.
 - **Séries**: Xtream (`get_series` / `get_series_info`) e M3U (links `/series/` ou títulos `Nome S01E02`),
   com temporadas, episódios e reprodução automática do próximo episódio.
+- **Continuar de onde parou**: filmes e episódios guardam o minuto; cada série guarda o último episódio.
 - Favoritos, busca por nome, mini-player, tela cheia com OSD e reconexão automática.
 
 O app não inclui nenhum conteúdo: você informa a sua playlist. A "lista de teste" embutida usa
