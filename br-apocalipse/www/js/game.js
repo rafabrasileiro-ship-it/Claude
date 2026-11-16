@@ -70,7 +70,7 @@ function startStage() {
   G.haz = []; G.eventBar = 0; G.portoLeft = 0; G.pedDone = false; G.c30 = false; P.noFuel = false; G.aiHint = null;
   G.night = !!st.noite || S.mode === 'expresso'; G.clima = 'limpo'; G.pedOk = false; G.offroadBoss = false; G.abil = { cd: 0, on: 0 }; G.turboT = 0; G.drvCls = null; G.snapInit = false; G.hostPaused = false; if (NET.host) NET.resetPeerStats(); G.skyX = 0; G.banner = null;
   G.stats = { kills: 0, gk: 0, abalro: 0, acid: 0, over: 0, shots: 0, hitsN: 0, heads: 0, amput: 0, vex: 0, salva: 0, sucata: 0, t: 0, bossSrc: {} };
-  if (S.mode === 'expresso' || META.opts.fpp) G.cam = 'fpp';
+  G.camFar = false; G.camDist = 0; G.camLX = 0; G.carTop = null; if (S.mode === 'expresso' || META.opts.fpp) G.cam = 'fpp';
   Object.assign(P, { x: 0, z: 0, speed: 0, steer: 0, rpm: 0.1, gear: 1, temp: 0.4, over: false, clog: 0, fuel: 1, armor: Math.max(G.V.armorMax * 0.15, G.V.armorMax * S.armorFrac), saws: false, lights: G.night ? 1 : 0, wipe: 0, blood: 0, acid: 0, oil: 0, rain: 0, splats: [], cracks: [], tires: 0, gheat: 0, glock: false, gcd: 0, gfire: 0, pull: 0, mirrorL: true, slideT: 0, brakeT: 0, lat: 0, jump: 0 });
   Object.assign(A, { ax: G.W / 2, ay: G.H * 0.45, ads: 0, exposed: true, seat: 0, look: 1, mag: {}, reloadT: 0, cd: 0, useMelee: false, swing: 0, swingT: 0, heat: 0, hlock: false, hp: 100, down: 0, kick: 0, flash: 0, pump: 0, rev: 0 });
   const uw = usableWeapons(); A.w = uw[uw.length - 1]; if (G.role === 'gunner') uw.forEach(fillMag);   // o Piloto não segura balas no pente
@@ -376,8 +376,8 @@ function pilotFire(g) {
   let best = null, bd = 220;
   for (const e of G.ents) { if (e.dead || e.st === 'latch') continue; const dz = e.z - P.z; if (dz < 1 || dz > bd) continue; if (Math.abs(e.x - P.x) < ENEMY[e.type].w / 2 + 0.35) { best = e; bd = dz; } }
   const bp = G.boss ? BOSS.pilotTarget(bd) : null;
-  const tx = G.W / 2 + rnd(-3, 3), ty = G.H * (G.cam === 'fpp' ? 0.47 : 0.42);
-  const m0 = G.cam === 'fpp' && G.capoMuzzle && G.capoMuzzleF >= G.frame - 2 ? G.capoMuzzle : [G.W / 2, G.H * 0.62];   // sai da boca do cano 3D quando houver
+  const far = G.cam === 'tpp' && G.camFar && G.carTop && G.carTopF >= G.frame - 2, tx = (far ? G.carTop[0] : G.W / 2) + rnd(-3, 3), ty = far ? G.carTop[2] : G.H * (G.cam === 'fpp' ? 0.47 : 0.42);
+  const m0 = G.cam === 'fpp' && G.capoMuzzle && G.capoMuzzleF >= G.frame - 2 ? G.capoMuzzle : (far ? [G.carTop[0], G.carTop[1]] : [G.W / 2, G.H * 0.62]);   // sai da boca do cano 3D (1ª pessoa) ou do teto do carro (câmeras de 3ª pessoa)
   tracer(m0[0], m0[1], tx, ty, g.pen >= 4 ? '#ffb040' : null);
   if (bp) { BOSS.hitPart(bp, g.dmg, g.pen, { by: 'pilot' }); return; }
   if (best) { damageEnt(best, g.dmg * (inc ? 1.5 : 1), g.pen, { by: 'pilot' }); if (g.expl || inc) aoe(best.x, best.z, g.expl || 3, g.dmg * 0.5, best); }
@@ -588,7 +588,11 @@ function curveAt(i) { const st = G.st; if (!st) return 0; const s = st.seed; con
 
 /* ---------- ações de UI ---------- */
 function toggleRole() { if (G.mode !== 'play' || G.netClient) return; if (G.role === 'pilot' && !G.ai.length) { say('Todos os lugares têm jogadores — alguém precisa dirigir!', 'sys', 3, true); return; } G.role = G.role === 'pilot' ? 'gunner' : 'pilot'; if (G.role === 'gunner') usableWeapons().forEach(k => { if (!(A.mag[k] > 0)) fillMag(k); }); A.exposed = true; A.ax = G.W / 2; A.ay = G.H * 0.45; say(G.role === 'pilot' ? 'Você assumiu o VOLANTE.' : 'Você foi para a JANELA. A IA dirige.', 'sys', 2.5, true); I.fire = I.ads = I.gas = I.brake = I.hand = 0; I.steer = 0; UI.sync(); }
-function toggleCam() { if (S.mode === 'expresso' || META.opts.fpp) { say('Câmera travada em 1ª pessoa.', 'sys', 2, true); return; } G.cam = G.cam === 'fpp' ? 'tpp' : 'fpp'; }
+function toggleCam() {   // 1ª pessoa → 3ª pessoa (perto) → câmera de corrida (afastada e por cima) → 1ª pessoa
+  if (S.mode === 'expresso' || META.opts.fpp) { say('Câmera travada em 1ª pessoa.', 'sys', 2, true); return; }
+  if (G.cam === 'fpp') { G.cam = 'tpp'; G.camFar = false; } else if (!G.camFar) G.camFar = true; else { G.cam = 'fpp'; G.camFar = false; }
+  say(G.cam === 'fpp' ? 'Câmera: 1ª pessoa' : G.camFar ? 'Câmera: corrida (afastada)' : 'Câmera: 3ª pessoa', 'sys', 1.5, true); if (typeof UI !== 'undefined') UI.sync();
+}
 function cycleWeapon() { const u = usableWeapons(); if (A.useMelee) { A.useMelee = false; UI.sync(); return; } A.w = u[(u.indexOf(A.w) + 1) % u.length]; A.reloadT = 0; if (!(A.w in A.mag)) fillMag(A.w); SFX.reload(); say(WEAPONS[A.w].nome, 'sys', 1.5, true); UI.sync(); }
 function toggleMelee() { const m = usableMelee(); if (A.useMelee) { S.melee = m[(m.indexOf(S.melee) + 1) % m.length]; } else A.useMelee = true; A.rev = 0; if (MELEE[S.melee].saw) { SFX.vibrate([40, 60, 40, 60, 120]); SFX.turbo(); } say(MELEE[S.melee].nome, 'sys', 1.5, true); UI.sync(); }
 function toggleExpose() { A.exposed = !A.exposed && A.down <= 0; if (!A.exposed && A.mag[A.w] < WEAPONS[A.w].mag) startReload(); UI.sync(); }

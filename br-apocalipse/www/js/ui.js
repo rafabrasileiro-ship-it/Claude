@@ -309,7 +309,7 @@ const UI = (() => {
   function sync() {
     const play = G.mode === 'play'; if (!play) return; const pil = G.role === 'pilot';
     $('#pilot').classList.toggle('hide', !pil); $('#gunner').classList.toggle('hide', pil);
-    $('#bRole').textContent = pil ? '🔁 IR P/ JANELA' : '🔁 PEGAR VOLANTE'; $('#bRole').classList.toggle('hide', !!G.netClient); $('#bCam').classList.toggle('hide', !pil);
+    $('#bRole').textContent = pil ? '🔁 IR P/ JANELA' : '🔁 PEGAR VOLANTE'; $('#bRole').classList.toggle('hide', !!G.netClient); $('#bCam').classList.toggle('hide', !pil); $('#bCam').innerHTML = (G.cam === 'fpp' ? '🚗' : G.camFar ? '🏎' : '🎥') + '<small>' + (G.cam === 'fpp' ? '1ª PESSOA' : G.camFar ? 'CORRIDA' : '3ª PESSOA') + '</small>';
     $('#bSaw').classList.toggle('on', !!P.saws); $('#bExp').classList.toggle('on', !A.exposed); $('#bExp').innerHTML = A.exposed ? '🙇<small>AGACHAR</small>' : '🧍<small>EXPOR</small>';
     $('#bMelee').classList.toggle('on', !!A.useMelee); $('#bAds').classList.toggle('on', !!I.ads);
   }

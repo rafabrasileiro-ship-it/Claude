@@ -445,6 +445,11 @@ const RENDER = (() => {
     const jumpY = P.jump > 0 ? Math.sin(Math.min(1, P.jump / 2.2) * Math.PI) * H * 0.3 : 0;
     let v;
     if (role === 'pilot' && fpp) { const camH = [0, 1.15, 1.2, 1.5, 2.0, 2.6][S.veh]; v = { W, H, hor: H * 0.4 + sy + jumpY, F: H * 0.92, dir: 1, flip: false, camX: P.x - 0.3, camZ: P.z, camH, N: viewN, main: true, pan: sx - P.steer * 14 }; }
+    else if (role === 'pilot' && G.camFar) {   // câmera de corrida: bem atrás e por cima, abre com a velocidade e acompanha a direção com atraso
+      const sp = Math.min(1, Math.abs(P.speed) / 45), want = 10.5 + sp * 3.5; if (!G.camDist) G.camDist = want; G.camDist += (want - G.camDist) * 0.06;
+      G.camLX += (P.x * 0.78 - G.camLX) * 0.07;
+      v = { W, H, hor: H * 0.27 + sy * 0.4 + jumpY * 0.6, F: H * 0.9, dir: 1, flip: false, camX: G.camLX, camZ: P.z - G.camDist, camH: 5.8 + S.veh * 0.4 + sp * 1.0, N: viewN, main: true, pan: sx * 0.4 - P.steer * 10, dist: G.camDist };
+    }
     else if (role === 'pilot') { v = { W, H, hor: H * 0.36 + sy * 0.5 + jumpY, F: H * 0.9, dir: 1, flip: false, camX: P.x * 0.85, camZ: P.z - 7.5, camH: 3.4 + S.veh * 0.35, N: viewN, main: true, pan: sx * 0.5 }; }
     else { const seat = A.seat, camH = [0, 1.25, 1.3, 1.6, 2.1, 2.7][S.veh] + (seat === 2 ? 0.8 : 0), zoom = 1 + A.ads * 0.6; v = { W, H, hor: H * 0.47 + sy - (A.ay - H * 0.45) * 0.3, F: H * 0.9 * zoom, dir: A.look, flip: A.look < 0, camX: P.x + (seat === 0 ? -1 : seat === 1 ? 1 : 0) * G.V.w * 0.9, camZ: P.z + (A.exposed ? 0 : 0), camH, N: viewN, main: true, pan: sx - (A.ax - W / 2) * 0.35 * zoom }; }
     let o3 = null;
@@ -457,14 +462,14 @@ const RENDER = (() => {
         o3 = { near: (R, cx) => CAB3D.draw(R, cx), latch: latchPlace(H * 0.4, CAB3D.dashY + H * 0.03, false).filter(L => L.e.side === 0), light };
       }
       else if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
-      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: [] }; }
+      else if (role === 'pilot') { const k = v.F / (v.dist || 7.5); o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: [] }; }
       else if (A.exposed && !(A.down > 0)) { const vmOK = typeof VM3D !== 'undefined', light = vmOK ? VM3D.update(v) : null; o3 = { near: vmOK ? (R, cx) => VM3D.draw(R, cx) : null, latch: vmOK ? [] : latchPlace(H * 0.46, H * 1.12, true), light }; }
     }
     frame3D = !!(use3D && W3D.render(v, o3));
     if (frame3D) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); if (!(role === 'pilot' && fpp)) vignette(); }
     else { world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v); }
     if (role === 'pilot' && fpp) cockpit(sy * 0.4);
-    else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; if (!frame3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
+    else if (role === 'pilot') { const k = v.F / (v.dist || 7.5), py = v.hor + v.camH * k; G.carTop = [W / 2 + (P.x - v.camX) * k, py - 1.5 * k, v.hor + (v.dist ? H * 0.05 : 0)]; G.carTopF = G.frame; if (!frame3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
     else gunnerView();
     hud(role);
   }

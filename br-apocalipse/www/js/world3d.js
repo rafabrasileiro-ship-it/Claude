@@ -500,7 +500,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     roadDecals(v, base, off, N);
     gl.enable(gl.CULL_FACE); gl.cullFace(gl.BACK); gl.frontFace(DET > 0 ? gl.CW : gl.CCW);
     objects(v, W, H, base, off, N, maxD);
-    if (opt && opt.player && typeof V3D !== 'undefined') V3D.drawPlayer(R, fs * (P.x - v.camX), -camH + opt.player.jumpH, 7.5 + V3D.playerModel(S.veh, S.up).rear, -camH, P.steer, G.t);
+    if (opt && opt.player && typeof V3D !== 'undefined') V3D.drawPlayer(R, fs * (P.x - v.camX), -camH + opt.player.jumpH, (v.dist || 7.5) + V3D.playerModel(S.veh, S.up).rear, -camH, P.steer, G.t);
     flushInst();
     gl.disable(gl.CULL_FACE);
     flushDecals(); drawDecals(); drawShadows(); drawParts(); drawAdd();
