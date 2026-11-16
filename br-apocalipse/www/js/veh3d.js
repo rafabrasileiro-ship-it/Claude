@@ -140,13 +140,14 @@ const V3D = (() => {
   /* ---------- pessoas (bandidos, sobrevivente, motoqueiros): mesma malha dos zumbis, pele normal ---------- */
   const HUMAN = [Object.assign(['#c48a62', '#8a5a3a', '#e0b08a', '#7a3a2a'], { human: true }), Object.assign(['#8a5a3a', '#5a3a22', '#b0805a', '#4a2a1a'], { human: true }), Object.assign(['#e0b090', '#a07a5a', '#f4d0b0', '#8a4a3a'], { human: true })];
   const HUM_A = new Float32Array(48), HT1 = new Float32Array([0.12, 0.12, 0.13]), HT2 = new Float32Array([0.2, 0.22, 0.28]), MW3 = M4.make();
-  function human(R, M, x, y, z, kind, seed, t, fx, fz, t1) {
+  function human(R, M, x, y, z, kind, seed, t, fx, fz, t1, roll) {
     const mesh = Z3D.humanoid('andarilhoA', Z3D.SPEC.andarilhoA), A2 = HUM_A, HB = Z3D.HB; A2.fill(0);
     if (kind === 'senta') { A2[HB.TA * 3] = -1.45; A2[HB.TB * 3] = -1.45; A2[HB.SA * 3] = 1.4; A2[HB.SB * 3] = 1.4; A2[HB.UA * 3] = -1.2; A2[HB.FA * 3] = -0.4; A2[HB.UB * 3] = -1.2; A2[HB.FB * 3] = -0.4; A2[HB.CHEST * 3] = 0.25; }
     else if (kind === 'atira') { A2[HB.UA * 3] = -1.5; A2[HB.UA * 3 + 1] = -0.4; A2[HB.FA * 3] = -0.2; A2[HB.UB * 3] = -1.4; A2[HB.UB * 3 + 1] = 0.5; A2[HB.FB * 3] = -0.6; A2[HB.CHEST * 3 + 1] = 0.2 * Math.sin(t * 2 + seed); A2[HB.TA * 3] = -0.15; A2[HB.TB * 3] = 0.15; }
     else if (kind === 'acena') { A2[HB.UA * 3] = -2.8 + 0.4 * Math.sin(t * 7); A2[HB.UA * 3 + 2] = 0.4; A2[HB.FA * 3] = -0.3; A2[HB.UB * 3] = -2.6 + 0.4 * Math.sin(t * 7 + 1); A2[HB.UB * 3 + 2] = -0.4; }
     const bones = Z3D.solve(mesh.skel, A2, null, [0, kind === 'senta' ? -0.42 : 0, 0]);
-    const ffx = fx === undefined ? 0 : fx, ffz = fz === undefined ? 1 : fz, m = M4.mul(MW2, M, M4.place(MW, x, y, z, ffx, ffz, 1, 1, 1));
+    const ffx = fx === undefined ? 0 : fx, ffz = fz === undefined ? 1 : fz; let m = M4.mul(MW2, M, M4.place(MW, x, y, z, ffx, ffz, 1, 1, 1));
+    if (roll) { const cr = Math.cos(roll), sr = Math.sin(roll); M4.ident(MW); MW[0] = cr; MW[1] = sr; MW[4] = -sr; MW[5] = cr; m = M4.mul(MW2, MW2, MW); }   // debruçado para fora da janela
     R.skin(mesh, Z3D.atlasFor(HUMAN[(seed * 3 | 0) % 3]), m, bones, { t1: t1 || (kind === 'acena' ? new Float32Array([0.2, 0.36, 0.62]) : HT1), t2: HT2, flash: 0, glow: 0 });
     if (kind === 'atira') { M4.place(MW, -0.12, 1.32, 0.35, 0, 1, 1, 1, 1); const g = M4.mul(MW3, m, MW); R.model(gunMesh(), tex(), g, { glow: 0 }); return [g[8] * 0.6 + g[12], g[9] * 0.6 + g[13], g[10] * 0.6 + g[14]]; }
     return null;
@@ -284,9 +285,10 @@ const V3D = (() => {
     const gun = aiGunners(), veh = S.veh, hw = md.hw || 0.8, t = G.t;
     for (let i = 0; i < gun.length && i < 3; i++) {
       const a = gun[i], seat = i, side = seat === 0 ? -1 : seat === 1 ? 1 : 0, z = (SEATZ[veh] || SEATZ[1])[seat];
-      const x = side * (hw - 0.05), y = seat === 2 ? ROOF[veh] - 0.95 : (veh === 3 && seat === 1 ? 1.02 - 0.7 : 0.95 - 0.92);
+      // janelas: quadril dentro do carro e o tronco para fora; caçamba da picape: de pé no assoalho; teto: na abertura
+      const bed = veh === 3 && seat >= 1, x = bed ? side * (hw - 0.4) : side * (hw - 0.26), y = bed ? 0.96 : seat === 2 ? ROOF[veh] - 0.95 : 0.0, lean = bed || seat === 2 ? 0 : -side * 0.42;
       const c = CREWC[a.cls.id] || (CREWC[a.cls.id] = (() => { const h = TEX3.hexRGB(a.cls.sleeve); return new Float32Array([h[0] / 255 * 1.3, h[1] / 255 * 1.3, h[2] / 255 * 1.3]); })());
-      const ang = side * 0.75 + Math.sin(t * 0.7 + i) * 0.25, tip = human(R, M, x, y, z, 'atira', 0.3 + i * 0.33, t + i, Math.sin(ang), Math.cos(ang), c);
+      const ang = side * 0.6 + Math.sin(t * 0.7 + i) * 0.25, tip = human(R, M, x, y, z, 'atira', 0.3 + i * 0.33, t + i, Math.sin(ang), Math.cos(ang), c, lean);
       if (tip && a.fireT && t - a.fireT < 0.07) { R.glow(tip[0], tip[1], tip[2], 0.45, 0.45, 1, 0.75, 0.4, 0.95); R.glow(tip[0], tip[1], tip[2], 0.15, 0.15, 1, 1, 0.9, 1); }
     }
   }
