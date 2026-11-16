@@ -159,12 +159,12 @@
       set(HB.UB, -0.5 - 0.3 * Math.sin(t * 6), 0, -1.5 - 0.1 * cl); set(HB.FB, -0.3, 0, -0.5);
       set(HB.TA, -0.05, 0, 0.62 + 0.06 * cl); set(HB.SA, 0.9, 0, 0.1); set(HB.TB, -0.05, 0, -0.62 - 0.06 * cl); set(HB.SB, 0.9, 0, -0.1);
       jaw(0.75 + 0.2 * Math.sin(t * 11)); r.tilt = 0;
-    } else {   // pendurado na porta, pernas balançando
-      const a = Math.sin(t * 6 + id);
-      set(HB.CHEST, 0.2, -0.3 * e.side, 0.1 * a); set(HB.HEAD, 0.1 + 0.15 * Math.sin(t * 4), 0.35 * Math.sin(t * 1.7), 0.2);
-      set(HB.UA, -2.6 + 0.4 * a, 0, 0.3); set(HB.FA, -0.7, 0, 0); set(HB.UB, -2.4 - 0.4 * a, 0, -0.3); set(HB.FB, -0.8, 0, 0);
-      set(HB.TA, -0.4 + 0.5 * Math.sin(t * 9 + id), 0, 0.1); set(HB.SA, 0.6 + 0.4 * Math.sin(t * 9 + id + 1), 0, 0); set(HB.TB, -0.3 + 0.5 * Math.sin(t * 9 + id + PI), 0, -0.1); set(HB.SB, 0.7 + 0.4 * Math.sin(t * 9 + id + PI + 1), 0, 0);
-      jaw(0.6 + 0.3 * Math.sin(t * 13));
+    } else {   // agarrado na porta: deitado ao longo da lataria, de barriga na porta, braços à frente na moldura da janela, pernas arrastando
+      const a = Math.sin(t * 6 + id), w = Math.sin(t * 9 + id), sd = e.side;
+      set(HB.CHEST, 0.1, 0.2 * sd, 0.05 * a); set(HB.HEAD, -0.5 + 0.12 * Math.sin(t * 4), 0.3 * Math.sin(t * 1.7), 0.15);
+      set(HB.UA, -2.9 + 0.12 * a, 0, 0.12); set(HB.FA, -0.2, 0, 0); set(HB.UB, -2.7 - 0.12 * a, 0, -0.12); set(HB.FB, -0.3, 0, 0);
+      set(HB.TA, 0.35 + 0.3 * w, 0, 0.18); set(HB.SA, 0.5 + 0.35 * Math.max(0, w), 0, 0); set(HB.TB, 0.2 - 0.3 * w, 0, -0.18); set(HB.SB, 0.6 + 0.3 * Math.max(0, -w), 0, 0);
+      jaw(0.6 + 0.3 * Math.sin(t * 13)); r.tilt = 0;
     }
   }
 
@@ -337,6 +337,22 @@
     alive.set(e.id, e);
   }
 
+  // agarrado na porta (1ª/3ª pessoa e artilheiro): no espaço do carro, deitado ao longo da lataria, de barriga na porta
+  // e cabeça para a frente; devolve a posição do centro do corpo no espaço da vista
+  const DP = [0, 0, 0];
+  function drawDoorCar(R, e, Mcar, x, y, z, k) {
+    const r = st(e), dt = track(e, r), sd = e.side, D = Z3D.dr || {};
+    if (r.drawnT !== G.t) { pose(e, r, dt, r.A); r.drawnT = G.t; }
+    const mesh = Z.humanoid(Z.specKey(e), Z.SPEC[Z.specKey(e)]), tex = Z.atlasFor(DRAW.pele(e));
+    let M = M4.mul(MT, Mcar, M4.place(MLC, x, y, z, -sd, 0, 1, k, 1));
+    M = tiltM(M, 0.12, ((D.roll != null ? D.roll : 1.4) + Math.sin(G.t * 7 + (e.id | 0)) * 0.05) * (D.sg != null ? D.sg : -1) * sd, 0);
+    tints(e); R.skin(mesh, tex, M, solve(mesh.skel, r.A, r.S, r.root), { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
+    alive.set(e.id, e);
+    const cx = x, cy = y + 0.12 * k, cz = z + 0.6 * k;   // centro do corpo (no espaço do carro)
+    DP[0] = Mcar[0] * cx + Mcar[4] * cy + Mcar[8] * cz + Mcar[12]; DP[1] = Mcar[1] * cx + Mcar[5] * cy + Mcar[9] * cz + Mcar[13]; DP[2] = Mcar[2] * cx + Mcar[6] * cy + Mcar[10] * cz + Mcar[14];
+    return DP;
+  }
+
   /* ---------- mortes e cadáveres ---------- */
   const alive = new Map(), corpses = [];
   function spawnCorpse(e) {
@@ -417,5 +433,5 @@
   // vaca pastando (cenário): cabeça baixa, rabo abanando, parada
   const COW = new Float32Array(48);
   function cowPose(seed) { COW.fill(0); const t = G.t + seed; COW[3] = 0.75 + 0.05 * Math.sin(t * 0.7); COW[4] = 0.15 * Math.sin(t * 0.3); COW[30] = 0.3; COW[31] = 0.5 * Math.sin(t * 2.4); return COW; }
-  Object.assign(Z3D, { draw, drawLatch, drawLatchCar, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; }, boiMesh: boiModel, boiAtlasFor: boiAtlas, cowPose });
+  Object.assign(Z3D, { draw, drawLatch, drawLatchCar, drawDoorCar, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; }, boiMesh: boiModel, boiAtlasFor: boiAtlas, cowPose });
 })();

@@ -195,7 +195,13 @@ const RENDER = (() => {
   }
   function drawLatchers(scale, yb, forGunner) {
     for (const L of latchPlace(scale, yb, forGunner)) {
-      const e = L.e, d = ENEMY[e.type], x = L.x, y = L.y, k = L.k;
+      const e = L.e, d = ENEMY[e.type]; let x = L.x, y = L.y, k = L.k;
+      if (frame3D && e.side !== 0 && !d.veh && (forGunner ? vm3() : cab3())) {   // desenhado no espaço do carro: o retângulo vem da projeção
+        if (e.dv !== G.frame) continue;   // do outro lado do carro: escondido pela lataria
+        x = e.dsx; y = e.dsy + e.dsh / 2; k = e.dsh / d.h;
+        if (forGunner || G.cam === 'tpp') G.hits.push({ e, x: e.dsx - e.dsw / 2, y: e.dsy - e.dsh / 2, w: e.dsw, h: e.dsh, dz: 1.5 });
+        e.sx = x; e.sy = y; e.sh = e.dsh; e.vf = G.frame; continue;
+      }
       if (!frame3D || d.veh) { c.save(); c.translate(x, y); c.scale(k, k); if (d.veh) DRAW.vehicle(c, e, G.t, false); else DRAW.zombie(c, e, G.t, 2); c.restore(); }
       if (e.flash > 0 && !frame3D) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - d.w * k / 2, y - d.h * k, d.w * k, d.h * k); }
       if (forGunner || G.cam === 'tpp') G.hits.push({ e, x: x - d.w * k * 0.7, y: y - d.h * k, w: d.w * k * 1.4, h: d.h * k, dz: 1.5 });
@@ -448,11 +454,11 @@ const RENDER = (() => {
         const mh = [0, 1.2, 1.25, 1.5, 2.0, 2.6][S.veh], rv = { W: 360, H: 90, hor: 34, F: 200, dir: -1, flip: false, camX: P.x, camZ: P.z - 1, camH: mh, N: Math.min(34, viewN), main: false };
         CAB3D.mirTex = W3D.mirrorTex(rv, G.frame % 2 === 0, Math.round(360 * MS), Math.round(90 * MS));
         const light = CAB3D.update(v);
-        o3 = { near: (R, cx) => CAB3D.draw(R, cx), latch: latchPlace(H * 0.4, CAB3D.dashY + H * 0.03, false), light };
+        o3 = { near: (R, cx) => CAB3D.draw(R, cx), latch: latchPlace(H * 0.4, CAB3D.dashY + H * 0.03, false).filter(L => L.e.side === 0), light };
       }
       else if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
-      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false).filter(L => L.e.side !== 0) }; }
-      else if (A.exposed && !(A.down > 0)) { const vmOK = typeof VM3D !== 'undefined', light = vmOK ? VM3D.update(v) : null; o3 = { near: vmOK ? (R, cx) => VM3D.draw(R, cx) : null, latch: latchPlace(H * 0.46, H * 1.12, true), light }; }
+      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: [] }; }
+      else if (A.exposed && !(A.down > 0)) { const vmOK = typeof VM3D !== 'undefined', light = vmOK ? VM3D.update(v) : null; o3 = { near: vmOK ? (R, cx) => VM3D.draw(R, cx) : null, latch: vmOK ? [] : latchPlace(H * 0.46, H * 1.12, true), light }; }
     }
     frame3D = !!(use3D && W3D.render(v, o3));
     if (frame3D) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); if (!(role === 'pilot' && fpp)) vignette(); }

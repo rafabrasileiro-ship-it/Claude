@@ -292,6 +292,18 @@ const V3D = (() => {
       if (tip && a.fireT && t - a.fireT < 0.07) { R.glow(tip[0], tip[1], tip[2], 0.45, 0.45, 1, 0.75, 0.4, 0.95); R.glow(tip[0], tip[1], tip[2], 0.15, 0.15, 1, 1, 0.9, 1); }
     }
   }
+  // zumbis agarrados nas portas: deitados ao longo da lataria. which: lado do artilheiro (-1/1) ou 0 para todos; ctx = projeção
+  // (para dar ao tiro do artilheiro o retângulo certo na tela)
+  const DOOR = [null, { y: 1.1, z: 0.85 }, { y: 1.14, z: 0.9 }, { y: 1.24, z: 1.0 }, { y: 1.4, z: 0.8 }, { y: 1.75, z: 1.2 }];
+  function drawDoors(R, Mcar, md, which, ctx) {
+    const veh = S.veh, dr = DOOR[veh] || DOOR[1], hw = md.hw || 0.85;
+    for (const e of G.ents) {
+      if (e.dead || e.st !== 'latch' || !e.side || ENEMY[e.type].veh) continue;
+      if (which && e.side !== which) continue;
+      const k = e.type === "colosso" ? 1.05 : 0.9, p = Z3D.drawDoorCar(R, e, Mcar, e.side * (hw + 0.2), dr.y, dr.z, k);
+      if (ctx && p[2] > 0.05) { const f = ctx.F / p[2]; e.dsx = ctx.cx + p[0] * f; e.dsy = ctx.cy - p[1] * f; e.dsw = 1.5 * f * k; e.dsh = 0.8 * f * k; e.dv = G.frame; }
+    }
+  }
   function drawPlayer(R, vx, vy, vz, gy, steer, t) {
     const veh = S.veh, up = S.up, md = playerModel(veh, up), v = VEHICLES[veh];
     const col = TEX3.hexRGB(v.cor); TINT[0] = col[0] / 255 * 1.2; TINT[1] = col[1] / 255 * 1.2; TINT[2] = col[2] / 255 * 1.2;
@@ -302,6 +314,7 @@ const V3D = (() => {
     for (const p of md.parts) R.model(p.mesh, p.tex, M, { t1: TINT, spec: 0.55 });
     drawCapo(R, M, md);
     crew(R, M, md);
+    drawDoors(R, M, md, 0, null);
     for (const e of G.ents) {   // agarrado no para-brisa: deitado sobre o vidro, de barriga para a cabine
       if (e.dead || e.st !== 'latch' || e.side !== 0 || ENEMY[e.type].veh) continue;
       const d = BODY[PLAYER[veh]], g0 = !d ? [0.62, 1.95] : d.cab ? d.cab[3] : d.low[3], g1 = !d ? [0.3, 2.8] : d.cab ? d.cab[2] : d.low[2], ang = Math.atan2(g1[1] - g0[1], g0[0] - g1[0]);
@@ -344,5 +357,5 @@ const V3D = (() => {
     for (let o = 0; o < d.nv * 13; o += 13) { const nx = d.f[o + 11]; d.f[o + 3] = nx; d.f[o + 4] = 1; d.f[o + 5] = -0.15; d.f[o + 11] = 0; }
     R.hood(d);
   }
-  return { draw, drawPlayer, drawHood, drawCapo, enemyModel, playerModel, frontModel, tex, A, human, wheelMesh, BODY, PLAYER, CAPO_MOUNT };
+  return { draw, drawPlayer, drawHood, drawCapo, drawDoors, enemyModel, playerModel, frontModel, tex, A, human, wheelMesh, BODY, PLAYER, CAPO_MOUNT };
 })();

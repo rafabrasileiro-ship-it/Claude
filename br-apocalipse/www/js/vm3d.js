@@ -259,6 +259,7 @@ const VM3D = (() => {
     const col = TEX3.hexRGB(VEHICLES[veh].cor); CT[0] = col[0] / 255 * 1.2; CT[1] = col[1] / 255 * 1.2; CT[2] = col[2] / 255 * 1.2;
     for (const p of md.parts) R.model(p.mesh, p.tex, M, { t1: CT, spec: 0.5 });
     if (typeof V3D.drawCapo === 'function') V3D.drawCapo(R, M, md);
+    V3D.drawDoors(R, M, md, A.seat === 0 ? -1 : A.seat === 1 ? 1 : 0, c);   // os agarrados na porta do lado do artilheiro
     // rodas no chão (a carroceria balança por cima delas)
     const wm = V3D.wheelMesh()[0], spin = P.z;
     for (const w of md.wheels) { const r = w[3]; const cA = Math.cos(spin / r), sA = Math.sin(spin / r); M4.ident(MW); MW[0] = w[4]; MW[5] = cA * r; MW[6] = sA * r; MW[9] = -sA * r; MW[10] = cA * r; MW[12] = w[0]; MW[13] = w[1]; MW[14] = w[2]; R.model(wm.mesh, wm.tex, M4.mul(MQ, MB, MW), {}); }

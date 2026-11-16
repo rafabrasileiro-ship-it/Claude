@@ -275,6 +275,7 @@ const CAB3D = (() => {
     const fm = V3D.frontModel(veh, S.up, c.zc), col = TEX3.hexRGB(VEHICLES[veh].cor); TINT[0] = col[0] / 255 * 1.15; TINT[1] = col[1] / 255 * 1.15; TINT[2] = col[2] / 255 * 1.15;
     for (const p of fm.parts) R.model(p.mesh, p.tex, MM, { t1: TINT, spec: 0.5 });
     V3D.drawCapo(R, MM, V3D.playerModel(veh, S.up));
+    V3D.drawDoors(R, MM, V3D.playerModel(veh, S.up), 0, ctx);   // zumbis agarrados nas portas, vistos pelas janelas
     // serras do para-choque girando (brilho) quando ligadas
     if (P.saws && fm.saws) for (let i = 0; i < fm.saws; i++) { const xs = (i - (fm.saws - 1) / 2) * (fm.saws > 2 ? fm.hw * 0.36 : fm.hw * 0.8), q = xp(MM, [xs, 0.8, fm.fz + 0.33]); R.glow(q[0], q[1], q[2], 0.32, 0.5, 0.55, 0.6, 0.75, 0.25); }
     // interior
