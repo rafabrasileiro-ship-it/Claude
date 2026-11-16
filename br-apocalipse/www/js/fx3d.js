@@ -23,7 +23,7 @@ const FX3D = (() => {
   }
   // desenha as partículas desta vista (chamado pelo mundo 3D)
   function draw(R, ctx) {
-    const v = ctx.v; if (v.main) { const dt = Math.min(0.05, Math.max(0, G.t - (draw.lt || G.t))); draw.lt = G.t; update(dt); }
+    const v = ctx.v; if (v.main) { if (P.z < (draw.lz || 0) - 60 || G.st !== draw.st) parts.length = 0; draw.lz = P.z; draw.st = G.st; const dt = Math.min(0.05, Math.max(0, G.t - (draw.lt || G.t))); draw.lt = G.t; update(dt); }
     for (const p of parts) {
       const dz = R.dir * (p.z - v.camZ); if (dz < 0.4 || dz > ctx.maxD) continue;
       const vx = R.fs * (ctx.center(dz) + p.x - v.camX), a = 1 - p.life / p.max;

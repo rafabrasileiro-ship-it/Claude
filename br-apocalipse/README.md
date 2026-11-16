@@ -9,6 +9,8 @@ Jogo de ação e sobrevivência sobre rodas para celulares Android. O vírus Car
 
 O jogo roda deitado (paisagem), em tela cheia (inclusive a faixa do furo da câmera), e funciona sem internet.
 
+**Gráficos 3D:** o mundo é desenhado em 3D de verdade (WebGL), com polígonos texturizados, luz por pixel e neblina, no espírito dos jogos de PlayStation 1. Os zumbis são modelos com esqueleto e animação própria de cada tipo: o Andarilho arrasta uma perna com os braços esticados, o Corredor dispara se debatendo, o Carrapato vem de quatro e salta no para-brisa, o Colosso carrega um bloco de concreto acima da cabeça. Tomam tranco com cada tiro e caem de verdade: tombam e ficam na pista com poça de sangue, a cabeça estoura no tiro certeiro e quem é atropelado voa por cima do carro. À noite, os faróis iluminam a pista em cone e a pele luminescente brilha no escuro. Carros inimigos, o carro dos jogadores com os upgrades, todo o cenário (canaviais, cerrado, prédios de Brasília, mandacarus, coqueiros, placas com o nome das cidades), os 10 chefes e os retrovisores também são 3D. Em celulares sem WebGL o jogo volta sozinho para o desenho 2D clássico; o botão **🧊 Gráficos** no menu inicial alterna entre os dois.
+
 **Resolução:** por padrão o jogo desenha na resolução da própria tela — 1080 × 2400 num Galaxy S20 FE, 1264 × 2780 num Motorola Signature. No menu inicial (e na pausa), **🖥 Resolução** troca entre Automática, FULL HD+ (1080 × 2400), 1.5K SUPER HD (1264 × 2780) e HD+ (720 × 1600, mais leve para celulares simples). Nas resoluções fixas vale o número de linhas; a largura acompanha a proporção da tela.
 
 ## O que tem no jogo
@@ -43,7 +45,8 @@ O jogo roda deitado (paisagem), em tela cheia (inclusive a faixa do furo da câm
 ⚡ é a habilidade da classe. No jogo solo, 🔁 troca entre volante e janela (a IA assume o resto). No computador também dá para jogar com teclado e mouse (WASD, F, C, V, L, E, Q, G, R, X, Z, B, 1-2-3, Tab, P, Esc).
 
 ## Como é feito
-- O jogo é HTML5 + Canvas 2D em JavaScript puro (`br-apocalipse/www`), sem imagens nem bibliotecas: estrada pseudo-3D, sprites desenhados em código e sons sintetizados com WebAudio. Tudo é desenhado em coordenadas de 540 linhas e rasterizado na resolução escolhida (`RENDER.resize`).
+- O jogo é HTML5 em JavaScript puro (`br-apocalipse/www`), sem imagens nem bibliotecas: modelos, texturas e sons são gerados em código (texturas desenhadas em canvas na hora, sons sintetizados com WebAudio). Tudo é pensado em coordenadas de 540 linhas e rasterizado na resolução escolhida (`RENDER.resize`).
+- O mundo 3D usa WebGL 1 num canvas por baixo do canvas 2D (que fica com o painel, as mãos e o HUD). A projeção 3D é a mesma da estrada pseudo-3D original, então os acertos de tiro continuam batendo com o que aparece na tela. Peças: `gl.js` (núcleo WebGL), `tex3d.js` (texturas procedurais), `world3d.js` (estrada, céu, luz, neblina, retrovisores), `zombie3d.js` + `zanim3d.js` (zumbis, esqueleto, animação e cadáveres), `kit3d.js` (primitivas de modelagem), `veh3d.js` (veículos), `scene3d.js` (cenário), `boss3d.js` (chefes) e `fx3d.js` (sangue e perigos).
 - O app Android (`brapocalipse/`) é um WebView em tela cheia que carrega esses arquivos como assets. A classe `Bridge.java` dá ao jogo vibração e a rede local do co-op.
 - No co-op, o celular do Piloto simula tudo e manda o estado ~15 vezes por segundo; os Artilheiros desenham esse estado, cuidam da própria arma e mandam os acertos ao Piloto.
 

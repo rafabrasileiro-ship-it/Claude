@@ -154,6 +154,7 @@ const S3D = (() => {
     guarda: () => make('guarda', () => { const o = P2(texA()); for (let i = -4; i <= 4; i += 2) K3.box(o.b, i - 0.08, i + 0.08, 0, 0.75, -0.08, 0.08, A.DARKG); K3.box(o.b, -4.05, 4.05, 0.42, 0.78, -0.03, 0.06, A.GALV); return K3.model([o]); }),
     penhasco: () => make('penhasco', () => { const o = P2(texA()); K3.blob(o.b, [0, 4, 0], 6.5, 9, 4.5, 10, 7, A.ROCK, 0.3, 5); K3.blob(o.b, [3, 9, 1], 4, 6, 3.5, 8, 6, A.ROCK, 0.3, 9); return K3.model([o]); }),
     pedagio: () => make('pedagio', () => { const o = P2(texA()); K3.box(o.b, -2, 29, 6.5, 7.6, -5, 5, { side: A.CANOPY, front: A.CANOPY, back: A.CANOPY, top: A.ROOF, bottom: A.WHITE }); for (const x of [-1, 10, 18, 27]) K3.box(o.b, x - 0.5, x + 0.5, 0, 6.5, -1.5, 1.5, { side: A.WHITE, front: A.SHOP, back: A.WHITE, top: A.ROOF }); return K3.model([o]); }),
+    pilar: () => make('pilar', () => { const o = P2(texA()); K3.box(o.b, -0.9, 0.9, -7.5, -1.5, -0.9, 0.9, A.CONC); K3.box(o.b, -1.3, 1.3, -1.75, -1.5, -1.2, 1.2, A.CONC); return K3.model([o]); }),
     // miudezas de beira de estrada
     tufo: () => make('tufo', () => { const f = P2(texB(), true); K3.cards(f.b, [0, 0, 0], 1.4, 0.75, 3, B.GRASS); return K3.model([f]); }),
     pedrinha: () => make('pedrinha', () => { const o = P2(texA()); K3.blob(o.b, [0, 0.08, 0], 0.32, 0.2, 0.26, 6, 4, A.ROCK, 0.4, 3); return K3.model([o]); }),
@@ -209,7 +210,7 @@ const S3D = (() => {
       case 'coqueiro': add(R, M.coqueiro(h2 < 0.5 ? 0 : 1), vx, vy, vz, F(h1 * PI * 2), 1, sh); R.blob(vx, vy, vz, 2.6, 2.6, 0.3); break;
       case 'placa': { add(R, M.placa(), vx, vy, vz, F(PI), 1, 1); const st = s.st || {}; const bf = F(PI), M2 = R.place(null, vx + bf[1] * R.det * 2.0, vy, vz - bf[0] * R.det * 2.0, bf[0], bf[1], 1); R.model(signMesh(), signFor(st.txt1 || '', st.txt2 || ''), M2, { glow: 0 }); break; }
       case 'radar': add(R, M.radar(), vx, vy, vz, F(PI), 1, 1); break;
-      case 'guarda': add(R, M.guarda(), vx, vy, vz, road, 1, 1); break;
+      case 'guarda': add(R, M.guarda(), vx, vy, vz, road, 1, 1); if (Math.abs(seed) % 4 === 0) add(R, M.pilar(), vx + (side > 0 ? -1 : 1) * R.fs * 0.9, vy, vz, road, 1, 1); break;
       case 'penhasco': add(R, M.penhasco(), vx, vy, vz, rnd, 1, sh); break;
       case 'pedagio': add(R, M.pedagio(), vx, vy, vz, road, 1, 1); break;
     }

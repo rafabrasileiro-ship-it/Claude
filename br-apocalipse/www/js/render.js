@@ -10,13 +10,24 @@ const RENDER = (() => {
   const CLIMA_N = { limpo: 110, chuva: 62, neblina: 30, fumaca: 17, queimada: 22, areia: 15 };
   const CLIMA_FOG = { chuva: '#59626a', neblina: null, fumaca: '#3a2a20', queimada: '#6a4a30', areia: '#c8a050' };
 
-  let use3D = false, glcv = null;
+  let use3D = false, glcv = null, glScale = 1, ftAcc = 0, ftN = 0, lastFT = 0;
+  // resolução automática: se o celular não segura o ritmo, só a camada 3D baixa a resolução (o painel e o HUD ficam nítidos)
+  function adapt() {
+    const now = performance.now(), d = now - lastFT; lastFT = now;
+    if (d > 0 && d < 100) { ftAcc += d; ftN++; }
+    if (ftN < 90) return;
+    const avg = ftAcc / ftN; ftAcc = ftN = 0;
+    if (!use3D || (META.opts.res || 'auto') !== 'auto') { if (glScale !== 1) { glScale = 1; resize(); } return; }
+    if (avg > 22 && glScale > 0.6) { glScale = Math.max(0.6, glScale - 0.1); resize(); }
+    else if (avg < 14.5 && glScale < 1) { glScale = Math.min(1, glScale + 0.05); resize(); }
+  }
   function init(canvas) {
     cv = canvas; c = cv.getContext('2d'); mcv = document.createElement('canvas'); mc = mcv.getContext('2d');
     // motor 3D (WebGL) por baixo do canvas 2D; se o aparelho não tiver WebGL, ou o jogador escolher, fica o desenho 2D clássico
     glcv = document.getElementById('gl');
     if (glcv && typeof W3D !== 'undefined' && META.opts.gfx !== '2d') { try { use3D = W3D.init(glcv); } catch (e) { console.error(e); use3D = false; } }
     document.body.classList.toggle('gl3d', use3D); if (glcv) glcv.style.display = use3D ? 'block' : 'none';
+    if (use3D) W3D.warm();
     resize(); window.addEventListener('resize', resize);
     // tamanho exato da tela em pixels físicos: 1 pixel do desenho = 1 pixel da tela, sem reamostragem
     if (window.ResizeObserver) try {
@@ -38,7 +49,7 @@ const RENDER = (() => {
     let bh = opt.h || ph, bw = !opt.h && a === ar ? pw : Math.round(bh * a);
     const cap = 3200 / Math.max(bw, bh); if (cap < 1) { bw = Math.round(bw * cap); bh = Math.round(bh * cap); }   // limite de memória do canvas
     if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
-    if (use3D) W3D.resize(bw, bh);
+    if (use3D) W3D.resize(Math.round(bw * glScale), Math.round(bh * glScale));
     SX = bw / W; SY = bh / H; MS = Math.min(3, Math.max(1, SY));
     const mw = Math.round(360 * MS), mh = Math.round(90 * MS); if (mcv.width !== mw || mcv.height !== mh) { mcv.width = mw; mcv.height = mh; }
     G.W = W; G.H = H;
@@ -258,8 +269,13 @@ const RENDER = (() => {
     c.strokeStyle = '#c22'; c.lineWidth = 2; c.beginPath(); for (let i = 0; i < pts.length; i++) { const p = pts[i]; if (i === 0) c.moveTo(p[0] * mw, p[1] * mh); else if (i <= done) c.lineTo(p[0] * mw, p[1] * mh); else { const q = pts[i - 1], f = clamp(done - (i - 1), 0, 1); c.lineTo((q[0] + (p[0] - q[0]) * f) * mw, (q[1] + (p[1] - q[1]) * f) * mh); break; } } c.stroke(); c.fillStyle = '#333'; for (const p of pts) c.fillRect(p[0] * mw - 1.5, p[1] * mh - 1.5, 3, 3); c.font = '7px Arial'; c.textAlign = 'left'; c.fillText('BAURU', mw * 0.2, mh * 0.87); c.fillText('FORTALEZA', mw * 0.5, mh * 0.08); c.restore();
     // volante + mãos
     const wx = W * 0.4, wy = H * 1.03, wr = H * 0.25; c.save(); c.translate(wx, wy); c.rotate(P.steer * 1.5);
-    c.strokeStyle = '#0c0c0c'; c.lineWidth = H * 0.04; c.beginPath(); c.arc(0, 0, wr, 0, 7); c.stroke(); c.lineWidth = H * 0.03; c.beginPath(); c.moveTo(-wr, 0); c.lineTo(wr, 0); c.moveTo(0, 0); c.lineTo(0, wr); c.stroke(); c.fillStyle = '#1a1a1a'; c.beginPath(); c.arc(0, 0, wr * 0.25, 0, 7); c.fill();
-    for (const s of [-1, 1]) { const a = -Math.PI / 2 + s * 0.85, hx = Math.cos(a) * wr, hyy = Math.sin(a) * wr; c.strokeStyle = cl.sleeve; c.lineWidth = H * 0.075; c.lineCap = 'round'; c.beginPath(); c.moveTo(hx + s * wr * 0.5, hyy + wr * 1.1); c.lineTo(hx + s * 8, hyy + 26); c.stroke(); c.strokeStyle = cl.skin; c.lineWidth = H * 0.055; c.beginPath(); c.moveTo(hx + s * 8, hyy + 26); c.lineTo(hx, hyy + 6); c.stroke(); c.fillStyle = cl.glove; c.beginPath(); c.arc(hx, hyy, H * 0.04, 0, 7); c.fill(); if (s < 0) { c.fillStyle = cl.id === 'falcao' ? '#111' : cl.id === 'cobra' ? '#3a4a2a' : cl.id === 'graxa' ? '#888' : '#c9b060'; c.fillRect(hx - 16, hyy + 22, 26, 9); } if (cl.id === 'trovao' && s > 0) { c.fillStyle = '#2a4a8a'; c.beginPath(); c.ellipse(hx + 18, hyy + 50, 7, 12, 0.3, 0, 7); c.fill(); } }
+    // volante com aro de couro (brilho em cima) e raios
+    c.strokeStyle = '#0c0c0c'; c.lineWidth = H * 0.046; c.beginPath(); c.arc(0, 0, wr, 0, 7); c.stroke();
+    c.strokeStyle = 'rgba(120,118,112,0.55)'; c.lineWidth = H * 0.009; c.beginPath(); c.arc(0, 0, wr - H * 0.011, -Math.PI * 0.95 - P.steer * 1.5, -Math.PI * 0.05 - P.steer * 1.5); c.stroke();
+    c.strokeStyle = 'rgba(0,0,0,0.8)'; c.lineWidth = H * 0.006; c.beginPath(); c.arc(0, 0, wr + H * 0.018, 0, 7); c.stroke();
+    c.lineWidth = H * 0.03; c.strokeStyle = '#141414'; c.beginPath(); c.moveTo(-wr, 0); c.lineTo(wr, 0); c.moveTo(0, 0); c.lineTo(0, wr); c.stroke();
+    const hg = c.createRadialGradient(-wr * 0.08, -wr * 0.08, 0, 0, 0, wr * 0.27); hg.addColorStop(0, '#3a3a3a'); hg.addColorStop(1, '#0e0e0e'); c.fillStyle = hg; c.beginPath(); c.arc(0, 0, wr * 0.25, 0, 7); c.fill();
+    for (const s of [-1, 1]) { const a = -Math.PI / 2 + s * 0.85, hx = Math.cos(a) * wr, hyy = Math.sin(a) * wr; DRAW.limb(c, hx + s * wr * 0.5, hyy + wr * 1.1, hx + s * 8, hyy + 26, H * 0.08, H * 0.07, cl.sleeve); DRAW.limb(c, hx + s * 8, hyy + 28, hx, hyy + 6, H * 0.058, H * 0.05, cl.skin); DRAW.fist(c, hx, hyy, H * 0.042, cl.glove); if (s < 0) { c.fillStyle = cl.id === 'falcao' ? '#111' : cl.id === 'cobra' ? '#3a4a2a' : cl.id === 'graxa' ? '#888' : '#c9b060'; c.fillRect(hx - 16, hyy + 22, 26, 9); } if (cl.id === 'trovao' && s > 0) { c.fillStyle = '#2a4a8a'; c.beginPath(); c.ellipse(hx + 18, hyy + 50, 7, 12, 0.3, 0, 7); c.fill(); } }
     c.lineCap = 'butt'; c.restore();
     // fumaça das saídas de ar
     for (const p of puffs) { p.y -= 1.4; p.r += 0.6; p.l -= 0.02; c.fillStyle = `rgba(200,200,200,${p.l * 0.3})`; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fill(); } puffs = puffs.filter(p => p.l > 0); if (puffs.length > 80) puffs.splice(0, 20);
@@ -334,6 +350,12 @@ const RENDER = (() => {
     for (let i = G.msgs.length - 1; i >= 0; i--) { const m = G.msgs[i]; c.globalAlpha = Math.min(1, m.t * 2); const wd = Math.min(W * 0.8, c.measureText(m.txt).width + 20); c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(W / 2 - wd / 2, y - 15, wd, 21); c.fillStyle = m.who === 'ai' ? '#ffd870' : m.who === 'sys' ? '#ff8a6a' : '#9adfff'; c.fillText(m.txt, W / 2, y, W * 0.78); y -= 24; } c.globalAlpha = 1;
   }
 
+  // vinheta: bordas escurecidas (clima pesado), uma imagem pequena esticada na tela
+  let vigC = null;
+  function vignette() {
+    if (!vigC) { vigC = document.createElement('canvas'); vigC.width = 256; vigC.height = 144; const x = vigC.getContext('2d'), g = x.createRadialGradient(128, 72, 40, 128, 72, 150); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.55, 'rgba(0,0,0,0.08)'); g.addColorStop(1, 'rgba(0,0,0,0.5)'); x.fillStyle = g; x.fillRect(0, 0, 256, 144); }
+    c.drawImage(vigC, 0, 0, W, H);
+  }
   /* por cima do mundo 3D: o que ainda é desenhado em 2D na posição projetada (corrente/cabo dos chefes, marcação do Falcão, perigos) */
   function overlay3D(v) {
     const W = v.W, H = v.H, b = G.boss, F = v.F, fs = v.flip ? -1 : 1, pan = v.pan || 0, Xs = W3D.X;
@@ -385,6 +407,7 @@ const RENDER = (() => {
 
   function frame() {
     const role = G.role, fpp = G.cam === 'fpp', st = G.st; if (!st) return;
+    adapt();
     base(c);
     G.hits.length = 0;
     const tn = Math.min(CLIMA_N[G.clima] || 110, G.night ? (P.lights === 2 ? 60 : P.lights === 1 ? 42 : 16) : 999); viewN += (tn - viewN) * 0.04;
@@ -400,7 +423,7 @@ const RENDER = (() => {
       else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false) }; }
       else if (A.exposed && !(A.down > 0)) o3 = { latch: latchPlace(H * 0.46, H * 1.12, true) };
     }
-    if (use3D && W3D.render(v, o3)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); }
+    if (use3D && W3D.render(v, o3)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); if (!(role === 'pilot' && fpp)) vignette(); }
     else { world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v); }
     if (role === 'pilot' && fpp) cockpit(sy * 0.4);
     else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; if (!use3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }

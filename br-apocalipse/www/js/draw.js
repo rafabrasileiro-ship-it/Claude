@@ -36,10 +36,26 @@ const DRAW = (() => {
   ];
   const PELE_TIPO = { andarilho: [0, 1, 2, 3, 4, 0, 1], corredor: [1, 3, 1, 0], carrapato: [2, 0], boiadeiro: [2, 0], engolidor: [5], encouracado: [0, 4, 2], cangaceiro: [1, 3], colosso: [0, 4], boi: [0, 1] };
   // escolha pelo id do inimigo: o mesmo zumbi tem a mesma cor em todos os celulares do co-op
-  const pele = (e) => { const l = PELE_TIPO[e.type] || PELE_TIPO.andarilho; return PELE[l[(Math.abs(e.id | 0) * 7 + 3) % l.length]]; };
+  const pele = (e) => { const l = PELE_TIPO[e.type] || PELE_TIPO.andarilho; return PELE[l[(Math.abs(e.id | 0) * 5 + 3) % l.length]]; };   // 5 é primo com 7/4/3/2: todas as cores aparecem
   const CAMISA = ['#1c2128', '#2b1b15', '#15231b', '#231d2d', '#341313', '#29281a'];
   const OLHO = '#fff4c4', ORB = '#0a0604', BOCA = '#2a0404';
 
+  /* braço/antebraço com volume: faixa afinando, degradê atravessado (luz de cima-esquerda) e pontas arredondadas */
+  const shd = (a, k) => `rgb(${Math.min(255, a[0] * k) | 0},${Math.min(255, a[1] * k) | 0},${Math.min(255, a[2] * k) | 0})`;
+  function limb(c, x0, y0, x1, y1, w0, w1, cor) {
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, a = hex(cor), h0 = w0 / 2, h1 = w1 / 2;
+    const s = nx * -0.7 + ny * -0.7 > 0 ? 1 : -1, g = c.createLinearGradient(x0 + nx * h0 * s, y0 + ny * h0 * s, x0 - nx * h0 * s, y0 - ny * h0 * s);
+    g.addColorStop(0, shd(a, 1.35)); g.addColorStop(0.3, shd(a, 1.12)); g.addColorStop(0.62, shd(a, 0.88)); g.addColorStop(1, shd(a, 0.42));
+    c.fillStyle = g; c.beginPath();
+    const ang = Math.atan2(dy, dx);
+    c.arc(x0, y0, h0, ang + Math.PI / 2, ang - Math.PI / 2); c.arc(x1, y1, h1, ang - Math.PI / 2, ang + Math.PI / 2); c.closePath(); c.fill();
+  }
+  function fist(c, x, y, r, cor) {   // mão/luva fechada com brilho
+    const a = hex(cor), g = c.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r * 1.05);
+    g.addColorStop(0, shd(a, 1.5)); g.addColorStop(0.5, shd(a, 1.0)); g.addColorStop(1, shd(a, 0.45));
+    c.fillStyle = g; c.beginPath(); c.ellipse(x, y, r * 1.08, r, 0, 0, 7); c.fill();
+    c.strokeStyle = shd(a, 0.4); c.lineWidth = Math.max(1, r * 0.08); c.beginPath(); for (let i = -1; i <= 1; i++) { c.moveTo(x + i * r * 0.36, y - r * 0.55); c.lineTo(x + i * r * 0.36, y + r * 0.1); } c.stroke();
+  }
   /* lod: 0 = vulto distante, 1 = médio, 2 = completo */
   function zombie(c, e, t, lod) {
     const d = ENEMY[e.type], h = d.h, w = d.w, id = Math.abs(e.id | 0), ph = id * 1.7 + t * (e.type === 'corredor' ? 14 : 5), P = pele(e);
@@ -235,7 +251,7 @@ const DRAW = (() => {
     const bx = W * 0.5 + (px - W * 0.5) * 0.35, by = H * 1.02, kick = opt.kick || 0, ads = opt.ads || 0;
     const tx = bx + (px - bx) * (0.45 + ads * 0.2), ty = by + (py - by) * (0.42 + ads * 0.18) + kick * 14;
     const ang = Math.atan2(py - by, px - bx) + Math.PI / 2;
-    const arm = (x0, x1, y1) => { c.strokeStyle = cls.sleeve; c.lineWidth = H * 0.085; c.lineCap = 'round'; c.beginPath(); c.moveTo(x0, H * 1.08); c.lineTo(x1, y1 + H * 0.08); c.stroke(); c.strokeStyle = cls.skin; c.lineWidth = H * 0.06; c.beginPath(); c.moveTo(x1, y1 + H * 0.08); c.lineTo(x1, y1 + H * 0.02); c.stroke(); c.fillStyle = cls.glove; c.beginPath(); c.arc(x1, y1, H * 0.042, 0, 7); c.fill(); if (cls.id === 'falcao' || cls.id === 'trovao' || cls.id === 'cobra') { c.fillStyle = cls.id === 'falcao' ? '#111' : cls.id === 'cobra' ? '#3a4a2a' : '#c9b060'; c.fillRect(x1 - H * 0.03, y1 + H * 0.045, H * 0.06, H * 0.02); } };
+    const arm = (x0, x1, y1) => { limb(c, x0, H * 1.08, x1, y1 + H * 0.08, H * 0.09, H * 0.075, cls.sleeve); limb(c, x1, y1 + H * 0.085, x1, y1 + H * 0.02, H * 0.062, H * 0.055, cls.skin); fist(c, x1, y1, H * 0.042, cls.glove); if (cls.id === 'falcao' || cls.id === 'trovao' || cls.id === 'cobra') { c.fillStyle = cls.id === 'falcao' ? '#111' : cls.id === 'cobra' ? '#3a4a2a' : '#c9b060'; c.fillRect(x1 - H * 0.03, y1 + H * 0.045, H * 0.06, H * 0.02); } };
     c.save();
     if (kind === 'reload' || kind === 'cover') { arm(W * 0.3, W * 0.42, H * 0.86 + Math.sin(opt.t * 9) * 6); arm(W * 0.7, W * 0.58, H * 0.88 - Math.sin(opt.t * 9) * 8); c.fillStyle = '#222'; c.fillRect(W * 0.46, H * 0.84, W * 0.08, H * 0.05); c.fillStyle = '#c9a030'; c.fillRect(W * 0.565, H * 0.85 - Math.sin(opt.t * 9) * 8, 5, 12); c.restore(); return; }
     if (kind === 'torreta') {
@@ -290,5 +306,5 @@ const DRAW = (() => {
     c.restore();
   }
 
-  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R, fog, night, halo, pele };
+  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R, fog, night, halo, pele, limb, fist };
 })();

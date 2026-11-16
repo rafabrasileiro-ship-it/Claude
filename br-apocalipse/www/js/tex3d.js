@@ -55,6 +55,9 @@ const TEX3 = (() => {
   const T = (make, o) => new GL3.Texture(make, o);
   const cache = {};
   const once = (k, f) => cache[k] || (cache[k] = f());
+  // terreno: guarda só os dois últimos trechos (cada um ocupa ~1 MB de memória de vídeo)
+  const gndKeys = [];
+  function keepGround(k) { const i = gndKeys.indexOf(k); if (i >= 0) gndKeys.splice(i, 1); gndKeys.push(k); while (gndKeys.length > 2) { const old = gndKeys.shift(); if (cache[old]) { cache[old].free(); delete cache[old]; } } }
 
   /* ---------- pista ---------- */
   // asfalto: 14 m de largura (u 0..1) × 16 m (v 0..1 = 2 segmentos), com faixas pintadas
@@ -71,7 +74,11 @@ const TEX3 = (() => {
         const g = x.createLinearGradient(px(L - 0.35), 0, px(L + 0.35), 0); g.addColorStop(0, 'rgba(12,10,10,0)'); g.addColorStop(0.5, 'rgba(12,10,10,0.25)'); g.addColorStop(1, 'rgba(12,10,10,0)'); x.fillStyle = g; x.fillRect(px(L - 0.35), 0, px(L + 0.35) - px(L - 0.35), H);
       }
       // remendos de asfalto novo
-      for (let i = 0; i < 4; i++) { const w = 40 + r() * 120, h = 30 + r() * 110; x.fillStyle = `rgba(${28 + r() * 10 | 0},${28 + r() * 10 | 0},${31 + r() * 10 | 0},0.55)`; wrapDraw(x, W, H, r() * W, r() * H, (k) => { k.fillRect(0, 0, w, h); k.strokeStyle = 'rgba(15,15,15,0.5)'; k.lineWidth = 2; k.strokeRect(0, 0, w, h); }); }
+      for (let i = 0; i < 3; i++) {   // remendos discretos de bordas irregulares
+        const w = 50 + r() * 110, h = 40 + r() * 100, j = () => (r() - 0.5) * 14, pts = [[j(), j()], [w + j(), j()], [w + j(), h + j()], [j(), h + j()]];
+        x.fillStyle = `rgba(${30 + r() * 8 | 0},${30 + r() * 8 | 0},${33 + r() * 8 | 0},0.24)`;
+        wrapDraw(x, W, H, r() * W, r() * H, (k) => { k.beginPath(); pts.forEach((p, q) => q ? k.lineTo(p[0], p[1]) : k.moveTo(p[0], p[1])); k.closePath(); k.fill(); k.strokeStyle = 'rgba(15,15,15,0.18)'; k.lineWidth = 1.5; k.stroke(); });
+      }
       // rachaduras
       x.strokeStyle = 'rgba(10,10,12,0.75)'; x.lineCap = 'round';
       for (let i = 0; i < 14; i++) {
@@ -106,6 +113,7 @@ const TEX3 = (() => {
   }
   /* terreno de cada trecho (8 m × 8 m): grama molhada, pasto, cerrado seco, terra vermelha, lavoura, pedregulho, caatinga */
   function ground(key, baseHex) {
+    keepGround('gnd' + key + baseHex);
     return once('gnd' + key + baseHex, () => T(() => {
       const W = 512, c = cnv(W, W), x = c.getContext('2d'), r = rng(key * 31 + 7), b = hexRGB(baseHex);
       const lo = b.map(v => v * 1.35), hi = b.map(v => v * 2.25 + 8);

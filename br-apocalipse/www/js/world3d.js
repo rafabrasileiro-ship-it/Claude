@@ -18,7 +18,7 @@ vec3 lightAt(vec3 p, vec3 n) {
     vec3 d = p - uHLp; float dist = length(d); vec3 dn = d / max(dist, 0.01);
     float cone = smoothstep(uHL.w, uHL.z, dot(dn, uHLd));
     float att = clamp(1.0 - dist * uHL.y, 0.0, 1.0); att *= att;
-    L += uHLc * (uHL.x * cone * att * (0.3 + 0.7 * max(dot(n, -dn), 0.0)));
+    L += uHLc * (uHL.x * cone * att * (0.5 + 0.5 * max(dot(n, -dn), 0.0)));
   }
   if (uPL.w > 0.0) { vec3 d = uPL.xyz - p; float dd = dot(d, d); L += uPLc * (uPL.w * max(dot(n, d * inversesqrt(dd + 0.01)), 0.0) / (1.0 + dd * 0.08)); }
   return L;
@@ -89,7 +89,7 @@ void main() {
   if (uSpec > 0.0) {   // pintura brilhante: reflexo do sol, do céu e dos faróis
     vec3 v = normalize(-vP), h = normalize(uSunD + v);
     col += uSpec * (uSunC * pow(max(dot(n, h), 0.0), 40.0) + uAmbS * 0.25 * pow(1.0 - max(dot(n, v), 0.0), 3.0));
-    if (uHL.x > 0.0) { vec3 hl = normalize(normalize(uHLp - vP) + v); col += uSpec * uHLc * uHL.x * 0.4 * pow(max(dot(n, hl), 0.0), 30.0) * clamp(1.0 - length(vP - uHLp) * uHL.y, 0.0, 1.0); }
+    if (uHL.x > 0.0) { vec3 dl = vP - uHLp; float dd = length(dl); vec3 hl = normalize(-dl / max(dd, 0.01) + v); col += uSpec * uHLc * uHL.x * 0.4 * pow(max(dot(n, hl), 0.0), 30.0) * clamp(1.0 - dd * uHL.y, 0.0, 1.0) * smoothstep(uHL.w, uHL.z, dot(dl / max(dd, 0.01), uHLd)); }
   }
   float f = fogF(vP.z);
   col = mix(col, uFogC, mix(f, f * f * 0.85, em));
@@ -186,7 +186,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     L.fogC = fogc; L.fogK = fogK; L.fogP = [1 / maxD, fogK, 0.2, 1.25]; L.maxD = maxD;
     const s0 = rgbN(st.sky[0]), s1 = rgbN(st.sky[1]);
     if (night) {
-      L.sunC = [0.05, 0.06, 0.1]; L.ambS = [0.035, 0.045, 0.075]; L.ambG = [0.02, 0.02, 0.028];
+      L.sunC = [0.085, 0.1, 0.16]; L.ambS = [0.055, 0.066, 0.1]; L.ambG = [0.026, 0.026, 0.034];   // luar
     } else {
       const k = SUN[cl] || 0.9, warm = st.sol ? [1.0, 0.78, 0.55] : [1.0, 0.95, 0.86];
       L.sunC = warm.map(c => c * k * 0.95);
@@ -203,7 +203,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       const lv = P.lights, carZ = dir * (P.z + front - v.camZ), carX = fs * (P.x - v.camX);
       const fwd = [0, lv === 2 ? -0.012 : -0.05, dir], fl = Math.hypot(fwd[0], fwd[1], fwd[2]);
       L.HLp = [carX, -v.camH + 0.75, carZ]; L.HLd = fwd.map(c => c / fl);
-      L.HL = lv === 2 ? [2.6, 1 / 150, 0.965, 0.86] : lv === 1 ? [2.3, 1 / 78, 0.94, 0.8] : [0.5, 1 / 14, 0.9, 0.6];
+      L.HL = lv === 2 ? [3.2, 1 / 160, 0.965, 0.85] : lv === 1 ? [2.9, 1 / 82, 0.94, 0.79] : [0.6, 1 / 14, 0.9, 0.6];
     }
     L.PL = [0, 0, 0, 0];
     L.glow = 0.92; L.gGlow = night ? 0.16 : 0; L.wet = cl === 'chuva' ? 0.75 : 0; L.night = night;
@@ -576,8 +576,24 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
     gl.enable(gl.DEPTH_TEST); gl.depthMask(true);
     return true;
   }
+  /* aquecimento: gera texturas e compila tudo aos poucos enquanto o jogador está no menu (evita travadinha ao começar) */
+  function warm() {
+    if (!ok) return;
+    const jobs = [() => TEX3.asphalt(false), () => TEX3.asphalt(true), () => TEX3.gravel(), () => TEX3.detail(), () => TEX3.macro(), () => TEX3.clouds(), () => TEX3.horizon(), () => TEX3.blob(), () => TEX3.glow(), () => TEX3.decals(), () => TEX3.water(), () => TEX3.cliff(),
+      () => V3D.tex(), () => S3D.tex(), () => S3D.texB()];
+    for (let id = 0; id < 7; id++) jobs.push(() => Z3D.atlasFor(DRAW.pele({ id, type: 'andarilho' })));
+    jobs.push(() => Z3D.atlasFor(DRAW.pele({ id: 0, type: 'engolidor' })));
+    let i = 0;
+    const step = () => {
+      if (i >= jobs.length || GL3.lost) return;
+      if (G.mode === 'play') { setTimeout(step, 400); return; }   // durante a partida, as texturas vêm sob demanda
+      try { const t = jobs[i++](); if (t && t.bind) t.bind(0); } catch (e) { console.error(e); }
+      setTimeout(step, 30);
+    };
+    setTimeout(step, 300);
+  }
   function resize(w, h) { if (!glcv) return; if (glcv.width !== w || glcv.height !== h) { glcv.width = w; glcv.height = h; } }
   function clear() { if (!ok || GL3.lost) return; gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, glcv.width, glcv.height); gl.clearColor(0.043, 0.039, 0.031, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }
 
-  return { init, render, resize, clear, mirror, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
+  return { init, render, resize, clear, mirror, warm, R, X, get ok() { return ok; }, get canvas() { return glcv; }, scene: L, Dyn, useProg: (p) => useProg(p), get progs() { return { P_MOD, P_SKIN, P_ADD, P_QUAD, P_DEC }; }, screenQuad, rgbN, mixA };
 })();

@@ -103,9 +103,9 @@ tr.me td { color: #ffd870; background: rgba(232,176,32,.08); }
 .mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8vh 1.6vw; }
 .mgrid .btn { font-size: clamp(16px, min(5.6vh, 2.6vw), 34px); padding: 2.2vh 1.4vw; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1.15; }
 .mgrid .btn small { font-size: clamp(11px, min(3.3vh, 1.55vw), 21px); margin-top: .8vh; line-height: 1.25; }
-.row5 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.2vw; }
-.row5 button { background: linear-gradient(#3a2a18, #20170e); border: 2px solid #7a5a2a; border-radius: 10px; color: #f0e4c4; font-weight: bold; font-size: clamp(12px, min(3.9vh, 1.8vw), 24px); padding: 1.6vh .6vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
-.row5 button small { font-weight: normal; font-size: clamp(10px, min(3vh, 1.45vw), 19px); color: #c9b88a; margin-top: .6vh; }
+.row5 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 1vw; }
+.row5 button { background: linear-gradient(#3a2a18, #20170e); border: 2px solid #7a5a2a; border-radius: 10px; color: #f0e4c4; font-weight: bold; font-size: clamp(11px, min(3.7vh, 1.6vw), 23px); padding: 1.6vh .5vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.row5 button small { font-weight: normal; font-size: clamp(10px, min(2.9vh, 1.3vw), 18px); color: #c9b88a; margin-top: .6vh; }
 .row5 button.on { border-color: #e8b020; color: #ffd870; }
 .row5 button.on small { color: #ffd870; }
 .row5 button:active { background: #7a5a2a; }

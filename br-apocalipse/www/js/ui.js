@@ -32,12 +32,13 @@ const UI = (() => {
           <button data-o="fpp" class="${META.opts.fpp ? 'on' : ''}">🔒 Travar em 1ª pessoa<small>${META.opts.fpp ? 'ligado' : 'desligado'}</small></button>
           <button data-o="vol">🔊 Volume<small>${Math.round(META.opts.vol * 100)}%</small></button>
           <button data-o="res">🖥 Resolução<small>${resTxt(true)}</small></button>
+          <button data-o="gfx" class="${RENDER.is3D ? 'on' : ''}">🧊 Gráficos<small>${RENDER.is3D ? '3D' : META.opts.gfx === '2d' ? '2D clássico' : '2D (sem WebGL)'}</small></button>
           <button data-o="ajuda">❔ Controles<small>piloto e artilheiro</small></button>
         </div>
       </div>
       <div class="note">No jogo solo você controla 1 sobrevivente e troca entre VOLANTE e JANELA a qualquer momento (🔁); a IA assume os outros três.</div></div>`);
     on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'novo') classes('normal'); else if (a === 'cont') { G.arena = false; garage(); } else if (a === 'coop') coop(); else if (a === 'modos') modos(); else conquistas(); });
-    on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else if (o === 'res') nextRes(); else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
+    on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else if (o === 'res') nextRes(); else if (o === 'gfx') { META.opts.gfx = RENDER.is3D ? '2d' : '3d'; saveAll(); location.reload(); return; } else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
   }
   function ajuda(back) {
     show(`${head('CONTROLES', '<div class="btn" data-a="v">VOLTAR</div>')}<div class="gar"><div><h3>Piloto (volante)</h3><table class="big">

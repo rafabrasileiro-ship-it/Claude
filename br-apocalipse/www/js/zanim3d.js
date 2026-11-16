@@ -138,11 +138,12 @@
       const lean = (type === 'cangaceiro' ? 0.18 : 0.26) + 0.12 * h2 + r.lunge * 0.2;
       set(HB.CHEST, lean + 0.04 * Math.sin(ph * 2), 0.14 * Math.sin(ph) + idle * 0.12 * Math.sin(t * 0.6 + id), 0.05 * Math.sin(ph));
       // braços: os dois esticados, um pendurado ou um caído (varia por zumbi)
-      const reach = 1.3 + 0.25 * r.lunge, armSway = 0.12 * Math.sin(ph + 0.5);
-      const style = (id >> 1) % 3;
-      const armA = style === 1 ? -0.25 + 0.25 * Math.sin(ph) : -(reach + 0.12 * h3) + armSway, armB = style === 2 ? -0.3 + 0.2 * Math.sin(ph + PI) : -(reach - 0.1 + 0.15 * h1) - armSway;
-      set(HB.UA, armA, 0.15, 0.12 + 0.1 * Math.sin(t * 1.1 + id)); set(HB.FA, style === 1 ? -0.1 : -0.25 - 0.15 * Math.sin(t * 1.7 + id), 0, 0);
-      set(HB.UB, armB, -0.15, -0.12 - 0.1 * Math.sin(t * 1.3 + id)); set(HB.FB, style === 2 ? -0.1 : -0.25 - 0.15 * Math.sin(t * 1.5 + id * 2), 0, 0);
+      // braços esticados para a frente (convergindo para quem está na frente); em alguns zumbis um braço fica pendurado
+      const reach = 1.45 + 0.25 * r.lunge, armSway = 0.1 * Math.sin(ph + 0.5);
+      const style = (id >> 1) % 4;
+      const armA = style === 1 ? -0.25 + 0.25 * Math.sin(ph) : -(reach + 0.12 * h3) + armSway, armB = style === 2 ? -0.3 + 0.2 * Math.sin(ph + PI) : -(reach - 0.06 + 0.12 * h1) - armSway;
+      set(HB.UA, armA, style === 1 ? 0.1 : -0.16, 0.05 + 0.06 * Math.sin(t * 1.1 + id)); set(HB.FA, style === 1 ? -0.1 : -0.18 - 0.12 * Math.sin(t * 1.7 + id), 0, 0);
+      set(HB.UB, armB, style === 2 ? -0.1 : 0.16, -0.05 - 0.06 * Math.sin(t * 1.3 + id)); set(HB.FB, style === 2 ? -0.1 : -0.18 - 0.12 * Math.sin(t * 1.5 + id * 2), 0, 0);
       set(HB.HEAD, 0.25 - r.lunge * 0.35 + tw, 0.25 * Math.sin(t * 0.5 + id) * idle, (h1 - 0.5) * 0.7 + tw);
       jaw(0.12 + 0.18 * (0.5 + 0.5 * Math.sin(t * 1.9 + id)) + r.lunge * 0.45);
     }
@@ -284,9 +285,11 @@
     const mesh = boi ? boiModel() : Z.humanoid(Z.specKey(e), Z.SPEC[Z.specKey(e)]);
     const P0 = DRAW.pele(e), tex = boi ? boiAtlas(P0) : Z.atlasFor(P0);
     const f = fwd(R, r.yaw, ctx.slope(vz));
-    let M = R.place(MT, vx, vy, vz, f[0], f[1], 1);
+    // variedade: altura um pouco diferente e, de vez em quando, um antebraço arrancado (sobra o toco)
+    if (!r.S) { r.S = new Float32Array(16).fill(1); const hh = hsh(Math.abs(e.id | 0) * 13.7 + 0.2); if (!boi && hh < 0.14 && (e.type === 'andarilho' || e.type === 'corredor' || e.type === 'cangaceiro')) r.S[hh < 0.07 ? HB.FA : HB.FB] = 0.25; r.k = boi || e.type === 'colosso' ? 1 : 0.94 + hsh(Math.abs(e.id | 0) * 3.1) * 0.12; }
+    let M = R.place(MT, vx, vy, vz, f[0], f[1], r.k);
     M = tiltM(M, r.tilt, r.roll * R.fs, 0);
-    const bones = solve(mesh.skel, r.A, null, r.root);
+    const bones = solve(mesh.skel, r.A, r.S, r.root);
     if (!boi) tints(e);
     R.skin(mesh, tex, M, bones, { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
     // sombra, brilho noturno, fogo do Engolidor
@@ -311,7 +314,7 @@
     if (r.drawnT !== G.t) { pose(e, r, dt, r.A); r.drawnT = G.t; }
     const mesh = Z.humanoid(Z.specKey(e), Z.SPEC[Z.specKey(e)]), tex = Z.atlasFor(DRAW.pele(e));
     const M = R.place(MT, vx, vy, vz, facing[0], facing[1], 1);
-    tints(e); R.skin(mesh, tex, M, solve(mesh.skel, r.A, null, r.root), { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
+    tints(e); R.skin(mesh, tex, M, solve(mesh.skel, r.A, r.S, r.root), { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
     alive.set(e.id, e);
   }
 
@@ -321,7 +324,7 @@
     const r = e._r; if (!r || !r.mesh) return;
     const dzc = e.z - P.z; if (dzc < -55 || dzc > 460) return;
     const d = ENEMY[e.type], car = e.killed === 'car' || e.killed === 'crash' || (!e.killed && dzc < 4 && dzc > -2 && Math.abs(e.x - P.x) < G.V.w + d.w && P.speed > 6);
-    const c = { e: { id: e.id, type: e.type }, type: e.type, x: r.x, z: r.z, yaw: r.yaw, t: 0, A: new Float32Array(r.A), root: r.root.slice(), mesh: r.mesh, tex: r.tex, kind: car ? 'fly' : 'fall', head: !!e.kHead, seed: hsh(e.id * 9.1), y: 0, vy: 0, vx: 0, vz: 0, pitch: r.tilt || 0, roll: 0, spin: 0, dirF: 1, pool: 0 };
+    const c = { e: { id: e.id, type: e.type }, type: e.type, x: r.x, z: r.z, yaw: r.yaw, t: 0, A: new Float32Array(r.A), root: r.root.slice(), mesh: r.mesh, tex: r.tex, S: r.S ? new Float32Array(r.S) : null, k: r.k || 1, kind: car ? 'fly' : 'fall', head: !!e.kHead, seed: hsh(e.id * 9.1), y: 0, vy: 0, vx: 0, vz: 0, pitch: r.tilt || 0, roll: 0, spin: 0, dirF: 1, pool: 0 };
     if (e.st === 'latch') { c.kind = 'fly'; c.x = P.x + (e.side || 0) * (G.V.w + 0.4); c.z = P.z + (e.side === 0 ? 2.2 : 0.3); }
     if (c.kind === 'fly') {
       const sp = Math.max(8, P.speed), side = (c.x - P.x) >= 0 ? 1 : -1;
@@ -364,6 +367,9 @@
   function corpsesPass(R, ctx) {
     const v = ctx.v, main = v.main;
     if (main) {
+      // trecho novo (o carro voltou para o começo da estrada): limpa cadáveres e registros antigos
+      if (P.z < (corpsesPass.lz || 0) - 60 || G.st !== corpsesPass.st) { corpses.length = 0; alive.clear(); }
+      corpsesPass.lz = P.z; corpsesPass.st = G.st;
       // quem sumiu desde o último quadro: morto (anfitrião marca e.killed) ou removido da lista no co-op
       const now = new Set(); for (const e of G.ents) if (!e.dead) now.add(e.id);
       for (const [id, e] of alive) if (!now.has(id)) { alive.delete(id); if ((e.dead && e.killed) || (G.netClient && !e.dead)) spawnCorpse(e); }
@@ -377,11 +383,11 @@
       const wx = ctx.center(dz) + c.x, vx = R.fs * (wx - v.camX), vy = ctx.y0 + Math.max(0, c.y), vz = dz;
       if (vx < -dz * 2.5 || vx > dz * 2.5) continue;
       const f = fwd(R, c.yaw, ctx.slope(dz));
-      let M = R.place(MT, vx, vy, vz, f[0], f[1], 1);
+      let M = R.place(MT, vx, vy, vz, f[0], f[1], c.k);
       M = tiltM(M, c.pitch, c.roll * R.fs, c.kind === 'fall' || c.y <= 0 ? 0.08 : 0);
       if (c.boi) { R.skin(c.mesh, c.tex, M, solve(BOI_SK, c.A, null, c.root), { flash: 0 }); }
       else {
-        let S = null; if (c.head) { S = HS; S.fill(1); S[HB.HEAD] = 0.001; }
+        let S = c.S; if (c.head) { S = HS; if (c.S) S.set(c.S); else S.fill(1); S[HB.HEAD] = 0.001; }
         tints(c.e); R.skin(c.mesh, c.tex, M, solve(c.mesh.skel, c.A, S, c.root), { t1: T1, t2: T2, flash: 0, glow: R.L.glow * Math.max(0.15, 1 - c.t / 6) });
       }
       if (c.pool > 0) { const pr = (0.35 + c.pool * 0.9) * (c.type === 'colosso' ? 1.8 : 1), o = c.boi ? 0 : 0.85 * c.dirF * (c.type === 'colosso' ? 1.8 : 1); R.decal(c.type === 'boiadeiro' ? 11 : 3 + (c.e.id & 1), vx + f[0] * o, ctx.y0, vz + f[1] * o, pr, pr * 0.8, c.seed * 6, Math.min(0.92, c.pool * 1.6)); }

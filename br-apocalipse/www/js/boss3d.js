@@ -93,7 +93,8 @@ const B3D = (() => {
     const md = model(b.key), t = G.t, front = !!b.front, col = TEX3.hexRGB(b.def.cor);
     TINT[0] = col[0] / 255 * 1.35; TINT[1] = col[1] / 255 * 1.35; TINT[2] = col[2] / 255 * 1.35;
     // a face voltada para a câmera fica na distância do chefe (onde o jogo mede os tiros)
-    const yaw = front ? PI : 0, f = Z3D.fwd(R, yaw, ctx.slope(Math.min(vz, ctx.maxD - 1))), half = md.L / 2;
+    // rumo real na estrada: "front" = a frente aparece para o carro dos jogadores (vindo na contramão à frente, ou perseguindo por trás)
+    const ahead = (b.rel || 0) >= 0, yaw = front ? (ahead ? PI : 0) : (ahead ? 0 : PI), f = Z3D.fwd(R, yaw, ctx.slope(Math.min(vz, ctx.maxD - 1))), half = md.L / 2;
     const cz = vz + half, bounce = md.fx.bounce ? Math.abs(Math.sin(t * 5)) * 0.18 : 0;
     const M = R.place(MT, vx, vy + bounce, cz, f[0], f[1], 1);
     const flash = b.parts.some(p => p.flash > 0) ? 0.15 : 0;
