@@ -116,3 +116,7 @@ tr.me td { color: #ffd870; background: rgba(232,176,32,.08); }
 .vrow span { white-space: nowrap; }
 .vrow b { min-width: 3.4em; text-align: right; color: #ffd870; }
 .vrow input[type=range] { flex: 1; height: 4vh; min-height: 24px; accent-color: #e8b020; touch-action: pan-y; }
+
+/* status da rede (reconexão do co-op) na base da tela */
+#netbar{position:fixed;left:50%;bottom:1.5vh;transform:translateX(-50%);z-index:60;padding:.7vh 3vw;background:rgba(0,0,0,.72);color:#ff8a6a;font:bold 13px Arial;border-radius:6px;pointer-events:none}
+#netbar.hide{display:none}

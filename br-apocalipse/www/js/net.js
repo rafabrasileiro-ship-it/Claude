@@ -6,7 +6,7 @@
    Transporte: no app Android, a ponte nativa BRApp (TCP + descoberta por UDP broadcast). No navegador, abas do mesmo
    navegador conversam por BroadcastChannel (serve para testar o co-op sem celulares). */
 const NET = (() => {
-  const PROTO = 1, SNAP_HZ = 15;
+  const PROTO = 1, SNAP_HZ = 15, HB_MS = 1000, DEAD_MS = 7000, RECON_MS = 40000;
   const PH = ['road', 'boss', 'saque', 'arena', 'fim'], CL = ['limpo', 'chuva', 'neblina', 'fumaca', 'queimada', 'areia'];
   const FWD = ['boom', 'crash', 'horn', 'glass', 'pssh', 'turbo', 'ping', 'buy'];
   let TY = null, BK = null, tr = null;
@@ -16,6 +16,7 @@ const NET = (() => {
     peers: {}, rooms: [], myId: 0, myCls: null, lobby: null, garage: null,
     msgq: [], sfxq: [], gunq: [], shq: [], gd: 0, hitq: {}, fuelUse: 0, pullUse: 0, emap: {},
     lastRx: 0, snapT: 0, hbT: 0, flushT: 0, wrapped: false, lastScore: null, lastOver: null,
+    tok: '', ip: '', recon: null, rejoin: false, up: false, ghost: {}, reT: 0,
   };
 
   /* ---------------- transportes ---------------- */
@@ -32,7 +33,7 @@ const NET = (() => {
     ch.onmessage = (ev) => {
       const m = ev.data;
       if (m.k === 'beacon') { if (scanning) q.push('0\t' + JSON.stringify({ t: '_host', ip: m.from, name: m.name })); }
-      else if (m.k === 'join') { if (role === 'host' && m.to === me) { const id = nextId++; peersTab[id] = m.from; ch.postMessage({ k: 'acc', to: m.from, from: me }); q.push(id + '\t{"t":"_join"}'); } }
+      else if (m.k === 'join') { if (role === 'host' && m.to === me) { for (const k in peersTab) if (peersTab[k] === m.from) delete peersTab[k]; const id = nextId++; peersTab[id] = m.from; ch.postMessage({ k: 'acc', to: m.from, from: me }); q.push(id + '\t{"t":"_join"}'); } }
       else if (m.k === 'acc') { if (m.to === me) { hostTab = m.from; q.push('0\t{"t":"_conn"}'); } }
       else if (m.k === 'm') {
         if (role === 'host' && m.to === me) { const id = idOf(m.from); if (id) q.push(id + '\t' + m.d); }
@@ -53,6 +54,7 @@ const NET = (() => {
       kick: (id) => { if (peersTab[id]) { ch.postMessage({ k: 'm', from: me, to: peersTab[id], d: '{"t":"close","why":"Removido pelo Piloto."}' }); delete peersTab[id]; } },
       poll: () => { if (!q.length) return ''; const s = q.join('\n'); q.length = 0; return s; },
       stop: () => { ch.postMessage({ k: 'bye', from: me }); clearInterval(beacon); role = null; hostTab = null; peersTab = {}; scanning = false; q.length = 0; },
+      kill: (clean) => { if (clean) ch.postMessage({ k: 'bye', from: me }); hostTab = null; q.push('0\t{"t":"_bye"}'); },   // simula queda de rede (só para testes)
       ip: () => 'aba ' + me };
   }
   function transport() { if (!tr) { tr = (window.BRApp && window.BRApp.poll) ? nativeTr() : tabsTr(); N.kind = tr ? tr.kind : ''; } return tr; }
@@ -60,17 +62,23 @@ const NET = (() => {
   /* ---------------- sessão ---------------- */
   function startHost() {
     if (!transport()) return false; leave(true);
-    N.host = true; N.peers = {}; N.msgq = []; N.sfxq = []; N.gunq = []; N.gd = 0; N.lastScore = N.lastOver = null; SFX.onGun = hostGun;
+    N.host = true; N.peers = {}; N.ghost = {}; N.msgq = []; N.sfxq = []; N.gunq = []; N.gd = 0; N.lastScore = N.lastOver = null; SFX.onGun = hostGun;
     if (!N.wrapped) { N.wrapped = true; for (const n of FWD) { const f = SFX[n]; SFX[n] = function () { f.apply(SFX, arguments); if (N.host && G.mode === 'play' && N.sfxq.length < 8) N.sfxq.push(n); }; } }
     return !!tr.host(roomName());
   }
   function roomName() { return (META.nick || 'Piloto') + ' · ' + (S ? CLASSES.find(c => c.id === S.cls).nome : ''); }
   function scan(on) { if (!transport()) return false; N.scanning = !!on; if (on) N.rooms = []; tr.scan(!!on); return true; }
-  function join(ip) { if (!transport()) return; if (N.host) leave(true); N.client = true; N.connected = false; N.myCls = null; N.lobby = null; N.shq = []; SFX.onGun = clientGun; tr.join(String(ip).trim()); }
+  function join(ip) {
+    if (!transport()) return; if (N.host) leave(true);
+    N.client = true; N.connected = false; N.myCls = null; N.lobby = null; N.shq = []; SFX.onGun = clientGun;
+    N.ip = String(ip).trim(); N.tok = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); N.recon = null; N.rejoin = false; N.up = false;   // N.tok identifica este celular: serve para devolver o lugar se a rede cair
+    tr.join(N.ip);
+  }
   function leave(silent) {
     if (tr) { if (N.host && !silent) try { tr.broadcast('{"t":"close","why":"O Piloto fechou a sala."}'); } catch (e) {} try { tr.stop(); } catch (e) {} }
     const was = N.host || N.client;
-    N.host = N.client = N.connected = N.scanning = false; N.peers = {}; N.emap = {}; N.hitq = {}; N.myCls = null; N.gunq = []; N.shq = []; SFX.onGun = null;
+    if (N.recon) try { UI.netEvent('recon', null); } catch (e) {}
+    N.host = N.client = N.connected = N.scanning = false; N.recon = null; N.rejoin = false; N.up = false; N.ghost = {}; N.peers = {}; N.emap = {}; N.hitq = {}; N.myCls = null; N.gunq = []; N.shq = []; SFX.onGun = null;
     G.netClient = false; G.humanCls = []; G.drvCls = null; G.hostPaused = false;
     return was;
   }
@@ -98,18 +106,31 @@ const NET = (() => {
       }
     }
     const now = performance.now();
-    if (N.client && N.connected && now - N.lastRx > 25000) lost('Sem sinal do Piloto há 25 segundos.');
-    if (N.host) for (const id in N.peers) if (now - N.peers[id].rx > 30000) { tr.kick(+id); bye(+id); }
+    if (N.client && N.connected && now - N.lastRx > DEAD_MS) drop('Sem sinal do Piloto.');
+    if (N.host) for (const id in N.peers) if (now - N.peers[id].rx > DEAD_MS + 4000) { tr.kick(+id); bye(+id); }
   }
   function tick() {
     if (!tr) return; const now = performance.now();
     if (N.host) {
-      if (now - N.hbT > 2000) { N.hbT = now; tr.broadcast('{"t":"hb"}'); }
+      if (now - N.hbT > HB_MS) { N.hbT = now; tr.broadcast('{"t":"hb"}'); }
       if (G.mode === 'play' && Object.keys(N.peers).length && now - N.snapT >= 1000 / SNAP_HZ) { N.snapT = now; tr.broadcast(JSON.stringify(buildSnap())); }
+      for (const k in N.ghost) if (now - N.ghost[k].t > 120000) delete N.ghost[k];
+    } else if (N.client && N.recon) {
+      if (now - N.recon.t0 > RECON_MS) return lost('Não foi possível reconectar com o Piloto.');
+      if (now >= N.recon.next) { N.recon.next = now + 2500; tr.join(N.ip); }   // tenta de novo (o link antigo é fechado pela ponte)
+      if (now - N.reT > 900) { N.reT = now; UI.netEvent('recon', Math.round((now - N.recon.t0) / 1000)); }
     } else if (N.client && N.connected) {
-      if (now - N.hbT > 2000) { N.hbT = now; tr.send('{"t":"hb"}'); }
+      if (now - N.hbT > HB_MS) { N.hbT = now; tr.send('{"t":"hb"}'); }
       if (now - N.flushT > 50) { N.flushT = now; flush(); }
     }
+  }
+  /* a conexão caiu (não foi o Piloto que fechou a sala): em vez de encerrar, o celular tenta voltar sozinho por alguns segundos */
+  function drop(why) {
+    if (!N.client || N.recon) return;
+    if (!N.up || !N.ip) return lost(why);
+    N.connected = false; N.rejoin = true; N.hitq = {}; N.shq = [];
+    N.recon = { t0: performance.now(), next: performance.now() + 700 }; N.reT = 0;
+    UI.netEvent('recon', 0);
   }
 
   /* ---------------- host ---------------- */
@@ -131,7 +152,16 @@ const NET = (() => {
       case 'hello':
         if (!p) return; p.name = String(m.name || 'Jogador').slice(0, 16);
         if (m.proto !== PROTO) { sendTo(from, { t: 'close', why: 'Versões diferentes do jogo. Atualizem todos os celulares.' }); return; }
-        sendTo(from, { t: 'welcome', id: from, lobby: lobby() }); lobbyChanged(); break;
+        if (m.tok) {   // mesmo celular voltando depois de uma queda: devolve o lugar (e as estatísticas)
+          p.tok = String(m.tok).slice(0, 40); let old = null;
+          for (const k in N.peers) if (+k !== from && N.peers[k].tok === p.tok) { old = N.peers[k]; delete N.peers[k]; try { tr.kick(+k); } catch (e) {} break; }   // conexão antiga que o host ainda não percebeu que caiu
+          const gh = N.ghost[p.tok]; if (!old && gh) { old = gh; delete N.ghost[p.tok]; }
+          if (old && old.cls && !takenBy(old.cls, from)) {
+            Object.assign(p, { cls: old.cls, kills: old.kills, heads: old.heads, amput: old.amput, vex: old.vex, salva: old.salva });
+            if (G.mode === 'play' || G.mode === 'pause') say(p.name + ' voltou à sala!', 'sys', 3);
+          }
+        }
+        sendTo(from, { t: 'welcome', id: from, lobby: lobby(), back: p.cls || null }); lobbyChanged(); if (p.cls) catchUp(from); break;
       case 'pick': {
         if (!p) return; const c = CLASSES.find(c => c.id === m.cls);
         if (!c || takenBy(c.id, from)) { sendTo(from, { t: 'lobby', lobby: lobby(), err: 'Esse sobrevivente já foi escolhido.' }); return; }
@@ -172,10 +202,11 @@ const NET = (() => {
   }
   function bye(id) {
     const p = N.peers[id]; if (!p) return; delete N.peers[id];
+    if (p.tok && p.cls) N.ghost[p.tok] = Object.assign({ t: performance.now() }, p);
     if (p.cls && (G.mode === 'play' || G.mode === 'pause') && S) {
       const c = CLASSES.find(c => c.id === p.cls);
       if (c && c.id !== S.cls && !G.ai.some(a => a.cls.id === c.id)) G.ai.push({ cls: c, cd: 1, kills: 0, heads: 0, salva: 0, ab: 20, buff: 0 });
-      say(p.name + (c ? ' (' + c.nome + ')' : '') + ' saiu da sala — a IA assumiu o lugar.', 'sys', 4);
+      say(p.name + (c ? ' (' + c.nome + ')' : '') + (p.tok ? ' perdeu o sinal — a IA assumiu o lugar até voltar.' : ' saiu da sala — a IA assumiu o lugar.'), 'sys', 4);
     }
     G.humanCls = humanCls(); lobbyChanged();
   }
@@ -228,11 +259,14 @@ const NET = (() => {
   function onClient(m) {
     switch (m.t) {
       case '_host': { const r = N.rooms.find(r => r.ip === m.ip); if (r) { r.name = m.name; r.t = performance.now(); } else { N.rooms.push({ ip: m.ip, name: m.name, t: performance.now() }); UI.netEvent('rooms'); } break; }
-      case '_conn': N.connected = true; N.lastRx = performance.now(); send({ t: 'hello', name: META.nick || 'Jogador', proto: PROTO }); break;
-      case '_fail': N.client = false; UI.netEvent('fail'); break;
-      case '_bye': lost('A conexão com o Piloto caiu.'); break;
+      case '_conn': N.connected = true; N.up = true; N.lastRx = performance.now(); if (N.recon) { N.recon = null; UI.netEvent('recon', null); } send({ t: 'hello', name: META.nick || 'Jogador', proto: PROTO, tok: N.tok }); break;
+      case '_fail': if (N.recon) break; N.client = false; UI.netEvent('fail'); break;
+      case '_bye': if (N.recon) break; drop('A conexão com o Piloto caiu.'); break;
       case 'close': lost(m.why || 'O Piloto fechou a sala.'); break;
-      case 'welcome': N.myId = m.id; N.lobby = m.lobby; UI.netEvent('welcome'); break;
+      case 'welcome':
+        N.myId = m.id; N.lobby = m.lobby;
+        if (N.rejoin) { N.rejoin = false; if (N.myCls) { if (m.back !== N.myCls) send({ t: 'pick', cls: N.myCls }); say('Conexão recuperada!', 'sys', 2.5, true); break; } }   // volta direto ao jogo; o host reenvia o estado
+        UI.netEvent('welcome'); break;
       case 'lobby': N.lobby = m.lobby; UI.netEvent('lobby', m.err); break;
       case 'start': clientStart(m); break;
       case 'garage': N.garage = m; clientStop(); UI.netEvent('garage'); break;
@@ -294,7 +328,7 @@ const NET = (() => {
     G.qte = s.q ? { txt: s.q[0], t: s.q[1], max: 3 } : null;
     if (s.a) { S.ammo.leve = s.a[0]; S.ammo.cartucho = s.a[1]; S.ammo.fuzil = s.a[2]; S.ammo.pesada = s.a[3]; }
     if (s.bn && (!G.banner || G.banner.a !== s.bn[0])) G.banner = { a: s.bn[0], b: s.bn[1], t: s.bn[2] };
-    for (const mm of s.m || []) say(mm[0], mm[1], mm[2], true);
+    for (const mm of s.m || []) if (!G.msgs.some(q => q.txt === mm[0])) say(mm[0], mm[1], mm[2], true);   // sem repetir o que já está na tela
     for (const n of s.x || []) if (SFX[n]) SFX[n]();
     // tiros dos outros (Piloto, outros artilheiros, IA e inimigos), espaçados como aconteceram no host
     for (const q of s.gn || []) if (q[3] !== N.myId) SFX.gun(q[0], { pan: (q[1] || 0) / 100, dist: q[2] || 0, net: true, delay: clamp((1000 / SNAP_HZ - (q[4] || 0)) / 1000, 0, 0.08) });
@@ -334,6 +368,7 @@ const NET = (() => {
     get host() { return N.host; }, get client() { return N.client; }, get connected() { return N.connected; }, get kind() { transport(); return N.kind; },
     get rooms() { return N.rooms; }, get lobbyInfo() { return N.lobby; }, get garageInfo() { return N.garage; }, get myCls() { return N.myCls; }, get peers() { return N.peers; },
     get fuelUse() { return N.fuelUse; }, set fuelUse(v) { N.fuelUse = v; }, get pullUse() { return N.pullUse; }, set pullUse(v) { N.pullUse = v; },
+    get reconnecting() { return !!N.recon; }, dropTest: (clean) => { if (tr && tr.kill) tr.kill(clean); }, reconTime: () => (N.recon ? (performance.now() - N.recon.t0) / 1000 : 0),
     available: () => !!transport(), myIp: () => (transport() ? tr.ip() : ''), count, lobby, silence,
     startHost, scan, join, leave, pump, tick, send, hit, flush, pickCls, takenBy, kick: (id) => { if (tr && N.host) { sendTo(id, { t: 'close', why: 'O Piloto removeu você da sala.' }); tr.kick(id); bye(id); } },
     hostSay, hostGunnerDmg, stageStarted, beforeStage, hostScore, hostGarage, hostOver, hostEnd, hostPause, hostAch, peerRows, resetPeerStats, peerStat,

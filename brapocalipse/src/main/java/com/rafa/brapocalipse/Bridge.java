@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Ponte JavaScript ⇄ Android exposta ao jogo como "BRApp".
@@ -56,6 +57,8 @@ public class Bridge {
     private volatile DatagramSocket scanSock;
     private volatile String roomName = "";
     private WifiManager.MulticastLock mlock;
+    private WifiManager.WifiLock wlock;
+    private final AtomicInteger inboxN = new AtomicInteger();
     private int nextId = 1;
 
     Bridge(Context c) { ctx = c.getApplicationContext(); }
@@ -108,18 +111,18 @@ public class Bridge {
             return false;
         }
         hosting = true;
+        acquireWifi();
         Thread acc = new Thread(() -> {
             ServerSocket ss = server;
             while (hosting && ss != null) {
                 try {
                     Socket s = ss.accept();
-                    s.setTcpNoDelay(true);
-                    s.setKeepAlive(true);
+                    tune(s);
                     int id;
                     synchronized (this) { id = nextId++; }
                     Peer p = new Peer(id, s);
                     peers.put(id, p);
-                    inbox.add(id + "\t{\"t\":\"_join\"}");
+                    post(id + "\t{\"t\":\"_join\"}");
                     p.start();
                 } catch (IOException e) {
                     if (!hosting) break;
@@ -200,7 +203,7 @@ public class Bridge {
                     if (!s.startsWith("BRAPOC|")) continue;
                     String[] f = s.split("\\|", -1);
                     String ip = p.getAddress().getHostAddress();
-                    inbox.add("0\t{\"t\":\"_host\",\"ip\":" + JSONObject.quote(ip) + ",\"name\":" + JSONObject.quote(f.length > 1 ? f[1] : "") + "}");
+                    post("0\t{\"t\":\"_host\",\"ip\":" + JSONObject.quote(ip) + ",\"name\":" + JSONObject.quote(f.length > 1 ? f[1] : "") + "}");
                 }
             } catch (IOException ignored) {
             } finally {
@@ -217,22 +220,46 @@ public class Bridge {
         Peer old = hostLink;
         if (old != null) old.close(false);
         final String addr = ip == null ? "" : ip.trim();
+        final int gen = ++joinGen;
+        acquireWifi();
         Thread t = new Thread(() -> {
-            try {
-                Socket s = new Socket();
-                s.connect(new InetSocketAddress(addr, TCP_PORT), 5000);
-                s.setTcpNoDelay(true);
-                s.setKeepAlive(true);
-                Peer p = new Peer(0, s);
-                hostLink = p;
-                inbox.add("0\t{\"t\":\"_conn\"}");
-                p.start();
-            } catch (Exception e) {
-                inbox.add("0\t{\"t\":\"_fail\"}");
+            // até 3 tentativas: o primeiro SYN costuma se perder quando o Wi-Fi acabou de acordar
+            for (int i = 0; i < 3; i++) {
+                if (gen != joinGen) return;   // outra chamada a join()/stop() tomou o lugar desta
+                try {
+                    Socket s = new Socket();
+                    s.connect(new InetSocketAddress(addr, TCP_PORT), 3500);
+                    if (gen != joinGen) { try { s.close(); } catch (IOException ignored) { } return; }
+                    tune(s);
+                    Peer p = new Peer(0, s);
+                    hostLink = p;
+                    post("0\t{\"t\":\"_conn\"}");
+                    p.start();
+                    return;
+                } catch (Exception e) {
+                    if (i < 2) { try { Thread.sleep(400); } catch (InterruptedException ex) { return; } }
+                }
             }
+            if (gen == joinGen) post("0\t{\"t\":\"_fail\"}");
         }, "br-join");
         t.setDaemon(true);
         t.start();
+    }
+
+    private volatile int joinGen;
+
+    /** Ajustes de latência/estabilidade do socket. */
+    private static void tune(Socket s) {
+        try { s.setTcpNoDelay(true); } catch (Exception ignored) { }
+        try { s.setKeepAlive(true); } catch (Exception ignored) { }
+        try { s.setTrafficClass(0x10); } catch (Exception ignored) { }   // IPTOS_LOWDELAY
+    }
+
+    /** Entrega uma linha ao jogo. Se o jogo demorar a ler (segundo plano/tela travada), descarta snapshots velhos em vez de acumular. */
+    private void post(String line) {
+        if (inboxN.get() > 160 && line.indexOf(SNAP_PREFIX) >= 0) return;
+        inboxN.incrementAndGet();
+        inbox.add(line);
     }
 
     /* ------------------------------------------------------------ mensagens */
@@ -254,6 +281,7 @@ public class Bridge {
         StringBuilder sb = new StringBuilder();
         String s;
         while ((s = inbox.poll()) != null) {
+            inboxN.decrementAndGet();
             if (sb.length() > 0) sb.append('\n');
             sb.append(s);
         }
@@ -263,6 +291,7 @@ public class Bridge {
     @JavascriptInterface
     public void stop() {
         hosting = false;
+        joinGen++;
         ServerSocket ss = server;
         server = null;
         if (ss != null) try { ss.close(); } catch (IOException ignored) { }
@@ -273,6 +302,8 @@ public class Bridge {
         if (h != null) h.finish();
         scan(false);
         inbox.clear();
+        inboxN.set(0);
+        releaseWifi();
     }
 
     @JavascriptInterface
@@ -306,6 +337,25 @@ public class Bridge {
         } catch (Exception ignored) { }
     }
 
+    /** Mantém o Wi-Fi acordado e em modo de baixa latência enquanto há sala/conexão (sem isso o Android entra em economia e a rede oscila). */
+    @SuppressWarnings("deprecation")
+    private synchronized void acquireWifi() {
+        try {
+            if (wlock == null) {
+                WifiManager wm = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
+                if (wm == null) return;
+                int mode = Build.VERSION.SDK_INT >= 29 ? WifiManager.WIFI_MODE_FULL_LOW_LATENCY : WifiManager.WIFI_MODE_FULL_HIGH_PERF;
+                wlock = wm.createWifiLock(mode, "brapocalipse");
+                wlock.setReferenceCounted(false);
+            }
+            if (!wlock.isHeld()) wlock.acquire();
+        } catch (Exception ignored) { }
+    }
+
+    private synchronized void releaseWifi() {
+        try { if (wlock != null && wlock.isHeld()) wlock.release(); } catch (Exception ignored) { }
+    }
+
     private void releaseLock() {
         try { if (mlock != null && mlock.isHeld()) mlock.release(); } catch (Exception ignored) { }
     }
@@ -328,7 +378,7 @@ public class Bridge {
                     BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream(), StandardCharsets.UTF_8));
                     String line;
                     while ((line = in.readLine()) != null) {
-                        if (!line.isEmpty()) inbox.add(id + "\t" + line);
+                        if (!line.isEmpty()) post(id + "\t" + line);
                     }
                 } catch (IOException ignored) { }
                 close(true);
@@ -357,7 +407,7 @@ public class Bridge {
 
         void send(String m) {
             if (!isAlive() || m == null) return;
-            if (out.size() > 90) {   // celular lento ou em segundo plano: descarta snapshots velhos, mantém o resto
+            if (out.size() > 36) {   // rede lenta: snapshots velhos só atrasam o jogo — descarta, mantém o resto (avisos, placar...)
                 Iterator<String> it = out.iterator();
                 while (it.hasNext()) if (it.next().startsWith(SNAP_PREFIX)) it.remove();
             }
@@ -388,7 +438,7 @@ public class Bridge {
             try { sock.close(); } catch (IOException ignored) { }
             out.offer("");   // destrava a thread de escrita
             if (id != 0) peers.remove(id); else if (hostLink == this) hostLink = null;
-            if (notify) inbox.add(id + "\t{\"t\":\"_bye\"}");
+            if (notify) post(id + "\t{\"t\":\"_bye\"}");
         }
     }
 }

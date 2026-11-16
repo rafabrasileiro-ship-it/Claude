@@ -36,6 +36,8 @@ O jogo roda deitado (paisagem), em tela cheia (inclusive a faixa do furo da câm
 - Nos outros: **CO-OP WI-FI → ENTRAR NUMA SALA**. A sala aparece sozinha; se não aparecer, digite o endereço mostrado na tela do Piloto. Cada um escolhe um sobrevivente diferente e entra como Artilheiro.
 - Lugares vazios ficam com a IA. Dá para entrar no meio da estrada; quem sai é substituído pela IA.
 - Rede: TCP na porta 47820 (partida) e UDP na porta 47821 (anúncio das salas).
+- **Conexão estável:** o app mantém o Wi-Fi em modo de baixa latência durante a sala, tenta conectar até 3 vezes e descarta o que ficou velho quando a rede engasga. Se um celular perder o sinal (ou o Piloto ficar um instante em segundo plano), ele **reconecta sozinho por até 40 s** e recebe de volta o mesmo sobrevivente, as estatísticas e o estado da partida; enquanto isso a IA cobre o lugar. Aparece "RECONECTANDO…" na base da tela. Só uma sala fechada pelo Piloto encerra de vez.
+- **Mensagens na base da tela:** rádio, gritos, conquistas, título de trecho/chefe, habilidades e avisos de rede aparecem empilhados na parte de baixo (acima dos botões ESQ!/CAPÔ!/DIR! do Artilheiro), nunca no meio da pista.
 
 ## Controles
 | Piloto | | Artilheiro | |

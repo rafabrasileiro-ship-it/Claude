@@ -206,7 +206,15 @@ const UI = (() => {
     else if (k === 'score') renderScore(d.rows, d, true);
     else if (k === 'over') clientOver(d);
     else if (k === 'end') { META.zerou = true; saveAll(); G.mode = 'end'; ending(); }
-    else if (k === 'lost') lostScreen(d);
+    else if (k === 'lost') { netBar(null); lostScreen(d); }
+    else if (k === 'recon') netBar(d);
+  }
+  // faixa de status da rede (fora da partida, onde o HUD do jogo não aparece): aviso na base da tela
+  function netBar(sec) {
+    let b = document.getElementById('netbar');
+    if (sec == null || G.mode === 'play') { if (b) b.classList.add('hide'); return; }
+    if (!b) { b = document.createElement('div'); b.id = 'netbar'; document.body.appendChild(b); }
+    b.textContent = '📡 RECONECTANDO COM O PILOTO… ' + sec + 's'; b.classList.remove('hide');
   }
 
   /* ---------- placar ---------- */

@@ -367,16 +367,43 @@ const RENDER = (() => {
     if (G.phase === 'arena') { c.fillStyle = '#fff'; c.font = 'bold 13px Arial'; c.strokeStyle = '#000'; c.lineWidth = 3; const s = 'ONDA ' + G.wave + ' · ' + Math.ceil(G.waveT) + 's · sucata ' + Math.round(S.sucata); c.strokeText(s, W / 2, H * 0.19); c.fillText(s, W / 2, H * 0.19); }
     if (G.eventBar > 0) { c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(W * 0.35, H * 0.22, W * 0.3, 16); c.fillStyle = '#3ad06a'; c.fillRect(W * 0.35 + 2, H * 0.22 + 2, (W * 0.3 - 4) * G.eventBar, 12); c.fillStyle = '#fff'; c.font = 'bold 10px Arial'; c.fillText('SEGURE A POSIÇÃO', W / 2, H * 0.22 + 12); }
     if (b && b.fase === 3) { c.fillStyle = '#fff'; c.font = 'bold 16px Arial'; c.strokeStyle = '#000'; c.lineWidth = 3; const s = 'RAMPA DO NAVIO: ' + Math.max(0, Math.round(G.portoLeft)) + ' m  ·  ' + Math.round(P.speed * 3.6) + ' km/h (mín. 110)'; c.strokeText(s, W / 2, H * 0.2); c.fillText(s, W / 2, H * 0.2); }
-    c.fillStyle = '#ffd040'; c.font = 'bold 12px Arial'; if (G.abil.on > 0 && cls().dur > 1 && cls().id !== 'trovao') c.fillText(cls().ativa.toUpperCase() + ' ' + G.abil.on.toFixed(1) + 's', W / 2, H * 0.25); if (G.turboT > 0) c.fillText('🔥 PÉ NO PORÃO — TURBO ' + G.turboT.toFixed(1) + 's', W / 2, H * 0.275);
     // co-op
     if (NET.host || NET.client) { c.textAlign = 'left'; c.font = 'bold 11px Arial'; const tx = '📶 CO-OP ' + NET.count() + '/4' + (NET.client ? ' · ' + cls().nome : ''); c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(8, H * 0.35, c.measureText(tx).width + 12, 18); c.fillStyle = '#9adfff'; c.fillText(tx, 14, H * 0.35 + 13); c.textAlign = 'center'; }
-    if (G.netClient && NET.silence() > 3) { c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(0, H * 0.42, W, H * 0.12); c.fillStyle = '#ff8a6a'; c.font = `bold ${H * 0.045 | 0}px Impact, Arial Black, Arial`; c.fillText('SEM SINAL DO PILOTO… ' + Math.round(NET.silence()) + 's', W / 2, H * 0.5); }
-    else if (G.hostPaused) { c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(0, H * 0.42, W, H * 0.12); c.fillStyle = '#ffd870'; c.font = `bold ${H * 0.05 | 0}px Impact, Arial Black, Arial`; c.fillText('PAUSADO PELO PILOTO', W / 2, H * 0.5); }
-    // faixa de título
-    c.textAlign = 'center'; if (G.banner) { const a = Math.min(1, G.banner.t, 1); c.globalAlpha = a; c.fillStyle = 'rgba(0,0,0,0.72)'; c.fillRect(0, H * 0.24, W, H * 0.16); c.fillStyle = '#e8b020'; c.font = `bold ${H * 0.055 | 0}px Impact, Arial Black, Arial`; c.fillText(G.banner.a, W / 2, H * 0.31); c.fillStyle = '#e8e0c0'; c.font = `${H * 0.03 | 0}px Arial`; c.fillText(G.banner.b, W / 2, H * 0.365); c.globalAlpha = 1; }
-    // legendas (rádio / gritos)
-    let y = H * 0.58; c.font = 'bold 14px Arial'; c.textAlign = 'center';
-    for (let i = G.msgs.length - 1; i >= 0; i--) { const m = G.msgs[i]; c.globalAlpha = Math.min(1, m.t * 2); const wd = Math.min(W * 0.8, c.measureText(m.txt).width + 20); c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(W / 2 - wd / 2, y - 15, wd, 21); c.fillStyle = m.who === 'ai' ? '#ffd870' : m.who === 'sys' ? '#ff8a6a' : '#9adfff'; c.fillText(m.txt, W / 2, y, W * 0.78); y -= 24; } c.globalAlpha = 1;
+    captions();
+  }
+
+  // Mensagens do jogo (rádio, gritos, conquistas, título de trecho, habilidade, status da rede): todas ficam na base da tela,
+  // na faixa livre entre os controles, empilhadas de baixo para cima. Nada aparece no meio da tela, para não atrapalhar a pista.
+  function wrapTxt(txt, maxW) {
+    const out = []; let cur = '';
+    for (const w of String(txt).split(' ')) { const t = cur ? cur + ' ' + w : w; if (cur && c.measureText(t).width > maxW) { out.push(cur); cur = w; } else cur = t; }
+    if (cur) out.push(cur); return out.slice(0, 3);
+  }
+  function captions() {
+    const cw = Math.min(W * 0.46, 440), fs = Math.max(11, H * 0.032 | 0), lh = Math.round(fs * 1.28), top = H * 0.4, B = [];
+    const add = (txt, col, a, f, bold) => { c.font = (bold ? 'bold ' : '') + f; const ls = wrapTxt(txt, cw - 18); B.push({ ls, col, a, f, bold, lh: Math.round(parseFloat(/(\d+(\.\d+)?)px/.exec(f)[1]) * 1.28) }); };
+    const fn = fs + 'px Arial';
+    // status da rede
+    if (NET.reconnecting) add('📡 RECONECTANDO COM O PILOTO… ' + Math.round(NET.reconTime()) + 's', '#ff8a6a', 1, fn, true);
+    else if (G.netClient && NET.silence() > 2) add('📡 SEM SINAL DO PILOTO… ' + Math.round(NET.silence()) + 's', '#ff8a6a', 1, fn, true);
+    else if (G.hostPaused) add('⏸ PAUSADO PELO PILOTO', '#ffd870', 1, fn, true);
+    // legendas (rádio / gritos): a mais nova fica embaixo
+    for (let i = G.msgs.length - 1, n = 0; i >= 0 && n < (G.banner ? 2 : 3); i--, n++) { const m = G.msgs[i]; add(m.txt, m.who === 'ai' ? '#ffd870' : m.who === 'sys' ? '#ff8a6a' : '#9adfff', Math.min(1, m.t * 2), fn, true); }
+    // habilidade / turbo
+    if (G.turboT > 0) add('🔥 PÉ NO PORÃO — TURBO ' + G.turboT.toFixed(1) + 's', '#ffd040', 1, fn, true);
+    if (G.abil.on > 0 && cls().dur > 1 && cls().id !== 'trovao') add(cls().ativa.toUpperCase() + ' ' + G.abil.on.toFixed(1) + 's', '#ffd040', 1, fn, true);
+    // título do trecho / chefe
+    if (G.banner) { const a = Math.min(1, G.banner.t); add(G.banner.b, '#e8e0c0', a, fn, false); add(G.banner.a, '#e8b020', a, 'bold ' + Math.round(H * 0.038) + 'px Impact, Arial Black, Arial', false); }
+    let y = G.role === 'gunner' ? H * 0.905 : H - Math.max(4, H * 0.012);   // Artilheiro: acima dos botões ESQ!/CAPÔ!/DIR! que ficam na base
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    for (const b of B) {
+      const h = b.ls.length * b.lh + 6; if (y - h < top) break;
+      c.font = (b.bold ? 'bold ' : '') + b.f; let w = 0; for (const l of b.ls) w = Math.max(w, c.measureText(l).width);
+      c.globalAlpha = b.a; c.fillStyle = 'rgba(0,0,0,0.62)'; c.fillRect(W / 2 - w / 2 - 9, y - h, w + 18, h);
+      c.fillStyle = b.col; b.ls.forEach((l, k) => c.fillText(l, W / 2, y - h + 3 + (k + 1) * b.lh - b.lh * 0.25));
+      y -= h + 2;
+    }
+    c.globalAlpha = 1;
   }
 
   // vinheta: bordas escurecidas (clima pesado), uma imagem pequena esticada na tela
