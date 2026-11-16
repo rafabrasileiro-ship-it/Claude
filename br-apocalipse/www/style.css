@@ -1,3 +1,4 @@
+:root { --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); }   /* margem do furo da câmera (o app Android atualiza) */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: none; }
 html, body { margin: 0; height: 100%; background: #0b0a08; color: #e8e0c8; font-family: Arial, Helvetica, sans-serif; overflow: hidden; overscroll-behavior: none; }
 #cv { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #0b0a08; }
@@ -5,7 +6,7 @@ html, body { margin: 0; height: 100%; background: #0b0a08; color: #e8e0c8; font-
 button { font: inherit; color: inherit; cursor: pointer; }
 
 /* controles */
-#ctl { position: fixed; inset: 0; pointer-events: none; }
+#ctl { position: fixed; top: 0; bottom: 0; left: var(--sl); right: var(--sr); pointer-events: none; }
 #ctl button { pointer-events: auto; }
 #ctl .top { position: absolute; top: 1.5vh; right: 1.5vw; display: flex; gap: 1vw; }
 #ctl .top button { background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 1.2vh 1.4vw; font-size: 2.6vh; font-weight: bold; }
@@ -25,7 +26,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* telas — escala de letras pensada para celulares de 6,5" deitados (≈ 870-915 × 390-412 px);
    cada tamanho segue a altura e a largura da tela, com mínimo e máximo */
-#ui { position: fixed; inset: 0; display: none; overflow-y: auto; touch-action: pan-y; background: radial-gradient(ellipse at 50% 20%, #2a1a10 0%, #0b0a08 70%); padding: 3vh 4vw;
+#ui { position: fixed; inset: 0; display: none; overflow-y: auto; touch-action: pan-y; background: radial-gradient(ellipse at 50% 20%, #2a1a10 0%, #0b0a08 70%); padding: 3vh max(4vw, calc(var(--sr) + 1.5vw)) 3vh max(4vw, calc(var(--sl) + 1.5vw));
   --f-h2: clamp(22px, min(7.6vh, 3.4vw), 44px); --f-h3: clamp(14px, min(4.2vh, 1.9vw), 24px); --f-txt: clamp(14px, min(4.4vh, 2vw), 24px);
   --f-sm: clamp(13px, min(3.7vh, 1.7vw), 20px); --f-btn: clamp(16px, min(5.2vh, 2.4vw), 30px); --f-note: clamp(13px, min(3.5vh, 1.6vw), 19px); }
 #ui * { touch-action: pan-y; }
@@ -100,7 +101,7 @@ tr.me td { color: #ffd870; background: rgba(232,176,32,.08); }
 .mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8vh 1.6vw; }
 .mgrid .btn { font-size: clamp(16px, min(5.6vh, 2.6vw), 34px); padding: 2.2vh 1.4vw; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1.15; }
 .mgrid .btn small { font-size: clamp(11px, min(3.3vh, 1.55vw), 21px); margin-top: .8vh; line-height: 1.25; }
-.row5 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.6vw; }
+.row5 { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.2vw; }
 .row5 button { background: linear-gradient(#3a2a18, #20170e); border: 2px solid #7a5a2a; border-radius: 10px; color: #f0e4c4; font-weight: bold; font-size: clamp(12px, min(3.9vh, 1.8vw), 24px); padding: 1.6vh .6vw; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
 .row5 button small { font-weight: normal; font-size: clamp(10px, min(3vh, 1.45vw), 19px); color: #c9b88a; margin-top: .6vh; }
 .row5 button.on { border-color: #e8b020; color: #ffd870; }

@@ -10,12 +10,16 @@ const UI = (() => {
   const head = (title, btn) => `<div class="bar"><h2>${title}</h2>${btn || ''}</div>`;   // título + botão de saída sempre visíveis
   function on(sel, fn) { ui().querySelectorAll(sel).forEach(el => el.addEventListener('click', (e) => { SFX.init(); SFX.ui(); fn(el, e); })); }
 
+  /* resolução do desenho: rótulo no formato dos celulares (lado curto × lado longo) e troca cíclica */
+  function resTxt(br) { const o = RESOLUCOES.find(r => r.id === META.opts.res) || RESOLUCOES[0], n = o.h ? o.info.split(' · ')[0] : RENDER.resH + ' × ' + RENDER.resW; return o.nome + (br ? '<br>' : ' · ') + n.replace(/ × /g, '\u00a0×\u00a0'); }
+  function nextRes() { const i = Math.max(0, RESOLUCOES.findIndex(r => r.id === (META.opts.res || 'auto'))); META.opts.res = RESOLUCOES[(i + 1) % RESOLUCOES.length].id; saveAll(); RENDER.resize(); if (G.st && (G.mode === 'pause' || G.mode === 'play')) RENDER.frame(); }
+
   /* ---------- menu ---------- */
   function menu() {
     if (NET.client) { NET.leave(true); loadMeta(); } else if (NET.host) NET.leave(false);
     G.mode = 'menu'; G.netClient = false; SFX.music(null);
     const cont = S && S.stage < 10 && S.mode !== 'arena';
-    // grade do menu inicial: 2 colunas nas duas primeiras linhas, 5 na última (largura total da tela)
+    // grade do menu inicial: 2 colunas nas duas primeiras linhas, 6 botões menores na última (largura total da tela)
     show(`<div class="mm"><h1>BR-<span>APOCALIPSE</span></h1><div class="tag">Expresso Carnificina · 3.000 km de Bauru ao Mar</div>
       <div class="mgrid">
         <div class="btn go" data-a="novo">NOVA JORNADA<small>Bauru (SP) → Fortaleza (CE) · 10 cidades · 10 chefes de estrada</small></div>
@@ -27,12 +31,13 @@ const UI = (() => {
           <button data-o="gyro" class="${META.opts.gyro ? 'on' : ''}">📱 Giroscópio no volante<small>${META.opts.gyro ? 'ligado' : 'desligado'}</small></button>
           <button data-o="fpp" class="${META.opts.fpp ? 'on' : ''}">🔒 Travar em 1ª pessoa<small>${META.opts.fpp ? 'ligado' : 'desligado'}</small></button>
           <button data-o="vol">🔊 Volume<small>${Math.round(META.opts.vol * 100)}%</small></button>
+          <button data-o="res">🖥 Resolução<small>${resTxt(true)}</small></button>
           <button data-o="ajuda">❔ Controles<small>piloto e artilheiro</small></button>
         </div>
       </div>
       <div class="note">No jogo solo você controla 1 sobrevivente e troca entre VOLANTE e JANELA a qualquer momento (🔁); a IA assume os outros três.</div></div>`);
     on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'novo') classes('normal'); else if (a === 'cont') { G.arena = false; garage(); } else if (a === 'coop') coop(); else if (a === 'modos') modos(); else conquistas(); });
-    on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
+    on('[data-o]', (el) => { const o = el.dataset.o; if (o === 'vol') { META.opts.vol = META.opts.vol >= 1 ? 0 : Math.round((META.opts.vol + 0.2) * 10) / 10; SFX.setVol(META.opts.vol); } else if (o === 'ajuda') return ajuda(menu); else if (o === 'res') nextRes(); else { META.opts[o] = !META.opts[o]; if (o === 'gyro' && META.opts.gyro && typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } saveAll(); menu(); });
   }
   function ajuda(back) {
     show(`${head('CONTROLES', '<div class="btn" data-a="v">VOLTAR</div>')}<div class="gar"><div><h3>Piloto (volante)</h3><table class="big">
@@ -247,7 +252,7 @@ const UI = (() => {
     on('[data-a]', (el) => { if (el.dataset.a === 'menu') { saveAll(); menu(); } else go(); });
   }
   function drawGarage() {
-    const g = $('#gcv'); if (!g) return; const cw = Math.max(300, g.clientWidth), ch = Math.max(100, g.clientHeight), dpr = Math.min(2, window.devicePixelRatio || 1); g.width = cw * dpr; g.height = ch * dpr; const x = g.getContext('2d'); const sc = ch / 220; x.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0); const VW = cw / sc; x.fillStyle = '#120e09'; x.fillRect(0, 0, VW, 220); x.fillStyle = '#1c1610'; x.fillRect(0, 180, VW, 40); x.translate((VW - 900) / 2, 0);
+    const g = $('#gcv'); if (!g) return; const cw = Math.max(300, g.clientWidth), ch = Math.max(100, g.clientHeight), dpr = Math.min(3, window.devicePixelRatio || 1); g.width = cw * dpr; g.height = ch * dpr; const x = g.getContext('2d'); const sc = ch / 220; x.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0); const VW = cw / sc; x.fillStyle = '#120e09'; x.fillRect(0, 0, VW, 220); x.fillStyle = '#1c1610'; x.fillRect(0, 180, VW, 40); x.translate((VW - 900) / 2, 0);
     x.fillStyle = 'rgba(232,176,32,0.07)'; x.beginPath(); x.moveTo(380, 0); x.lineTo(520, 0); x.lineTo(700, 220); x.lineTo(200, 220); x.fill();
     x.save(); x.translate(450, 186); x.scale(52, 52); DRAW.playerCar(x, S.veh, S.up, 0, false, 0); x.restore();
     const dmg = Math.round((1 - S.armorFrac) * 14); x.fillStyle = '#0a0a0a'; for (let i = 0; i < dmg; i++) { x.beginPath(); x.arc(400 + DRAW.hash(i * 3) * 100, 110 + DRAW.hash(i * 7) * 60, 3, 0, 7); x.fill(); }
@@ -275,13 +280,13 @@ const UI = (() => {
   function pause() {
     if (G.netClient) {   // no co-op o Artilheiro não para a partida: só abre o menu por cima
       if (G.mode !== 'play' || ui().classList.contains('show')) return;
-      show(`<h2 style="text-align:center;margin-top:10vh">MENU</h2><div class="note" style="margin-bottom:2vh">A partida continua no celular do Piloto.</div><div class="m2"><div class="btn go" data-a="c">VOLTAR AO JOGO</div><div class="btn" data-a="h">CONTROLES</div><div class="btn full" data-a="x">SAIR DA SALA</div></div>`, true);
-      on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'c') hide(); else if (a === 'h') ajuda(() => { hide(); pause(); }); else menu(); });
+      show(`<h2 style="text-align:center;margin-top:10vh">MENU</h2><div class="note" style="margin-bottom:2vh">A partida continua no celular do Piloto.</div><div class="m2"><div class="btn go" data-a="c">VOLTAR AO JOGO</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div><div class="btn" data-a="x">SAIR DA SALA</div></div>`, true);
+      on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'r') { nextRes(); el.querySelector('small').textContent = resTxt(); } else if (a === 'c') hide(); else if (a === 'h') ajuda(() => { hide(); pause(); }); else menu(); });
       return;
     }
     if (G.mode !== 'play') return; G.mode = 'pause'; NET.hostPause(true); SFX.engine(0, 0, false); SFX.saw(false, 0); SFX.wind(0, false);
-    show(`<h2 style="text-align:center;margin-top:10vh">PAUSA</h2><div class="m2"><div class="btn go" data-a="c">CONTINUAR</div><div class="btn" data-a="h">CONTROLES</div><div class="btn full" data-a="m">ABANDONAR O TRECHO (volta ao menu${NET.host ? ' e fecha a sala' : ''})</div></div>`, true);
-    on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'c') { G.mode = 'play'; NET.hostPause(false); hide(); } else if (a === 'h') ajuda(() => { G.mode = 'play'; pause(); }); else { if (G.snap && !G.arena) { S = JSON.parse(G.snap); saveAll(); } menu(); } });
+    show(`<h2 style="text-align:center;margin-top:10vh">PAUSA</h2><div class="m2"><div class="btn go" data-a="c">CONTINUAR</div><div class="btn" data-a="h">CONTROLES</div><div class="btn" data-a="r">🖥 RESOLUÇÃO<small>${resTxt()}</small></div><div class="btn" data-a="m">ABANDONAR O TRECHO<small>volta ao menu${NET.host ? ' e fecha a sala' : ''}</small></div></div>`, true);
+    on('[data-a]', (el) => { const a = el.dataset.a; if (a === 'r') { nextRes(); el.querySelector('small').textContent = resTxt(); } else if (a === 'c') { G.mode = 'play'; NET.hostPause(false); hide(); } else if (a === 'h') ajuda(() => { G.mode = 'play'; pause(); }); else { if (G.snap && !G.arena) { S = JSON.parse(G.snap); saveAll(); } menu(); } });
   }
   function ending() {
     NET.hostEnd();
@@ -291,7 +296,7 @@ const UI = (() => {
     on('[data-a]', () => { ui().style.background = ''; menu(); });
   }
   function drawEnding(dt) {
-    endT += dt; const cv = $('#cv'), c = cv.getContext('2d'), W = cv.width, H = cv.height, t = endT;
+    endT += dt; const c = $('#cv').getContext('2d'); RENDER.base(c); const W = G.W, H = G.H, t = endT;
     const g = c.createLinearGradient(0, 0, 0, H * 0.55); g.addColorStop(0, '#0a0c1a'); g.addColorStop(1, '#c2501a'); c.fillStyle = g; c.fillRect(0, 0, W, H * 0.55);
     c.fillStyle = '#0a0806'; const cx = W * 0.5 - t * 6; for (let i = 0; i < 14; i++) c.fillRect(cx - 300 + i * 46, H * 0.55 - 16 - DRAW.hash(i) * 40, 34, 60);
     for (let i = 0; i < 9; i++) { c.fillStyle = `rgba(255,${120 + Math.sin(t * 7 + i) * 50 | 0},20,0.8)`; c.beginPath(); c.arc(cx - 280 + i * 70, H * 0.55 - 30 - DRAW.hash(i * 3) * 30, 10 + Math.sin(t * 9 + i * 2) * 4, 0, 7); c.fill(); }
@@ -347,8 +352,10 @@ const UI = (() => {
     else if (G.mode === 'end') drawEnding(dt);
     try { NET.tick(); } catch (e) { console.error(e); }
   }
-  function boot() { loadMeta(); if (/[?&]unlock/.test(location.search)) META.zerou = true; SFX.setVol(META.opts.vol); RENDER.init($('#cv')); bind(); menu(); requestAnimationFrame(loop); }
+  function boot() { loadMeta(); if (/[?&]unlock/.test(location.search)) META.zerou = true; SFX.setVol(META.opts.vol); window.UI_safe(); RENDER.init($('#cv')); bind(); menu(); requestAnimationFrame(loop); }
   window.UI_pause = () => pause();
+  // furo da câmera: o Android informa a margem segura (px CSS) e os controles/telas se afastam dela
+  window.UI_safe = () => { try { if (!window.BRApp || !BRApp.insets) return; const v = String(BRApp.insets()).split(',').map(Number); if (v.length < 4) return; const st = document.documentElement.style; ['--sl', '--st', '--sr', '--sb'].forEach((k, i) => st.setProperty(k, Math.max(0, v[i] || 0) + 'px')); } catch (e) {} };
   window.addEventListener('load', boot);
   return { menu, score, garage, over, ending, sync, pause, go, clientGo, netEvent };
 })();

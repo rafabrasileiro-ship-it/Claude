@@ -7,13 +7,15 @@ Jogo de ação e sobrevivência sobre rodas para celulares Android. O vírus Car
 2. Baixe o artefato `br-apocalipse-apk` (um .zip com o APK dentro). O mesmo APK também é salvo em `dist/br-apocalipse-vNN.apk`.
 3. No celular, abra o APK e permita "instalar apps de fontes desconhecidas" quando pedir.
 
-O jogo roda deitado (paisagem), em tela cheia, e funciona sem internet.
+O jogo roda deitado (paisagem), em tela cheia (inclusive a faixa do furo da câmera), e funciona sem internet.
+
+**Resolução:** por padrão o jogo desenha na resolução da própria tela — 1080 × 2400 num Galaxy S20 FE, 1264 × 2780 num Motorola Signature. No menu inicial (e na pausa), **🖥 Resolução** troca entre Automática, FULL HD+ (1080 × 2400), 1.5K SUPER HD (1264 × 2780) e HD+ (720 × 1600, mais leve para celulares simples). Nas resoluções fixas vale o número de linhas; a largura acompanha a proporção da tela.
 
 ## O que tem no jogo
 - **4 sobreviventes** com passiva e Botão de Adrenalina (recarga de 60 s): Trovão (turbo "Pé no Porão"), Graxa (solda a frio da blindagem), Falcão (pontos fracos em vermelho) e Cobra (munição incendiária). Cada um tem mãos, luvas e relógio próprios em 1ª pessoa.
 - **Piloto em 1ª pessoa** com painel de verdade: velocímetro, conta-giros, combustível, temperatura (fumaça sai das saídas de ar quando ferve), retrovisores renderizados em tempo real (o esquerdo pode quebrar), sangue/ácido/óleo no para-brisa, limpador com esguicho, trincas de bala, tela de arame e chapa de aço com fresta, rádio com estações, mapa de papel no porta-luvas. Também dá para jogar em 3ª pessoa.
 - **Artilheiros nas janelas, teto solar, caçamba e torretas**: tiro livre com retícula e mira de ferro (alça e massa), recuo, chacoalhão da suspensão, cobertura no banco para recarregar, armas brancas (facão, lança, porrete, motosserra de mão e industrial) e torretas pesadas (.50, 20 mm, 25 mm, 30 mm) que superaquecem e puxam o carro com o recuo.
-- **Bestiário**: Andarilhos, Corredores, e as 6 mutações (Carrapato de Parabrisa, Boiadeiro Inchado, Engolidor de Fumaça, Encouraçado, Cangaceiro de Espinhos e Colosso Rodoviário), além de bois infectados, motos, caminhonetes, buggies suicidas e blindados das Gangues do Asfalto.
+- **Bestiário** com pele aberrante verde e laranja luminescente (que brilha no escuro e atravessa a neblina): Andarilhos, Corredores, e as 6 mutações (Carrapato de Parabrisa, Boiadeiro Inchado, Engolidor de Fumaça, Encouraçado, Cangaceiro de Espinhos e Colosso Rodoviário), além de bois infectados, motos, caminhonetes, buggies suicidas e blindados das Gangues do Asfalto.
 - **10 cidades e 10 Chefes de Estrada** nas rodovias reais (SP-300, Anhanguera, BR-050, BR-153, BR-060, BR-020, BR-242, BR-407, BR-116…), de O Usineiro em Ribeirão Preto ao Almirante da Ferrugem e o salto no Porto do Mucuripe.
 - **Oficina** em cada cidade: 5 classes de veículo (Uno com escada até Scania Bicuda), para-choques até o Limpa-Trilhos com 6 motosserras, motosserras laterais, telas e chapas, pneus run-flat e maciços com espinhos, turbo, suspensão, tanque, blindagem de titânio, arma fixa do capô e munição.
 - **Arsenal que cresce cidade a cidade** — de revólveres com 18 balas em Bauru até o canhão 30 mm de um Guarani tombado em Messejana.
@@ -41,7 +43,7 @@ O jogo roda deitado (paisagem), em tela cheia, e funciona sem internet.
 ⚡ é a habilidade da classe. No jogo solo, 🔁 troca entre volante e janela (a IA assume o resto). No computador também dá para jogar com teclado e mouse (WASD, F, C, V, L, E, Q, G, R, X, Z, B, 1-2-3, Tab, P, Esc).
 
 ## Como é feito
-- O jogo é HTML5 + Canvas 2D em JavaScript puro (`br-apocalipse/www`), sem imagens nem bibliotecas: estrada pseudo-3D, sprites desenhados em código e sons sintetizados com WebAudio.
+- O jogo é HTML5 + Canvas 2D em JavaScript puro (`br-apocalipse/www`), sem imagens nem bibliotecas: estrada pseudo-3D, sprites desenhados em código e sons sintetizados com WebAudio. Tudo é desenhado em coordenadas de 540 linhas e rasterizado na resolução escolhida (`RENDER.resize`).
 - O app Android (`brapocalipse/`) é um WebView em tela cheia que carrega esses arquivos como assets. A classe `Bridge.java` dá ao jogo vibração e a rede local do co-op.
 - No co-op, o celular do Piloto simula tudo e manda o estado ~15 vezes por segundo; os Artilheiros desenham esse estado, cuidam da própria arma e mandam os acertos ao Piloto.
 

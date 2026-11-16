@@ -60,6 +60,18 @@ public class Bridge {
 
     Bridge(Context c) { ctx = c.getApplicationContext(); }
 
+    /* ------------------------------------------------------------ tela */
+
+    /** Margens seguras do furo da câmera, em px CSS: "esquerda,topo,direita,base". */
+    private volatile String insets = "0,0,0,0";
+
+    void setInsets(float l, float t, float r, float b) {
+        insets = Math.round(l) + "," + Math.round(t) + "," + Math.round(r) + "," + Math.round(b);
+    }
+
+    @JavascriptInterface
+    public String insets() { return insets; }
+
     /* ------------------------------------------------------------ vibração */
 
     @JavascriptInterface

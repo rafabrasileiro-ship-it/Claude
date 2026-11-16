@@ -102,15 +102,22 @@ const AMMO = {
 };
 
 /* inimigos */
+/* resoluções do desenho: linhas da tela deitada (a largura acompanha a proporção da tela); 0 = a da própria tela */
+const RESOLUCOES = [
+  { id: 'auto', nome: 'Automática', h: 0, info: 'a da tela deste celular' },
+  { id: 'fhd', nome: 'FULL HD+', h: 1080, info: '1080 × 2400 · ex.: Galaxy S20 FE' },
+  { id: '15k', nome: '1.5K SUPER HD', h: 1264, info: '1264 × 2780 · ex.: Motorola Signature' },
+  { id: 'hd', nome: 'HD+ (mais leve)', h: 720, info: '720 × 1600 · para celulares mais simples' },
+];
 const ENEMY = {
-  andarilho: { nome: 'Andarilho', hp: 40, w: 0.55, h: 1.75, cor: '#6f7f5c', roupa: '#4a4f58' },
-  corredor: { nome: 'Corredor', hp: 50, w: 0.55, h: 1.75, cor: '#8a8d6a', roupa: '#7a2f2a' },
-  carrapato: { nome: 'Carrapato de Parabrisa', hp: 70, w: 0.6, h: 1.3, cor: '#9aa07a', roupa: '#33302c' },
-  boiadeiro: { nome: 'Boiadeiro Inchado', hp: 130, w: 1.25, h: 1.9, cor: '#b9b24a', roupa: '#5a4a2a' },
-  engolidor: { nome: 'Engolidor de Fumaça', hp: 75, w: 0.6, h: 1.75, cor: '#2a1a14', roupa: '#1a1210', fogo: 1 },
-  encouracado: { nome: 'Encouraçado', hp: 170, w: 0.75, h: 1.85, cor: '#6f7f5c', roupa: '#1d2630', armor: 3 },
-  cangaceiro: { nome: 'Cangaceiro de Espinhos', hp: 75, w: 0.6, h: 1.7, cor: '#b89a6a', roupa: '#6a4a2a' },
-  colosso: { nome: 'Colosso Rodoviário', hp: 2600, w: 1.9, h: 3.2, cor: '#7a6a5a', roupa: '#3a3a3a', armor: 2 },
+  andarilho: { nome: 'Andarilho', hp: 40, w: 0.55, h: 1.75, cor: '#4dff2e', roupa: '#23272e' },
+  corredor: { nome: 'Corredor', hp: 50, w: 0.55, h: 1.75, cor: '#ff8a1a', roupa: '#2a1616', camisa: '#6a1a16' },
+  carrapato: { nome: 'Carrapato de Parabrisa', hp: 70, w: 0.6, h: 1.3, cor: '#b8ff1f', roupa: '#1c1a18' },
+  boiadeiro: { nome: 'Boiadeiro Inchado', hp: 130, w: 1.25, h: 1.9, cor: '#b8ff1f', roupa: '#2e2616' },
+  engolidor: { nome: 'Engolidor de Fumaça', hp: 75, w: 0.6, h: 1.75, cor: '#ff5a0c', roupa: '#140c08', fogo: 1 },
+  encouracado: { nome: 'Encouraçado', hp: 170, w: 0.75, h: 1.85, cor: '#4dff2e', roupa: '#10161c', camisa: '#1d2630', armor: 3 },
+  cangaceiro: { nome: 'Cangaceiro de Espinhos', hp: 75, w: 0.6, h: 1.7, cor: '#ff8a1a', roupa: '#3e2814', camisa: '#5a3a1e' },
+  colosso: { nome: 'Colosso Rodoviário', hp: 2600, w: 1.9, h: 3.2, cor: '#4dff2e', roupa: '#1c1c1c', armor: 2 },
   boi: { nome: 'Boi Infectado', hp: 320, w: 1.2, h: 1.6, cor: '#4a3a2e' },
   moto: { nome: 'Batedor (moto)', hp: 110, w: 0.7, h: 1.6, cor: '#2a2a2a', veh: 1 },
   pickup: { nome: 'Caminhonete de Bandido', hp: 520, w: 2.0, h: 1.9, cor: '#5a2a1a', veh: 1, armor: 2 },

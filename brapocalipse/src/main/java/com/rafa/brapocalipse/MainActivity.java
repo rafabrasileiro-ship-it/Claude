@@ -3,7 +3,9 @@ package com.rafa.brapocalipse;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.DisplayCutout;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
@@ -21,6 +23,13 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Usa a tela inteira, inclusive a faixa do furo da câmera: sem isso o Android deixa uma tarja preta
+        // na lateral e o jogo perde largura (ex.: 2400 → ~2300 px no Galaxy S20 FE).
+        if (Build.VERSION.SDK_INT >= 28) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(lp);
+        }
 
         web = new WebView(this);
         web.setBackgroundColor(Color.rgb(11, 10, 8));
@@ -43,6 +52,17 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         bridge = new Bridge(this);                 // vibração + co-op Wi-Fi (TCP/UDP) para o jogo
         web.addJavascriptInterface(bridge, "BRApp");
+        // O desenho ocupa a tela toda; só os botões e menus se afastam do furo da câmera (muda de lado ao virar o celular).
+        web.setOnApplyWindowInsetsListener((v, ins) -> {
+            if (Build.VERSION.SDK_INT >= 28) {
+                DisplayCutout dc = ins.getDisplayCutout();
+                float d = getResources().getDisplayMetrics().density;
+                if (dc != null) bridge.setInsets(dc.getSafeInsetLeft() / d, dc.getSafeInsetTop() / d, dc.getSafeInsetRight() / d, dc.getSafeInsetBottom() / d);
+                else bridge.setInsets(0, 0, 0, 0);
+                web.evaluateJavascript("if(window.UI_safe)UI_safe();", null);
+            }
+            return v.onApplyWindowInsets(ins);
+        });
         setContentView(web);
         hideSystemBars();
         web.loadUrl("file:///android_asset/index.html");

@@ -1,63 +1,131 @@
 'use strict';
 /* Sprites procedurais. Todas as funções desenham em METROS, com os pés em (0,0) e y para cima negativo. */
 const DRAW = (() => {
-  const R = (c, x, y, w, h, cor) => { c.fillStyle = cor; c.fillRect(x, y, w, h); };
+  /* Névoa como mistura de cor OPACA: o sprite nunca fica transparente (antes dava para ver a pista através dos zumbis).
+     FOG = cor da névoa [r,g,b]; FF = fração aplicada no corpo; FE = fração na pele luminescente (o brilho atravessa melhor a névoa).
+     GLOW = passada noturna: o corpo vira silhueta escura e só a pele, os olhos e as feridas acendem. */
+  let FOG = null, FF = 0, FE = 0, fogKey = '', GLOW = false;
+  const HEX = {}, MIX = new Map();
+  const hex = (h) => HEX[h] || (HEX[h] = h.length === 4 ? [parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16), parseInt(h[3] + h[3], 16)] : [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
+  function col(cor, em) {
+    if (GLOW) return em ? cor : '#060708';
+    const f = em ? FE : FF; if (!FOG || f < 0.03 || cor.charCodeAt(0) !== 35) return cor;
+    const q = Math.min(32, Math.round(f * 32)), key = cor + q; let v = MIX.get(key);
+    if (!v) { const a = hex(cor), t = q / 32; v = `rgb(${a[0] + (FOG[0] - a[0]) * t | 0},${a[1] + (FOG[1] - a[1]) * t | 0},${a[2] + (FOG[2] - a[2]) * t | 0})`; if (MIX.size > 5000) MIX.clear(); MIX.set(key, v); }
+    return v;
+  }
+  function fog(rgb, f) { if (!rgb) { FOG = null; return; } const k = rgb[0] + ',' + rgb[1] + ',' + rgb[2]; if (k !== fogKey) { fogKey = k; MIX.clear(); } FOG = rgb; FF = f; FE = f * f * 0.85; }
+  function glow(on) { GLOW = !!on; }
+  const R = (c, x, y, w, h, cor) => { c.fillStyle = col(cor, 0); c.fillRect(x, y, w, h); };
+  const L = (c, x, y, w, h, cor) => { c.fillStyle = col(cor, 1); c.fillRect(x, y, w, h); };   // partes que brilham: pele, olhos, brasas
+  const FS = (c, cor, em) => { c.fillStyle = col(cor, em); };
   const hash = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 
-  function zombie(c, e, t, simple) {
-    const d = ENEMY[e.type], h = d.h, w = d.w, ph = (e.id * 1.7 + t * (e.type === 'corredor' ? 14 : 5));
-    if (simple) { R(c, -w / 2, -h, w, h, d.roupa || d.cor); if (d.fogo) R(c, -w / 2, -h * 1.15, w, h * 0.3, '#ff8a1a'); return; }
-    const sw = Math.sin(ph) * 0.12;
+  /* peles aberrantes luminescentes, verde e/ou laranja: [base, sombra, brilho, contraste (bolhas e veias)] */
+  const PELE = [
+    ['#4dff2e', '#1f9e12', '#d4ffaa', '#ff8c1a'],   // 0 verde radioativo com bolhas laranja
+    ['#ff8a1a', '#b9460a', '#ffd88f', '#5cff2e'],   // 1 laranja luminescente com veias verdes
+    ['#b8ff1f', '#5f9c08', '#f2ffbc', '#ff6a12'],   // 2 lima ácido com bolhas laranja
+    ['#ff641a', '#a3300a', '#ffb98a', '#a8ff24'],   // 3 laranja-brasa com veias lima
+    ['#2dff8c', '#0d9a4e', '#baffda', '#ffa41c'],   // 4 verde tóxico com bolhas âmbar
+    ['#ff5a0c', '#2a140a', '#ffd25a', '#140a06'],   // 5 brasa viva (Engolidor de Fumaça): carvão rachado aceso por dentro
+  ];
+  const PELE_TIPO = { andarilho: [0, 1, 2, 3, 4, 0, 1], corredor: [1, 3, 1, 0], carrapato: [2, 0], boiadeiro: [2, 0], engolidor: [5], encouracado: [0, 4, 2], cangaceiro: [1, 3], colosso: [0, 4], boi: [0, 1] };
+  // escolha pelo id do inimigo: o mesmo zumbi tem a mesma cor em todos os celulares do co-op
+  const pele = (e) => { const l = PELE_TIPO[e.type] || PELE_TIPO.andarilho; return PELE[l[(Math.abs(e.id | 0) * 7 + 3) % l.length]]; };
+  const CAMISA = ['#1c2128', '#2b1b15', '#15231b', '#231d2d', '#341313', '#29281a'];
+  const OLHO = '#fff4c4', ORB = '#0a0604', BOCA = '#2a0404';
+
+  /* lod: 0 = vulto distante, 1 = médio, 2 = completo */
+  function zombie(c, e, t, lod) {
+    const d = ENEMY[e.type], h = d.h, w = d.w, id = Math.abs(e.id | 0), ph = id * 1.7 + t * (e.type === 'corredor' ? 14 : 5), P = pele(e);
+    if (!lod) {   // longe: silhueta escura com cabeça e ombros acesos
+      if (e.type === 'boiadeiro' || e.type === 'colosso' || e.type === 'carrapato') L(c, -w / 2, -h, w, h * 0.78, P[0]);
+      else { R(c, -w / 2, -h * 0.8, w, h * 0.8, d.roupa); L(c, -w * 0.4, -h, w * 0.8, h * 0.3, P[0]); }
+      if (d.fogo) L(c, -w / 2, -h * 1.15, w, h * 0.3, '#ff8a1a');
+      return;
+    }
+    const sw = Math.sin(ph) * 0.12, full = lod > 1;
     switch (e.type) {
       case 'boiadeiro': {
-        R(c, -0.3, -0.7, 0.22, 0.7, '#3a3320'); R(c, 0.08, -0.7, 0.22, 0.7, '#3a3320');
-        c.fillStyle = d.cor; c.beginPath(); c.ellipse(0, -1.1, 0.68 + Math.sin(t * 3 + e.id) * 0.03, 0.62, 0, 0, 7); c.fill();
-        c.fillStyle = '#8fd13a'; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(-0.4 + hash(e.id + i) * 0.8, -1.4 + hash(e.id * 3 + i) * 0.6, 0.09, 0, 7); c.fill(); }
-        R(c, -0.75, -1.35, 0.2, 0.5, d.cor); R(c, 0.55, -1.35, 0.2, 0.5, d.cor);
-        R(c, -0.17, -1.9, 0.34, 0.3, '#a8a060'); R(c, -0.3, -1.98, 0.6, 0.08, '#4a3a1a'); R(c, -0.18, -2.1, 0.36, 0.14, '#4a3a1a');
+        R(c, -0.3, -0.7, 0.22, 0.7, d.roupa); R(c, 0.08, -0.7, 0.22, 0.7, d.roupa);
+        const bw = 0.68 + Math.sin(t * 3 + id) * 0.03;
+        FS(c, P[0], 1); c.beginPath(); c.ellipse(0, -1.1, bw, 0.62, 0, 0, 7); c.fill();                       // barriga inchada
+        if (full) { FS(c, P[1], 1); c.beginPath(); c.ellipse(bw * 0.4, -1.0, bw * 0.55, 0.5, 0, 0, 7); c.fill(); FS(c, P[2], 1); c.beginPath(); c.ellipse(-bw * 0.4, -1.42, bw * 0.3, 0.11, -0.5, 0, 7); c.fill(); }
+        FS(c, P[3], 1); for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(-0.4 + hash(id + i) * 0.8, -1.4 + hash(id * 3 + i) * 0.6, 0.09, 0, 7); c.fill(); }   // bolhas
+        L(c, -0.75, -1.35, 0.2, 0.5, P[1]); L(c, 0.55, -1.35, 0.2, 0.5, P[1]);
+        L(c, -0.17, -1.9, 0.34, 0.3, P[0]);
+        if (full) { R(c, -0.12, -1.83, 0.09, 0.06, ORB); R(c, 0.03, -1.83, 0.09, 0.06, ORB); L(c, -0.095, -1.82, 0.04, 0.04, OLHO); L(c, 0.055, -1.82, 0.04, 0.04, OLHO); R(c, -0.08, -1.72, 0.16, 0.05, BOCA); }
+        R(c, -0.3, -1.98, 0.6, 0.08, '#3a2a12'); R(c, -0.18, -2.1, 0.36, 0.14, '#3a2a12');                    // chapéu de boiadeiro
         break; }
       case 'colosso': {
-        R(c, -0.6, -1.2, 0.45, 1.2, '#2e2e2e'); R(c, 0.15, -1.2, 0.45, 1.2, '#2e2e2e');
-        R(c, -0.95, -2.6, 1.9, 1.5, d.cor); R(c, -0.8, -2.5, 1.6, 0.25, '#8a7a6a');
-        R(c, -1.35, -2.7 + sw, 0.42, 1.5, d.cor); R(c, 0.93, -2.7 - sw, 0.42, 1.5, d.cor);
-        R(c, -0.3, -3.1, 0.6, 0.5, '#6a5a4a'); R(c, -0.2, -2.95, 0.12, 0.08, '#e22'); R(c, 0.08, -2.95, 0.12, 0.08, '#e22');
-        R(c, -1.5, -3.6 + sw, 1.1, 0.8, '#7d7d78'); R(c, -1.4, -3.5 + sw, 0.3, 0.2, '#5a5a56');
+        R(c, -0.6, -1.2, 0.45, 1.2, d.roupa); R(c, 0.15, -1.2, 0.45, 1.2, d.roupa);
+        L(c, -0.95, -2.6, 1.9, 1.5, P[0]); if (full) { L(c, 0.38, -2.6, 0.57, 1.5, P[1]); L(c, -0.95, -2.6, 1.9, 0.12, P[2]); }
+        R(c, -0.8, -2.5, 1.6, 0.25, '#2e241c');
+        L(c, -1.35, -2.7 + sw, 0.42, 1.5, P[1]); L(c, 0.93, -2.7 - sw, 0.42, 1.5, P[1]);
+        if (full) for (let i = 0; i < 6; i++) L(c, -0.85 + hash(id + i * 3) * 1.6, -2.2 + hash(id * 5 + i) * 0.95, 0.07 + hash(i + 9) * 0.07, 0.32, P[3]);   // veias
+        L(c, -0.3, -3.1, 0.6, 0.5, P[0]); if (full) L(c, 0.1, -3.1, 0.2, 0.5, P[1]);
+        R(c, -0.24, -2.98, 0.2, 0.13, ORB); R(c, 0.04, -2.98, 0.2, 0.13, ORB); L(c, -0.2, -2.95, 0.12, 0.08, '#ff3a12'); L(c, 0.08, -2.95, 0.12, 0.08, '#ff3a12');
+        R(c, -1.5, -3.6 + sw, 1.1, 0.8, '#7d7d78'); R(c, -1.4, -3.5 + sw, 0.3, 0.2, '#5a5a56');                // bloco de concreto
         break; }
       case 'carrapato': {
         R(c, -0.3, -0.5, 0.2, 0.5, d.roupa); R(c, 0.1, -0.5, 0.2, 0.5, d.roupa);
-        R(c, -0.3, -1.0, 0.6, 0.55, d.cor); R(c, -0.65, -1.0, 0.3, 0.14, d.cor); R(c, 0.35, -1.0, 0.3, 0.14, d.cor);
-        R(c, -0.75, -1.0, 0.12, 0.6, d.cor); R(c, 0.63, -1.0, 0.12, 0.6, d.cor);
-        R(c, -0.17, -1.3, 0.34, 0.3, '#aab08a'); R(c, -0.1, -1.2, 0.2, 0.12, '#400');
+        L(c, -0.3, -1.0, 0.6, 0.55, P[0]); L(c, -0.65, -1.0, 0.3, 0.14, P[1]); L(c, 0.35, -1.0, 0.3, 0.14, P[1]);
+        L(c, -0.75, -1.0, 0.12, 0.6, P[1]); L(c, 0.63, -1.0, 0.12, 0.6, P[1]);
+        if (full) { L(c, -0.3, -1.0, 0.6, 0.06, P[2]); for (let i = 0; i < 3; i++) L(c, -0.24 + hash(id + i) * 0.42, -0.9 + hash(id * 2 + i) * 0.36, 0.08, 0.07, P[3]); }
+        L(c, -0.17, -1.3, 0.34, 0.3, P[0]); if (full) L(c, -0.17, -1.3, 0.34, 0.05, P[2]);
+        R(c, -0.13, -1.24, 0.1, 0.07, ORB); R(c, 0.03, -1.24, 0.1, 0.07, ORB); L(c, -0.1, -1.23, 0.04, 0.04, OLHO); L(c, 0.06, -1.23, 0.04, 0.04, OLHO);
+        R(c, -0.1, -1.13, 0.2, 0.1, BOCA);
         break; }
       default: {
-        const lean = e.type === 'corredor' || e.type === 'cangaceiro' ? 0.12 : 0;
-        R(c, -0.24, -0.85, 0.2, 0.85 + sw * 0.5, d.roupa); R(c, 0.04, -0.85, 0.2, 0.85 - sw * 0.5, d.roupa);
-        R(c, -0.28 + lean, -1.48, 0.56, 0.66, e.type === 'andarilho' ? ['#4a4f58', '#6a4a3a', '#3a5a4a', '#5a5a6a'][e.id % 4] : d.roupa);
-        R(c, -0.42 + lean, -1.45, 0.14, 0.2, d.cor); R(c, 0.28 + lean, -1.45, 0.14, 0.2, d.cor);
-        R(c, -0.42 + lean * 2, -1.42, 0.5, 0.12, d.cor); R(c, 0.0 + lean * 2, -1.38 + sw * 0.3, 0.5, 0.12, d.cor);
-        R(c, -0.15 + lean * 1.5, -1.76, 0.3, 0.28, d.cor); R(c, -0.08 + lean * 1.5, -1.62, 0.16, 0.07, '#4a0a0a');
+        const lean = e.type === 'corredor' || e.type === 'cangaceiro' ? 0.12 : 0, hx = lean * 1.5, ax = lean * 2;
+        const camisa = e.type === 'andarilho' ? CAMISA[id % CAMISA.length] : (d.camisa || d.roupa);
+        R(c, -0.24, -0.85, 0.2, 0.85 + sw * 0.5, d.roupa); R(c, 0.04, -0.85, 0.2, 0.85 - sw * 0.5, d.roupa);   // pernas
+        R(c, -0.28 + lean, -1.48, 0.56, 0.66, camisa);                                                          // tronco
+        if (full) L(c, -0.14 + lean + hash(id) * 0.12, -1.38 + hash(id + 5) * 0.22, 0.12 + hash(id + 2) * 0.1, 0.15, P[0]);   // rasgo na roupa
+        L(c, -0.42 + lean, -1.45, 0.14, 0.2, P[1]); L(c, 0.28 + lean, -1.45, 0.14, 0.2, P[1]);                // ombros
+        L(c, -0.42 + ax, -1.42, 0.5, 0.12, P[0]); L(c, ax, -1.38 + sw * 0.3, 0.5, 0.12, P[0]);                // braços estendidos
+        L(c, -0.15 + hx, -1.76, 0.3, 0.28, P[0]);                                                                // cabeça
+        if (full) {
+          L(c, -0.42 + ax, -1.42, 0.5, 0.035, P[2]); L(c, ax, -1.38 + sw * 0.3, 0.5, 0.035, P[2]);            // brilho nos braços
+          L(c, 0.07 + hx, -1.76, 0.08, 0.28, P[1]); L(c, -0.15 + hx, -1.76, 0.3, 0.045, P[2]);                 // sombra e brilho do rosto
+          L(c, -0.37 + ax + hash(id * 3) * 0.3, -1.405, 0.07, 0.06, P[3]); L(c, 0.08 + ax + hash(id * 3 + 1) * 0.3, -1.365 + sw * 0.3, 0.07, 0.06, P[3]); L(c, -0.13 + hx + hash(id * 3 + 2) * 0.2, -1.745, 0.05, 0.04, P[3]);
+          R(c, -0.105 + hx, -1.705, 0.08, 0.06, ORB); R(c, 0.025 + hx, -1.705, 0.08, 0.06, ORB); L(c, -0.082 + hx, -1.695, 0.036, 0.036, OLHO); L(c, 0.048 + hx, -1.695, 0.036, 0.036, OLHO);
+        }
+        R(c, -0.08 + hx, -1.6, 0.16, 0.07, BOCA);
         if (e.type === 'encouracado') {
-          R(c, -0.3, -1.5, 0.6, 0.6, '#11161c'); R(c, -0.19, -1.84, 0.38, 0.3, '#0d1116'); R(c, -0.15, -1.72, 0.3, 0.1, '#5a7a8a');
+          R(c, -0.3, -1.5, 0.6, 0.6, '#11161c'); R(c, -0.19, -1.84, 0.38, 0.3, '#0d1116'); R(c, -0.15, -1.72, 0.3, 0.1, '#06080a');
+          L(c, -0.11, -1.7, 0.07, 0.05, P[2]); L(c, 0.04, -1.7, 0.07, 0.05, P[2]);                                // olhos acesos atrás da viseira
           R(c, -0.55, -1.5, 0.4, 1.05, '#1a2026'); R(c, -0.5, -1.2, 0.3, 0.12, '#cfd3d6');
         } else if (e.type === 'cangaceiro') {
-          c.strokeStyle = '#efe6c8'; c.lineWidth = 0.05; c.beginPath();
-          for (let i = 0; i < 7; i++) { const a = hash(e.id + i) * 6.28, r = 0.25 + hash(e.id * 2 + i) * 0.3; c.moveTo(Math.cos(a) * 0.2, -1.2 + Math.sin(a) * 0.3); c.lineTo(Math.cos(a) * (0.2 + r), -1.2 + Math.sin(a) * (0.3 + r)); }
+          c.strokeStyle = col('#efe6c8', 0); c.lineWidth = 0.05; c.beginPath();
+          for (let i = 0; i < 7; i++) { const a = hash(id + i) * 6.28, r = 0.25 + hash(id * 2 + i) * 0.3; c.moveTo(Math.cos(a) * 0.2, -1.2 + Math.sin(a) * 0.3); c.lineTo(Math.cos(a) * (0.2 + r), -1.2 + Math.sin(a) * (0.3 + r)); }
           c.stroke(); R(c, -0.3, -1.84, 0.6, 0.07, '#5a3a1a'); R(c, -0.16, -1.95, 0.32, 0.12, '#5a3a1a');
         } else if (e.type === 'engolidor') {
-          c.fillStyle = `rgba(255,${120 + Math.sin(t * 20 + e.id) * 60 | 0},20,0.85)`;
-          c.beginPath(); c.moveTo(-0.4, -1.3); c.lineTo(-0.15, -2.2 - Math.sin(t * 17 + e.id) * 0.2); c.lineTo(0, -1.8); c.lineTo(0.2, -2.35 - Math.cos(t * 13 + e.id) * 0.2); c.lineTo(0.42, -1.3); c.fill();
-          R(c, -0.2, -1.2, 0.1, 0.1, '#ff6a00'); R(c, 0.1, -0.9, 0.1, 0.1, '#ff6a00');
-        } else if (e.type === 'boi') {
-          /* handled elsewhere */
+          if (full) for (let i = 0; i < 4; i++) R(c, -0.26 + hash(id + i * 2) * 0.44, -1.46 + hash(id * 4 + i) * 0.56, 0.12, 0.05, P[3]);   // crostas de carvão
+          FS(c, `rgba(255,${120 + Math.sin(t * 20 + id) * 60 | 0},20,0.85)`, 1);
+          c.beginPath(); c.moveTo(-0.4, -1.3); c.lineTo(-0.15, -2.2 - Math.sin(t * 17 + id) * 0.2); c.lineTo(0, -1.8); c.lineTo(0.2, -2.35 - Math.cos(t * 13 + id) * 0.2); c.lineTo(0.42, -1.3); c.fill();
+          L(c, -0.2, -1.2, 0.1, 0.1, '#ffb030'); L(c, 0.1, -0.9, 0.1, 0.1, '#ffb030');
         }
       }
     }
   }
 
-  function boi(c, e, t) {
+  /* boi infectado: couro normal, feridas e olhos luminescentes */
+  function boi(c, e, t, lod) {
+    const id = Math.abs(e.id | 0), P = pele(e);
     R(c, -0.6, -1.45, 1.2, 0.9, '#4a3a2e'); R(c, -0.5, -0.6, 0.2, 0.6, '#3a2c22'); R(c, 0.3, -0.6, 0.2, 0.6, '#3a2c22');
+    if (lod !== 0) for (let i = 0; i < 4; i++) L(c, -0.52 + hash(id + i * 5) * 0.9, -1.4 + hash(id * 3 + i) * 0.7, 0.13, 0.1, i & 1 ? P[3] : P[0]);
     R(c, -0.3, -1.7, 0.6, 0.5, '#5a4636'); R(c, -0.55, -1.8, 0.25, 0.08, '#e8e0c8'); R(c, 0.3, -1.8, 0.25, 0.08, '#e8e0c8');
-    R(c, -0.2, -1.55, 0.1, 0.08, '#e22'); R(c, 0.1, -1.55, 0.1, 0.08, '#e22');
+    L(c, -0.2, -1.55, 0.1, 0.08, P[0]); L(c, 0.1, -1.55, 0.1, 0.08, P[0]);
+  }
+
+  /* halo (brilho difuso) na cor da pele, usado na passada noturna */
+  const HALO = {};
+  function halo(e) {
+    const k = pele(e)[0]; let h = HALO[k];
+    if (!h) { h = document.createElement('canvas'); h.width = h.height = 64; const x = h.getContext('2d'), a = hex(k), g = x.createRadialGradient(32, 32, 2, 32, 32, 32); g.addColorStop(0, `rgba(${a[0]},${a[1]},${a[2]},0.85)`); g.addColorStop(0.45, `rgba(${a[0]},${a[1]},${a[2]},0.3)`); g.addColorStop(1, `rgba(${a[0]},${a[1]},${a[2]},0)`); x.fillStyle = g; x.fillRect(0, 0, 64, 64); HALO[k] = h; }
+    return h;
   }
 
   /* veículo inimigo; front=true quando visto de frente (retrovisor / vindo na contramão) */
@@ -74,7 +142,7 @@ const DRAW = (() => {
       R(c, -w / 2, -0.25, 0.4, 0.25, '#111'); R(c, w / 2 - 0.4, -0.25, 0.4, 0.25, '#111'); R(c, -0.3, -1.0, 0.5, 0.2, '#6a2a1a');
       return;
     }
-    if (e.type === 'pregos') { R(c, -w / 2, -0.08, w, 0.08, '#555'); c.fillStyle = '#ccc'; for (let x = -w / 2; x < w / 2; x += 0.25) { c.beginPath(); c.moveTo(x, -0.08); c.lineTo(x + 0.08, -0.3); c.lineTo(x + 0.16, -0.08); c.fill(); } return; }
+    if (e.type === 'pregos') { R(c, -w / 2, -0.08, w, 0.08, '#555'); FS(c, '#ccc'); for (let x = -w / 2; x < w / 2; x += 0.25) { c.beginPath(); c.moveTo(x, -0.08); c.lineTo(x + 0.08, -0.3); c.lineTo(x + 0.16, -0.08); c.fill(); } return; }
     if (e.type === 'sobrevivente') {
       R(c, -1.5, -2.5, 3, 0.15, '#7a7a7a'); R(c, -1.4, -2.4, 0.12, 2.4, '#666'); R(c, 1.3, -2.4, 0.12, 2.4, '#666');
       R(c, -0.2, -3.35, 0.4, 0.85, '#2a5a9a'); R(c, -0.14, -3.65, 0.28, 0.28, '#d9a070'); R(c, 0.2, -3.6 - Math.abs(Math.sin(t * 6)) * 0.3, 0.1, 0.5, '#d9a070');
@@ -93,7 +161,7 @@ const DRAW = (() => {
     R(c, -w / 2 + 0.06, -h * 0.55, w * 0.16, h * 0.1, lc); R(c, w / 2 - 0.06 - w * 0.16, -h * 0.55, w * 0.16, h * 0.1, lc);
     if (e.type === 'pickup') { R(c, -w / 2 - 0.05, -h * 0.3, w + 0.1, h * 0.1, '#2a2a2a'); R(c, -0.25, -h - 0.45, 0.5, 0.5, '#3a2a1a'); R(c, -0.12, -h - 0.7, 0.24, 0.24, '#c9a070'); R(c, -0.05, -h - 0.35, 0.9, 0.08, '#111'); }
     if (e.type === 'blindado') { R(c, -w / 2, -h, w, h * 0.5, '#2a302a'); R(c, -0.5, -h * 0.9, 1.0, 0.15, '#0a0a0a'); R(c, -0.3, -h - 0.4, 0.6, 0.4, '#2a302a'); R(c, -0.05, -h - 0.3, 1.1, 0.1, '#111'); }
-    if (e.type === 'buggy') { c.strokeStyle = '#111'; c.lineWidth = 0.08; c.strokeRect(-w / 2 + 0.2, -h - 0.2, w - 0.4, 0.6); R(c, -0.3, -h * 0.75, 0.6, 0.3, '#e02a1a'); }
+    if (e.type === 'buggy') { c.strokeStyle = col('#111', 0); c.lineWidth = 0.08; c.strokeRect(-w / 2 + 0.2, -h - 0.2, w - 0.4, 0.6); R(c, -0.3, -h * 0.75, 0.6, 0.3, '#e02a1a'); }
     if (e.type === 'carrobomba') { R(c, -0.5, -h - 0.35, 1.0, 0.35, '#c22'); c.fillStyle = Math.sin(t * 20) > 0 ? '#ff3' : '#a00'; c.beginPath(); c.arc(0, -h - 0.5, 0.14, 0, 7); c.fill(); }
   }
 
@@ -212,11 +280,11 @@ const DRAW = (() => {
     c.fillStyle = '#08090a'; c.fillRect(rsX - pw / 2, rsY - ph, pw / 2 - nw / 2, ph); c.fillRect(rsX + nw / 2, rsY - ph, pw / 2 - nw / 2, ph); c.fillRect(rsX - pw / 2, rsY - ph * 0.35, pw, ph * 0.35);
     if (ads > 0.5) { c.fillStyle = '#e8d070'; c.fillRect(rsX - nw / 2 - 5, rsY - ph * 0.6, 3, 3); c.fillRect(rsX + nw / 2 + 2, rsY - ph * 0.6, 3, 3); }
     if (opt.flash) { const f = at(1.06, 0); c.fillStyle = 'rgba(255,220,120,0.92)'; c.beginPath(); for (let q = 0; q < 10; q++) { const a = q * 0.628 + (opt.t || 0) * 7, r = q % 2 ? 9 : 26 + (big ? 10 : 0); q ? c.lineTo(f[0] + Math.cos(a) * r, f[1] + Math.sin(a) * r * 0.8) : c.moveTo(f[0] + Math.cos(a) * r, f[1] + Math.sin(a) * r * 0.8); } c.fill(); }
-    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.restore(); c.save();
     const gr = at(long ? 0.07 : 0.1, 0); arm(W * 0.8, gr[0] + 4, gr[1] + H * 0.05);
     if (long) { const hg = at(0.45, 0); arm(W * 0.3, hg[0] - 6, hg[1] + H * 0.035); } else arm(W * 0.42, gr[0] - 14, gr[1] + H * 0.07);
     c.restore();
   }
 
-  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R };
+  return { zombie, boi, vehicle, playerCar, scenery, marco, hands, hash, R, fog, glow, halo, pele };
 })();
