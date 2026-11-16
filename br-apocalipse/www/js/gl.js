@@ -132,6 +132,14 @@ const GL3 = (() => {
     if (this.gen !== gen) this.upload();
     gl.activeTexture(gl.TEXTURE0 + (unit || 0)); gl.bindTexture(gl.TEXTURE_2D, this.t);
   };
+  // reenvia o conteúdo (canvas que mudou: rádio, mapa) sem recriar a textura
+  Texture.prototype.update = function () {
+    if (this.gen !== gen || !this.t) { this.upload(); return; }
+    const src = this.make(); gl.bindTexture(gl.TEXTURE_2D, this.t);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    if (src.data) gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, src.w, src.h, gl.RGBA, gl.UNSIGNED_BYTE, src.data); else gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, src);
+    const pot = !(this.w & (this.w - 1)) && !(this.h & (this.h - 1)); if (pot && this.o.mip !== false) gl.generateMipmap(gl.TEXTURE_2D);
+  };
   Texture.prototype.free = function () { if (this.t && this.gen === gen) gl.deleteTexture(this.t); this.t = null; this.gen = -1; };
 
   /* alvo de renderização (retrovisores) */

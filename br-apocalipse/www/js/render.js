@@ -164,7 +164,7 @@ const RENDER = (() => {
     const a = a0 + (a1 - a0) * clamp(val, 0, 1.05); c.strokeStyle = '#ff5a1a'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * r * 0.8, cy + Math.sin(a) * r * 0.8); c.stroke();
     c.fillStyle = '#aaa'; c.font = `${r * 0.26 | 0}px Arial`; c.textAlign = 'center'; c.fillText(label, cx, cy + r * 0.62); if (txt) { c.fillStyle = '#e8e0c0'; c.font = `bold ${r * 0.36 | 0}px Arial`; c.fillText(txt, cx, cy - r * 0.22); }
   }
-  function windshield(dashY) {
+  function windshield(dashY, is3d) {
     const u = S.up;
     // gotas / sangue / ácido / óleo
     if (P.rain > 0.05) { c.fillStyle = `rgba(190,205,220,${P.rain * 0.3})`; c.fillRect(0, 0, W, dashY); c.fillStyle = `rgba(220,230,240,${P.rain * 0.55})`; for (let i = 0; i < 46 * P.rain; i++) { const x = DRAW.hash(i + (G.t * 2 | 0)) * W, y = DRAW.hash(i * 3 + (G.t * 2 | 0)) * dashY; c.beginPath(); c.ellipse(x, y, 3, 5, 0, 0, 7); c.fill(); } }
@@ -175,10 +175,11 @@ const RENDER = (() => {
     if (P.acid > 0.02) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.82})`; c.fillRect(0, 0, W, dashY); c.fillStyle = `rgba(170,230,60,${P.acid * 0.5})`; for (let i = 0; i < 14; i++) { c.beginPath(); c.arc(DRAW.hash(i * 7) * W, DRAW.hash(i * 13) * dashY, 20 + DRAW.hash(i) * 30, 0, 7); c.fill(); } }
     if (P.oil > 0.02) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.9})`; c.fillRect(0, 0, W, dashY); }
     for (const k of P.cracks) { c.strokeStyle = 'rgba(235,240,245,0.75)'; c.lineWidth = 1.2; c.beginPath(); for (let i = 0; i < 9; i++) { const a = k.a + i * 0.7, r = k.r * W * (0.5 + DRAW.hash(i + k.a) * 0.9); c.moveTo(k.x * W, k.y * dashY); c.lineTo(k.x * W + Math.cos(a) * r * 0.5, k.y * dashY + Math.sin(a) * r * 0.5); c.lineTo(k.x * W + Math.cos(a + 0.2) * r, k.y * dashY + Math.sin(a + 0.2) * r); } c.stroke(); c.beginPath(); c.arc(k.x * W, k.y * dashY, k.r * W * 0.4, 0, 7); c.stroke(); }
-    if (u.janela === 1) { c.strokeStyle = 'rgba(40,40,40,0.55)'; c.lineWidth = 1.5; c.beginPath(); for (let x = 0; x < W; x += 26) { c.moveTo(x, 0); c.lineTo(x, dashY); } for (let y = 0; y < dashY; y += 26) { c.moveTo(0, y); c.lineTo(W, y); } c.stroke(); }
-    if (u.janela >= 2) { c.fillStyle = '#23211e'; c.fillRect(0, 0, W, H * 0.3); c.fillRect(0, H * 0.5, W, dashY - H * 0.5); c.fillStyle = '#3a3733'; for (let x = 20; x < W; x += 70) { c.beginPath(); c.arc(x, H * 0.285, 4, 0, 7); c.arc(x, H * 0.515, 4, 0, 7); c.fill(); } c.fillStyle = '#181614'; c.fillRect(0, H * 0.295, W, 5); c.fillRect(0, H * 0.5, W, 5); }
+    if (u.janela === 1 && !is3d) { c.strokeStyle = 'rgba(40,40,40,0.55)'; c.lineWidth = 1.5; c.beginPath(); for (let x = 0; x < W; x += 26) { c.moveTo(x, 0); c.lineTo(x, dashY); } for (let y = 0; y < dashY; y += 26) { c.moveTo(0, y); c.lineTo(W, y); } c.stroke(); }
+    if (u.janela >= 2 && !is3d) { c.fillStyle = '#23211e'; c.fillRect(0, 0, W, H * 0.3); c.fillRect(0, H * 0.5, W, dashY - H * 0.5); c.fillStyle = '#3a3733'; for (let x = 20; x < W; x += 70) { c.beginPath(); c.arc(x, H * 0.285, 4, 0, 7); c.arc(x, H * 0.515, 4, 0, 7); c.fill(); } c.fillStyle = '#181614'; c.fillRect(0, H * 0.295, W, 5); c.fillRect(0, H * 0.5, W, 5); }
     // limpadores
-    if (P.wipe > 0) { const a = Math.sin((1.3 - P.wipe) / 1.3 * Math.PI * 2) * 0.5 + 0.5; c.strokeStyle = '#0a0a0a'; c.lineWidth = 6; for (const bx of [W * 0.3, W * 0.62]) { const ang = -Math.PI * 0.95 + a * Math.PI * 0.62; c.beginPath(); c.moveTo(bx, dashY); c.lineTo(bx + Math.cos(ang) * H * 0.5, dashY + Math.sin(ang) * H * 0.5); c.stroke(); } c.fillStyle = 'rgba(200,220,240,0.12)'; c.fillRect(0, 0, W, dashY); }
+    if (P.wipe > 0 && is3d) { c.fillStyle = 'rgba(200,220,240,0.1)'; c.fillRect(0, 0, W, dashY); }
+    else if (P.wipe > 0) { const a = Math.sin((1.3 - P.wipe) / 1.3 * Math.PI * 2) * 0.5 + 0.5; c.strokeStyle = '#0a0a0a'; c.lineWidth = 6; for (const bx of [W * 0.3, W * 0.62]) { const ang = -Math.PI * 0.95 + a * Math.PI * 0.62; c.beginPath(); c.moveTo(bx, dashY); c.lineTo(bx + Math.cos(ang) * H * 0.5, dashY + Math.sin(ang) * H * 0.5); c.stroke(); } c.fillStyle = 'rgba(200,220,240,0.12)'; c.fillRect(0, 0, W, dashY); }
   }
   // onde cada agarrado aparece na tela (o mesmo cálculo serve ao desenho 2D, ao 3D e aos retângulos de tiro)
   function latchPlace(scale, yb, forGunner) {
@@ -194,14 +195,14 @@ const RENDER = (() => {
   function drawLatchers(scale, yb, forGunner) {
     for (const L of latchPlace(scale, yb, forGunner)) {
       const e = L.e, d = ENEMY[e.type], x = L.x, y = L.y, k = L.k;
-      if (!use3D || d.veh) { c.save(); c.translate(x, y); c.scale(k, k); if (d.veh) DRAW.vehicle(c, e, G.t, false); else DRAW.zombie(c, e, G.t, 2); c.restore(); }
-      if (e.flash > 0 && !use3D) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - d.w * k / 2, y - d.h * k, d.w * k, d.h * k); }
+      if (!frame3D || d.veh) { c.save(); c.translate(x, y); c.scale(k, k); if (d.veh) DRAW.vehicle(c, e, G.t, false); else DRAW.zombie(c, e, G.t, 2); c.restore(); }
+      if (e.flash > 0 && !frame3D) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(x - d.w * k / 2, y - d.h * k, d.w * k, d.h * k); }
       if (forGunner || G.cam === 'tpp') G.hits.push({ e, x: x - d.w * k * 0.7, y: y - d.h * k, w: d.w * k * 1.4, h: d.h * k, dz: 1.5 });
       e.sx = x; e.sy = y; e.sh = d.h * k; e.vf = G.frame;
     }
   }
   function mirrors() {
-    if (use3D) {   // espelhos em 3D: a vista de trás é desenhada pelo WebGL e o 2D só faz as molduras (vidro vazado)
+    if (frame3D) {   // espelhos em 3D: a vista de trás é desenhada pelo WebGL e o 2D só faz as molduras (vidro vazado)
       const camH = [0, 1.2, 1.25, 1.5, 2.0, 2.6][S.veh], rv = { W: 360, H: 90, hor: 34, F: 200, dir: -1, flip: false, camX: P.x, camZ: P.z - 1, camH, N: Math.min(34, viewN), main: false };
       const rects = [[W * 0.39, H * 0.045, W * 0.22, H * 0.085, 60, 240, true], [W * 0.012, H * 0.215, W * 0.105, H * 0.11, 0, 150, !!P.mirrorL], [W * 0.883, H * 0.215, W * 0.105, H * 0.11, 210, 150, true]];
       const okm = W3D.mirror(rv, G.frame % 2 === 0, rects.filter(r => r[6]), Math.round(360 * MS), Math.round(90 * MS), W, H);
@@ -219,11 +220,28 @@ const RENDER = (() => {
     frame(W * 0.012, H * 0.215, W * 0.105, H * 0.11, 0, 150, !P.mirrorL); frame(W * 0.883, H * 0.215, W * 0.105, H * 0.11, 210, 150, false);
     if (S.up.pneu >= 2) { c.fillStyle = '#bbb'; c.fillRect(W * 0.1, H * 0.31, 10, 3); c.fillRect(W * 0.885, H * 0.31, 10, 3); }
   }
+  // a cabine/arma 3D só substituem o 2D quando o WebGL desenhou este quadro (se o contexto cair, volta tudo para o 2D)
+  let frame3D = false;
+  const cab3 = () => frame3D && typeof CAB3D !== 'undefined', vm3 = () => frame3D && typeof VM3D !== 'undefined';
+  /* cabine 3D: o 2D só põe o que fica no vidro (sangue, chuva, ácido, óleo, rachaduras) recortado no contorno do para-brisa,
+     a fumaça das saídas de ar e a área de toque do rádio */
+  function cockpit3D() {
+    const poly = CAB3D.poly; if (!poly) return;
+    const dashY = Math.max(poly[0][1], poly[1][1]);
+    drawLatchers(H * 0.4, CAB3D.dashY + H * 0.03, false);   // posição na tela dos agarrados (efeitos, marcações)
+    c.save(); c.beginPath(); c.moveTo(poly[0][0], poly[0][1]); for (let i = 1; i < 4; i++) c.lineTo(poly[i][0], poly[i][1]); c.closePath(); c.clip();
+    windshield(dashY, true); c.restore();
+    G.radioRect = CAB3D.radioRect;
+    const vs = CAB3D.vents; if (P.over && vs) for (const p of vs) if (Math.random() < 0.4) puffs.push({ x: p[0], y: p[1], r: 6, l: 1 });
+    for (const p of puffs) { p.y -= 1.4; p.r += 0.6; p.l -= 0.02; c.fillStyle = `rgba(200,200,200,${p.l * 0.3})`; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fill(); } puffs = puffs.filter(p => p.l > 0); if (puffs.length > 80) puffs.splice(0, 20);
+    if (S.veh === 4) { c.fillStyle = 'rgba(160,10,10,0.08)'; c.fillRect(0, 0, W, H); }
+  }
   function cockpit(sh) {
+    if (cab3()) { cockpit3D(); return; }
     const dashY = H * 0.64 + sh, v = VEHICLES[S.veh], u = S.up, cl = cls(), t = G.t;
     // capô
     const hoodH = [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H, hc = rgb(v.cor), hcol = `rgb(${hc[0] * 0.75 | 0},${hc[1] * 0.75 | 0},${hc[2] * 0.75 | 0})`;
-    if (!use3D) { c.fillStyle = hcol; c.beginPath(); c.moveTo(W * 0.1, dashY + 2); c.lineTo(W * 0.2, dashY - hoodH); c.lineTo(W * 0.8, dashY - hoodH); c.lineTo(W * 0.9, dashY + 2); c.fill();
+    if (!frame3D) { c.fillStyle = hcol; c.beginPath(); c.moveTo(W * 0.1, dashY + 2); c.lineTo(W * 0.2, dashY - hoodH); c.lineTo(W * 0.8, dashY - hoodH); c.lineTo(W * 0.9, dashY + 2); c.fill();
       c.fillStyle = 'rgba(255,255,255,0.07)'; c.fillRect(W * 0.3, dashY - hoodH, W * 0.4, 3); }
     const hy = dashY - hoodH;
     if (u.frente >= 1) { c.fillStyle = '#2a2a2a'; c.fillRect(W * 0.22, hy - 6, W * 0.56, 6); if (u.frente >= 3) { c.beginPath(); c.moveTo(W * 0.24, hy - 6); c.lineTo(W * 0.5, hy - 26); c.lineTo(W * 0.76, hy - 6); c.fill(); } else if (u.frente >= 2) c.fillRect(W * 0.22, hy - 16, W * 0.56, 12); }
@@ -294,24 +312,28 @@ const RENDER = (() => {
       if (Math.random() < 0.02) SFX.ric();
       return;
     }
-    // moldura do veículo conforme o assento
-    const hc = rgb(v.cor), col = `rgb(${hc[0] * 0.6 | 0},${hc[1] * 0.6 | 0},${hc[2] * 0.6 | 0})`, seat = A.seat, side = seat === 0 ? 1 : seat === 1 ? -1 : 0, sd = side * A.look;
+    // moldura do veículo conforme o assento (no 3D a própria lataria, as chapas e a arma são desenhadas pelo WebGL)
+    const hc = rgb(v.cor), col = `rgb(${hc[0] * 0.6 | 0},${hc[1] * 0.6 | 0},${hc[2] * 0.6 | 0})`, seat = A.seat, side = seat === 0 ? 1 : seat === 1 ? -1 : 0, sd = side * A.look, v3d = vm3();
     c.fillStyle = col;
+    if (v3d) { /* lataria 3D */ }
+    else
     if (seat === 2) { c.beginPath(); c.moveTo(W * 0.2, H); c.lineTo(W * 0.3, H * 0.9); c.lineTo(W * 0.7, H * 0.9); c.lineTo(W * 0.8, H); c.fill(); }
     else if (sd > 0) { c.beginPath(); c.moveTo(W, H * 0.3); c.lineTo(W * 0.9, H * 0.42); c.lineTo(W * 0.84, H); c.lineTo(W, H); c.fill(); }
     else { c.beginPath(); c.moveTo(0, H * 0.3); c.lineTo(W * 0.1, H * 0.42); c.lineTo(W * 0.16, H); c.lineTo(0, H); c.fill(); }
-    if (S.up.lateral >= 2 && seat !== 2) { const bx = sd > 0 ? W * 0.86 : W * 0.06, j = P.saws ? Math.sin(t * 90) * 2 : 0; c.fillStyle = '#c33'; c.fillRect(bx + j, H * 0.86, W * 0.08, 12); }
+    if (S.up.lateral >= 2 && seat !== 2 && !v3d) { const bx = sd > 0 ? W * 0.86 : W * 0.06, j = P.saws ? Math.sin(t * 90) * 2 : 0; c.fillStyle = '#c33'; c.fillRect(bx + j, H * 0.86, W * 0.08, 12); }
     drawLatchers(H * 0.46, H * 1.12, true);
-    if (S.veh === 4 && seat !== 2 || S.up.janela >= 2 && seat !== 2) { c.fillStyle = '#100e0c'; c.fillRect(0, 0, W, H * 0.14); c.fillRect(0, H * 0.82, W, H * 0.18); c.fillRect(0, 0, W * 0.07, H); c.fillRect(W * 0.93, 0, W * 0.07, H); }
+    if (v3d) { /* chapas e telas em 3D */ }
+    else if (S.veh === 4 && seat !== 2 || S.up.janela >= 2 && seat !== 2) { c.fillStyle = '#100e0c'; c.fillRect(0, 0, W, H * 0.14); c.fillRect(0, H * 0.82, W, H * 0.18); c.fillRect(0, 0, W * 0.07, H); c.fillRect(W * 0.93, 0, W * 0.07, H); }
     else if (S.up.janela === 1 && seat !== 2) { c.strokeStyle = 'rgba(40,40,40,0.35)'; c.lineWidth = 1; c.beginPath(); for (let x = 0; x < W; x += 30) { c.moveTo(x, 0); c.lineTo(x, H); } for (let y = 0; y < H; y += 30) { c.moveTo(0, y); c.lineTo(W, y); } c.stroke(); }
     // arma
     const w = WEAPONS[A.w];
-    if (A.reloadT > 0 && !A.useMelee) DRAW.hands(c, W, H, cl, 'reload', A.ax, A.ay, { t });
+    if (v3d) { /* arma e braços em 3D */ }
+    else if (A.reloadT > 0 && !A.useMelee) DRAW.hands(c, W, H, cl, 'reload', A.ax, A.ay, { t });
     else if (A.useMelee) { const m = S.melee; DRAW.hands(c, W, H, cl, m === 'serraInd' ? 'serra' : m, A.ax, A.ay, { t, swing: A.swing, rev: A.rev > 0.2, ind: m === 'serraInd' }); }
     else DRAW.hands(c, W, H, cl, w.cat === 'lanca' ? 'lanca40' : w.cat === 'fuzil' ? 'fuzil' : w.cat, A.ax, A.ay, { t, ads: A.ads, kick: A.kick, flash: A.flash > 0, pump: A.pump, hot: A.heat });
     // mira
     if (!A.useMelee && A.ads < 0.5 && S.mode !== 'expresso') { c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 2; const g = 7 + G.shake * 10 + w.spread * 0.4; c.beginPath(); c.moveTo(A.ax - g - 8, A.ay); c.lineTo(A.ax - g, A.ay); c.moveTo(A.ax + g, A.ay); c.lineTo(A.ax + g + 8, A.ay); c.moveTo(A.ax, A.ay - g - 8); c.lineTo(A.ax, A.ay - g); c.moveTo(A.ax, A.ay + g); c.lineTo(A.ax, A.ay + g + 8); c.stroke(); c.fillStyle = 'rgba(255,60,60,0.9)'; c.fillRect(A.ax - 1, A.ay - 1, 2, 2); }
-    if (A.ads >= 0.5 && !A.useMelee) { c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(0, 0, W, H * 0.06); c.fillRect(0, H * 0.94, W, H * 0.06); c.strokeStyle = '#0a0a0a'; c.lineWidth = 5; c.beginPath(); c.moveTo(A.ax - 20, A.ay + 26); c.lineTo(A.ax - 20, A.ay + 8); c.moveTo(A.ax + 20, A.ay + 26); c.lineTo(A.ax + 20, A.ay + 8); c.moveTo(A.ax - 22, A.ay + 26); c.lineTo(A.ax + 22, A.ay + 26); c.stroke(); c.fillStyle = '#0a0a0a'; c.fillRect(A.ax - 2, A.ay, 4, 22); if (w.pen >= 5) { c.strokeStyle = 'rgba(60,255,90,0.7)'; c.lineWidth = 1; c.beginPath(); c.arc(A.ax, A.ay, 60, 0, 7); c.moveTo(A.ax - 80, A.ay); c.lineTo(A.ax + 80, A.ay); c.moveTo(A.ax, A.ay - 80); c.lineTo(A.ax, A.ay + 80); c.stroke(); } }
+    if (A.ads >= 0.5 && !A.useMelee) { c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(0, 0, W, H * 0.06); c.fillRect(0, H * 0.94, W, H * 0.06); if (!v3d) { c.strokeStyle = '#0a0a0a'; c.lineWidth = 5; c.beginPath(); c.moveTo(A.ax - 20, A.ay + 26); c.lineTo(A.ax - 20, A.ay + 8); c.moveTo(A.ax + 20, A.ay + 26); c.lineTo(A.ax + 20, A.ay + 8); c.moveTo(A.ax - 22, A.ay + 26); c.lineTo(A.ax + 22, A.ay + 26); c.stroke(); c.fillStyle = '#0a0a0a'; c.fillRect(A.ax - 2, A.ay, 4, 22); } { if (w.pen >= 5) { c.strokeStyle = 'rgba(60,255,90,0.7)'; c.lineWidth = 1; c.beginPath(); c.arc(A.ax, A.ay, 60, 0, 7); c.moveTo(A.ax - 80, A.ay); c.lineTo(A.ax + 80, A.ay); c.moveTo(A.ax, A.ay - 80); c.lineTo(A.ax, A.ay + 80); c.stroke(); } } }
     // munição (contador riscado na coronha)
     c.textAlign = 'right'; c.font = 'bold 20px Arial'; c.fillStyle = '#e8e0c0'; c.strokeStyle = '#000'; c.lineWidth = 3;
     const txt = A.useMelee ? MELEE[S.melee].nome : (A.mag[A.w] || 0) + ' / ' + S.ammo[w.ammo]; c.strokeText(txt, W * 0.72, H * 0.07); c.fillText(txt, W * 0.72, H * 0.07);
@@ -408,6 +430,7 @@ const RENDER = (() => {
   function frame() {
     const role = G.role, fpp = G.cam === 'fpp', st = G.st; if (!st) return;
     adapt();
+    if (typeof CARFX !== 'undefined') CARFX.update();
     base(c);
     G.hits.length = 0;
     const tn = Math.min(CLIMA_N[G.clima] || 110, G.night ? (P.lights === 2 ? 60 : P.lights === 1 ? 42 : 16) : 999); viewN += (tn - viewN) * 0.04;
@@ -419,14 +442,22 @@ const RENDER = (() => {
     else { const seat = A.seat, camH = [0, 1.25, 1.3, 1.6, 2.1, 2.7][S.veh] + (seat === 2 ? 0.8 : 0), zoom = 1 + A.ads * 0.6; v = { W, H, hor: H * 0.47 + sy - (A.ay - H * 0.45) * 0.3, F: H * 0.9 * zoom, dir: A.look, flip: A.look < 0, camX: P.x + (seat === 0 ? -1 : seat === 1 ? 1 : 0) * G.V.w * 0.9, camZ: P.z + (A.exposed ? 0 : 0), camH, N: viewN, main: true, pan: sx - (A.ax - W / 2) * 0.35 * zoom }; }
     let o3 = null;
     if (use3D) {
-      if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
+      if (role === 'pilot' && fpp && typeof CAB3D !== 'undefined') {
+        // retrovisores primeiro: a cabine 3D cola a imagem de trás nos espelhos
+        const mh = [0, 1.2, 1.25, 1.5, 2.0, 2.6][S.veh], rv = { W: 360, H: 90, hor: 34, F: 200, dir: -1, flip: false, camX: P.x, camZ: P.z - 1, camH: mh, N: Math.min(34, viewN), main: false };
+        CAB3D.mirTex = W3D.mirrorTex(rv, G.frame % 2 === 0, Math.round(360 * MS), Math.round(90 * MS));
+        const light = CAB3D.update(v);
+        o3 = { near: (R, cx) => CAB3D.draw(R, cx), latch: latchPlace(H * 0.4, CAB3D.dashY + H * 0.03, false), light };
+      }
+      else if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
       else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false) }; }
-      else if (A.exposed && !(A.down > 0)) o3 = { latch: latchPlace(H * 0.46, H * 1.12, true) };
+      else if (A.exposed && !(A.down > 0)) { const vmOK = typeof VM3D !== 'undefined', light = vmOK ? VM3D.update(v) : null; o3 = { near: vmOK ? (R, cx) => VM3D.draw(R, cx) : null, latch: latchPlace(H * 0.46, H * 1.12, true), light }; }
     }
-    if (use3D && W3D.render(v, o3)) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); if (!(role === 'pilot' && fpp)) vignette(); }
+    frame3D = !!(use3D && W3D.render(v, o3));
+    if (frame3D) { c.clearRect(0, 0, W, H); overlay3D(v); atmosphere(c, W, H, v.hor, v.pan, true); if (!(role === 'pilot' && fpp)) vignette(); }
     else { world(c, v); atmosphere(c, W, H, v.hor, v.pan); glowPass(c, v); }
     if (role === 'pilot' && fpp) cockpit(sy * 0.4);
-    else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; if (!use3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
+    else if (role === 'pilot') { const k = v.F / 7.5, py = v.hor + v.camH * k; if (!frame3D) { c.save(); c.translate(W / 2 + (P.x - v.camX) * k, py - (P.jump > 0 ? jumpY * 0.5 : 0)); c.scale(k, k); DRAW.playerCar(c, S.veh, S.up, P.steer, P.saws, G.t); c.restore(); } drawLatchers(k, py, false); if (P.blood > 0.4) { c.fillStyle = `rgba(110,8,8,${(P.blood - 0.4) * 0.3})`; c.fillRect(0, 0, W, H); } if (P.acid > 0.05) { c.fillStyle = `rgba(110,190,30,${P.acid * 0.5})`; c.fillRect(0, 0, W, H); } if (P.oil > 0.05) { c.fillStyle = `rgba(8,6,4,${P.oil * 0.7})`; c.fillRect(0, 0, W, H); } }
     else gunnerView();
     hud(role);
   }

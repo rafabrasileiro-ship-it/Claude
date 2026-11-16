@@ -377,7 +377,8 @@ function pilotFire(g) {
   for (const e of G.ents) { if (e.dead || e.st === 'latch') continue; const dz = e.z - P.z; if (dz < 1 || dz > bd) continue; if (Math.abs(e.x - P.x) < ENEMY[e.type].w / 2 + 0.35) { best = e; bd = dz; } }
   const bp = G.boss ? BOSS.pilotTarget(bd) : null;
   const tx = G.W / 2 + rnd(-3, 3), ty = G.H * (G.cam === 'fpp' ? 0.47 : 0.42);
-  tracer(G.W / 2, G.H * 0.62, tx, ty, g.pen >= 4 ? '#ffb040' : null);
+  const m0 = G.cam === 'fpp' && G.capoMuzzle && G.capoMuzzleF >= G.frame - 2 ? G.capoMuzzle : [G.W / 2, G.H * 0.62];   // sai da boca do cano 3D quando houver
+  tracer(m0[0], m0[1], tx, ty, g.pen >= 4 ? '#ffb040' : null);
   if (bp) { BOSS.hitPart(bp, g.dmg, g.pen, { by: 'pilot' }); return; }
   if (best) { damageEnt(best, g.dmg * (inc ? 1.5 : 1), g.pen, { by: 'pilot' }); if (g.expl || inc) aoe(best.x, best.z, g.expl || 3, g.dmg * 0.5, best); }
 }
@@ -405,7 +406,8 @@ function gunnerFire() {
   const px = A.ax + rnd(-spread, spread), py = A.ay + rnd(-spread, spread);
   const rec = w.recoil * (A.ads > 0.5 && c.id === 'falcao' ? 0.5 : 1) * (A.ads > 0.5 ? 0.7 : 1); A.ay -= rec * 0.6; A.ax += rnd(-rec, rec) * 0.25; G.shake = Math.max(G.shake, 0.1 + w.recoil * 0.012);
   if (w.kick) { const pl = (A.ax < G.W / 2 ? 1 : -1) * w.kick * 3 * (A.look); if (NET.client) NET.pullUse += pl; else P.pull += pl; }   // recuo puxa o carro
-  tracer(G.W / 2 + (px - G.W / 2) * 0.4, G.H * 0.8, px, py, w.pen >= 4 || inc ? '#ffb040' : null);
+  const m0 = G.muzzle && G.muzzleF >= G.frame - 2 ? G.muzzle : [G.W / 2 + (px - G.W / 2) * 0.4, G.H * 0.8];
+  tracer(m0[0], m0[1], px, py, w.pen >= 4 || inc ? '#ffb040' : null);
   const pen = w.pen + (falc ? 2 : 0), dmgMul = inc ? 1.5 : 1;
   let hitAny = false;
   const apply = (h, mult) => {
@@ -481,11 +483,11 @@ function updateAI(dt) {
     }
     const bf = a.buff > 0, falc = bf && a.cls.id === 'falcao', inc = bf && a.cls.id === 'cobra';
     const dmg = (45 + city * 30) * (inc ? 1.5 : 1), pen = Math.min(6, 1 + (city / 2 | 0) + (falc ? 2 : 0)), tc = inc ? '#ff8a30' : '#ffe9a0';
-    if (G.boss && (!tgt || pr < 80) && Math.random() < 0.75) { const part = BOSS.aiTarget(); if (part) { const bb = G.boss; if (bb.vf >= G.frame - 1) tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, bb.sx + rnd(-20, 20), bb.sy - bb.sh * 0.5, tc); SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); BOSS.hitPart(part, dmg * 0.5, pen, { by: 'ai' }); if (G.mode !== 'play') return; continue; } }
+    if (G.boss && (!tgt || pr < 80) && Math.random() < 0.75) { const part = BOSS.aiTarget(); if (part) { const bb = G.boss; if (bb.vf >= G.frame - 1) tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, bb.sx + rnd(-20, 20), bb.sy - bb.sh * 0.5, tc); a.fireT = G.t; SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); BOSS.hitPart(part, dmg * 0.5, pen, { by: 'ai' }); if (G.mode !== 'play') return; continue; } }
     if (!tgt) continue;
     if (tgt.vf >= G.frame - 1 && tgt.st !== 'latch') tracer(i % 2 ? G.W * 0.92 : G.W * 0.08, G.H * 0.72, tgt.sx, tgt.sy - tgt.sh * 0.6, tc);
     if (tgt.st === 'latch') { SFX.swing(); damageEnt(tgt, 140 + city * 40, 3, { by: 'ai', ai: a, saw: true }); }
-    else { SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); if (Math.random() < (falc ? 0.9 : 0.72)) { const head = Math.random() < (falc ? 0.65 : 0.3); if (head) a.heads++; damageEnt(tgt, dmg, pen, { by: 'ai', ai: a, head }); if (inc && !tgt.dead) aoe(tgt.x, tgt.z, 3, dmg * 0.4, tgt); } }
+    else { a.fireT = G.t; SFX.gun(aiGun(a), { pan: i % 2 ? 0.55 : -0.55, dist: 1.5 }); if (Math.random() < (falc ? 0.9 : 0.72)) { const head = Math.random() < (falc ? 0.65 : 0.3); if (head) a.heads++; damageEnt(tgt, dmg, pen, { by: 'ai', ai: a, head }); if (inc && !tgt.dead) aoe(tgt.x, tgt.z, 3, dmg * 0.4, tgt); } }
   }
   // avisos
   if (G.frame % 20 === 0) for (const e of G.ents) { if (e.dead) continue; const dz = e.z - P.z; if (dz < 20 || dz > 150) continue; if (Math.abs(e.x - P.x) > 3) continue; if (e.type === 'boiadeiro') callout('boiadeiro'); else if (e.type === 'colosso') callout('colosso'); else if (e.type === 'cangaceiro' && dz < 60 && S.up.pneu < 1) callout('cang'); }

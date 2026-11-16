@@ -139,16 +139,17 @@ const V3D = (() => {
 
   /* ---------- pessoas (bandidos, sobrevivente, motoqueiros): mesma malha dos zumbis, pele normal ---------- */
   const HUMAN = [Object.assign(['#c48a62', '#8a5a3a', '#e0b08a', '#7a3a2a'], { human: true }), Object.assign(['#8a5a3a', '#5a3a22', '#b0805a', '#4a2a1a'], { human: true }), Object.assign(['#e0b090', '#a07a5a', '#f4d0b0', '#8a4a3a'], { human: true })];
-  const HUM_A = new Float32Array(48), HT1 = new Float32Array([0.12, 0.12, 0.13]), HT2 = new Float32Array([0.2, 0.22, 0.28]);
-  function human(R, M, x, y, z, kind, seed, t) {
+  const HUM_A = new Float32Array(48), HT1 = new Float32Array([0.12, 0.12, 0.13]), HT2 = new Float32Array([0.2, 0.22, 0.28]), MW3 = M4.make();
+  function human(R, M, x, y, z, kind, seed, t, fx, fz, t1) {
     const mesh = Z3D.humanoid('andarilhoA', Z3D.SPEC.andarilhoA), A2 = HUM_A, HB = Z3D.HB; A2.fill(0);
     if (kind === 'senta') { A2[HB.TA * 3] = -1.45; A2[HB.TB * 3] = -1.45; A2[HB.SA * 3] = 1.4; A2[HB.SB * 3] = 1.4; A2[HB.UA * 3] = -1.2; A2[HB.FA * 3] = -0.4; A2[HB.UB * 3] = -1.2; A2[HB.FB * 3] = -0.4; A2[HB.CHEST * 3] = 0.25; }
     else if (kind === 'atira') { A2[HB.UA * 3] = -1.5; A2[HB.UA * 3 + 1] = -0.4; A2[HB.FA * 3] = -0.2; A2[HB.UB * 3] = -1.4; A2[HB.UB * 3 + 1] = 0.5; A2[HB.FB * 3] = -0.6; A2[HB.CHEST * 3 + 1] = 0.2 * Math.sin(t * 2 + seed); A2[HB.TA * 3] = -0.15; A2[HB.TB * 3] = 0.15; }
     else if (kind === 'acena') { A2[HB.UA * 3] = -2.8 + 0.4 * Math.sin(t * 7); A2[HB.UA * 3 + 2] = 0.4; A2[HB.FA * 3] = -0.3; A2[HB.UB * 3] = -2.6 + 0.4 * Math.sin(t * 7 + 1); A2[HB.UB * 3 + 2] = -0.4; }
     const bones = Z3D.solve(mesh.skel, A2, null, [0, kind === 'senta' ? -0.42 : 0, 0]);
-    const m = M4.mul(MW2, M, M4.place(MW, x, y, z, 0, 1, 1, 1, 1));
-    R.skin(mesh, Z3D.atlasFor(HUMAN[(seed * 3 | 0) % 3]), m, bones, { t1: kind === 'acena' ? new Float32Array([0.2, 0.36, 0.62]) : HT1, t2: HT2, flash: 0, glow: 0 });
-    if (kind === 'atira') { const g = M4.mul(MW2, M, M4.place(MW, x - 0.12, y + 1.32, z + 0.35, 0, 1, 1, 1, 1)); R.model(gunMesh(), tex(), g, { glow: 0 }); }
+    const ffx = fx === undefined ? 0 : fx, ffz = fz === undefined ? 1 : fz, m = M4.mul(MW2, M, M4.place(MW, x, y, z, ffx, ffz, 1, 1, 1));
+    R.skin(mesh, Z3D.atlasFor(HUMAN[(seed * 3 | 0) % 3]), m, bones, { t1: t1 || (kind === 'acena' ? new Float32Array([0.2, 0.36, 0.62]) : HT1), t2: HT2, flash: 0, glow: 0 });
+    if (kind === 'atira') { M4.place(MW, -0.12, 1.32, 0.35, 0, 1, 1, 1, 1); const g = M4.mul(MW3, m, MW); R.model(gunMesh(), tex(), g, { glow: 0 }); return [g[8] * 0.6 + g[12], g[9] * 0.6 + g[13], g[10] * 0.6 + g[14]]; }
+    return null;
   }
   function gunMesh() { if (gunMesh.m) return gunMesh.m; const b = new GL3.Builder(); K3.box(b, -0.03, 0.03, -0.05, 0.05, -0.25, 0.55, A.DARK); K3.box(b, -0.025, 0.025, -0.2, -0.04, 0.0, 0.1, A.DARK); return (gunMesh.m = b.mesh()); }
 
@@ -201,8 +202,9 @@ const V3D = (() => {
 
   /* ---------- carro dos jogadores (3ª pessoa) com upgrades ---------- */
   const PLAYER = [null, 'hatch', 'wagon', 'pickup', 'van', 'truck'];
-  function playerModel(veh, up) {
-    const key = 'p' + veh + JSON.stringify(up);
+  // noTurret: sem o cano decorativo da torre (quando o próprio Artilheiro está na torre, a arma dele é a da torre)
+  function playerModel(veh, up, noTurret) {
+    const key = 'p' + veh + JSON.stringify(up) + (noTurret ? 'n' : '');
     if (cache[key]) return cache[key];
     const b = new GL3.Builder(), T = tex(); let wheels = [], d;
     if (veh === 5) {   // Scania bicuda: capô comprido, cabine alta, chassi, tanques e escapamentos
@@ -218,11 +220,11 @@ const V3D = (() => {
       b.mat = 0;
       if (veh === 1) { for (const s of [-1, 1]) K3.box(b, s * 0.55 - 0.03, s * 0.55 + 0.03, 1.52, 1.58, -1.6, 0.2, A.CHROME); K3.box(b, -0.25, 0.25, 1.6, 1.66, -1.9, 0.5, A.CHROME); for (let z = -1.8; z < 0.5; z += 0.32) K3.box(b, -0.25, 0.25, 1.66, 1.7, z, z + 0.05, A.CHROME); }   // escada no rack
       if (veh === 2) { K3.box(b, -0.55, -0.02, 1.45, 1.6, -0.4, -0.1, A.RED); K3.box(b, 0.02, 0.55, 1.45, 1.6, -0.4, -0.1, A.BLUE); K3.box(b, -0.6, 0.6, 1.44, 1.47, -0.42, -0.08, A.DARK); }   // giroflex
-      if (veh === 4) { K3.cyl(b, [0, 2.3, -0.8], 0.55, 0.45, 0.42, 10, 'y', A.METAL, A.METAL, true); K3.cyl(b, [0, 2.5, -0.8], 0.06, 0.06, 1.5, 8, 'z', A.DARK, A.DARK, true); for (const s of [-1, 1]) K3.quad(b, [s * 1.0, 1.4, 1.1], [s * 1.0, 1.75, 1.1], [s * 1.0, 1.75, 1.6], [s * 1.0, 1.4, 1.6], [s, 0, 0], A.GLASSF); }
+      if (veh === 4) { K3.cyl(b, [0, 2.3, -0.8], 0.55, 0.45, 0.42, 10, 'y', A.METAL, A.METAL, true); if (!noTurret) K3.cyl(b, [0, 2.5, -0.8], 0.06, 0.06, 1.5, 8, 'z', A.DARK, A.DARK, true); for (const s of [-1, 1]) K3.quad(b, [s * 1.0, 1.4, 1.1], [s * 1.0, 1.75, 1.1], [s * 1.0, 1.75, 1.6], [s * 1.0, 1.4, 1.6], [s, 0, 0], A.GLASSF); }
     }
     const hw = (veh === 5 ? 1.25 : d.W / 2), rz = veh === 5 ? -4.6 : -d.L / 2, fz = veh === 5 ? 3.55 : d.L / 2;
     b.mat = 0;
-    if (veh >= 4 && veh === 5) { K3.cyl(b, [0, 3.05, -0.5], 0.5, 0.42, 0.4, 10, 'y', A.METAL, A.METAL, true); K3.cyl(b, [0, 3.25, -0.5], 0.06, 0.06, 1.5, 8, 'z', A.DARK, A.DARK, true); }
+    if (veh >= 4 && veh === 5) { K3.cyl(b, [0, 3.05, -0.5], 0.5, 0.42, 0.4, 10, 'y', A.METAL, A.METAL, true); if (!noTurret) K3.cyl(b, [0, 3.25, -0.5], 0.06, 0.06, 1.5, 8, 'z', A.DARK, A.DARK, true); }
     // para-choque: quebra-mato, lâmina, limpa-trilhos em V, com motosserras
     if (up.frente >= 1) { K3.box(b, -hw * 0.95, hw * 0.95, 0.35, 0.45, fz + 0.12, fz + 0.22, A.DARK); for (const s of [-0.6, 0, 0.6]) K3.box(b, s * hw - 0.04, s * hw + 0.04, 0.35, 1.0, fz + 0.12, fz + 0.2, A.DARK); }
     if (up.frente === 2) K3.box(b, -hw * 1.05, hw * 1.05, 0.15, 0.85, fz + 0.25, fz + 0.4, A.METAL);
@@ -236,25 +238,78 @@ const V3D = (() => {
     if (up.janela >= 1 && veh < 4) { const cab = d.cab, u = up.janela >= 2 ? A.METAL : A.MESH; K3.extrude(b, cab.map(p => [p[0] + (p[0] < 0 ? -0.02 : 0.02), p[1] + 0.02]), -d.W / 2 + d.ins * 0.2, d.W / 2 - d.ins * 0.2, u, (i, n) => n[1] > 0.85 ? null : u, d.ins); }
     // pneus maciços com cravos
     const parts = K3.model([{ b, tex: T }]);
-    return (cache[key] = { parts, wheels, spikes: up.pneu >= 2, len: fz - rz, rear: -rz });
+    return (cache[key] = { parts, wheels, spikes: up.pneu >= 2, len: fz - rz, rear: -rz, mid: (fz + rz) / 2, front: fz, hw });
   }
-  const SR = M4.make(), SB = M4.make(), SC = M4.make();
+  /* frente do carro vista de dentro: o perfil de baixo cortado no para-brisa (z >= zc) + para-choque e upgrades */
+  function clipZ(prof, zc) { const out = []; for (let i = 0; i < prof.length; i++) { const p = prof[i], q = prof[(i + 1) % prof.length], pin = p[0] >= zc, qin = q[0] >= zc; if (pin) out.push(p); if (pin !== qin) { const t = (zc - p[0]) / (q[0] - p[0]); out.push([zc, p[1] + (q[1] - p[1]) * t]); } } return out; }
+  function frontModel(veh, up, zc) {
+    const key = 'f' + veh + JSON.stringify(up) + zc; if (cache[key]) return cache[key];
+    const b = new GL3.Builder(), T = tex(); let hw, fz;
+    if (veh === 5) { hw = 1.25; fz = 3.55; b.mat = 1; K3.extrude(b, clipZ([[0.6, 0.95], [0.6, 1.95], [2.9, 1.85], [3.35, 1.55], [3.35, 0.95]], zc), -1.0, 1.0, A.PAINT, (i, n) => n[2] > 0.7 ? A.GRILLE : n[1] < -0.5 ? A.DARK : A.PAINT, 0.08); b.mat = 0; K3.box(b, -1.25, 1.25, 0.45, 0.85, 3.3, 3.55, A.CHROME); for (const s of [-1, 1]) K3.box(b, s * 1.0 - 0.18, s * 1.0 + 0.18, 1.2, 1.32, 0.6, 2.9, A.DARK); }
+    else {
+      const d = BODY[PLAYER[veh]], pf = clipZ(d.low, zc); hw = d.W / 2; fz = d.L / 2; b.mat = 1;
+      K3.extrude(b, pf, -hw, hw, A.PAINT, (i, n) => { const u = edgeLower(i, n); b.mat = u === A.PAINT ? 1 : 0; return u; });
+    }
+    b.mat = 0;
+    if (up.frente >= 1) { K3.box(b, -hw * 0.95, hw * 0.95, 0.35, 0.45, fz + 0.12, fz + 0.22, A.DARK); for (const s of [-0.6, 0, 0.6]) K3.box(b, s * hw - 0.04, s * hw + 0.04, 0.35, 1.0, fz + 0.12, fz + 0.2, A.DARK); }
+    if (up.frente === 2) K3.box(b, -hw * 1.05, hw * 1.05, 0.15, 0.85, fz + 0.25, fz + 0.4, A.METAL);
+    if (up.frente >= 3) K3.extrude(b, [[fz + 0.15, 0.12], [fz + 0.15, 1.0], [fz + 1.1, 0.12]], -hw * 1.05, hw * 1.05, A.METAL, () => A.HAZ);
+    const saws = up.frente >= 4 ? 6 : up.serra;
+    for (let i = 0; i < saws; i++) { const xs = (i - (saws - 1) / 2) * (saws > 2 ? hw * 0.36 : hw * 0.8); K3.box(b, xs - 0.05, xs + 0.05, 0.3, 1.25, fz + 0.3, fz + 0.36, A.SAW); K3.box(b, xs - 0.13, xs + 0.13, 0.2, 0.4, fz + 0.2, fz + 0.45, A.HAZ); }
+    return (cache[key] = { parts: K3.model([{ b, tex: T }]), saws, hw, fz });
+  }
+  const SR = M4.make(), SB = M4.make(), SC = M4.make(), MB2 = M4.make(), BM = M4.make(), MC1 = M4.make(), MC2 = M4.make(), MC3 = M4.make(), CT1 = new Float32Array(3);
+  /* arma fixa do capô em 3D: base soldada no capô, recuo do cano, brasa quando esquenta e clarão do tiro */
+  const CAPO_MOUNT = [null, [0, 0.95, 1.22], [0, 0.96, 1.55], [0, 1.05, 1.9], [0, 1.4, 2.45], [0, 1.96, 2.0]];
+  let capoBase = null;
+  function drawCapo(R, M, md) {
+    const lv = S.up.capo || 0; if (!lv || typeof GUN3D === 'undefined') return null;
+    const mdl = GUN3D.capoModel(lv); if (!mdl) return null;
+    const mt = CAPO_MOUNT[S.veh] || CAPO_MOUNT[1], fire = P.gfire > 0, heat = P.gheat || 0, kick = fire ? Math.sin((P.gfire / 0.06) * Math.PI) * 0.025 : 0;
+    if (!capoBase) { const b = new GL3.Builder(); K3.box(b, -0.09, 0.09, 0, 0.05, -0.18, 0.18, A.DARK); K3.box(b, -0.025, 0.025, 0.05, 0.12, -0.03, 0.03, A.METAL); capoBase = K3.model([{ b, tex: tex() }])[0]; }
+    M4.ident(MC1); MC1[12] = mt[0]; MC1[13] = mt[1]; MC1[14] = mt[2]; R.model(capoBase.mesh, capoBase.tex, M4.mul(MC2, M, MC1), {});
+    M4.ident(MC1); MC1[12] = mt[0]; MC1[13] = mt[1] + 0.16; MC1[14] = mt[2] - kick; M4.mul(MC2, M, MC1);
+    const T = GUN3D.tex(), info = mdl.info;
+    for (const p of mdl.parts) R.model(p.mesh, T, MC2, { glow: 0, spec: 0.35 });
+    const mz = [MC2[0] * 0 + MC2[4] * info.bore + MC2[8] * info.muzzle + MC2[12], MC2[1] * 0 + MC2[5] * info.bore + MC2[9] * info.muzzle + MC2[13], MC2[2] * 0 + MC2[6] * info.bore + MC2[10] * info.muzzle + MC2[14]];
+    if (heat > 0.3) R.glow(mz[0] - MC2[8] * info.muzzle * 0.4, mz[1], mz[2] - MC2[10] * info.muzzle * 0.4, 0.12 + heat * 0.1, 0.06, 1, 0.35, 0.08, (heat - 0.3) * 0.9);
+    if (fire) { const k = info.fl || 1; R.glow(mz[0], mz[1], mz[2], 0.35 * k, 0.35 * k, 1, 0.8, 0.45, 0.95); R.glow(mz[0], mz[1], mz[2], 0.12 * k, 0.12 * k, 1, 1, 0.9, 1); if (info.twin) R.glow(mz[0] + MC2[0] * info.twin * 2, mz[1] + MC2[1] * info.twin * 2, mz[2] + MC2[2] * info.twin * 2, 0.3 * k, 0.3 * k, 1, 0.8, 0.45, 0.9); }
+    return mz;
+  }
+  /* tripulação: os artilheiros (IA) debruçados nas janelas / em pé no teto, com a camisa da classe e clarão a cada tiro */
+  const SEATZ = [null, [-0.55, -0.55, -1.45], [-0.6, -0.6, -0.4], [-0.3, -1.6, -1.5], [-0.5, -0.5, -0.8], [-1.0, -1.0, -0.5]], ROOF = [0, 1.48, 1.45, 1.79, 2.3, 3.05];
+  const CREWC = {};
+  function crew(R, M, md) {
+    if (typeof aiGunners !== 'function' || G.role !== 'pilot') return;
+    const gun = aiGunners(), veh = S.veh, hw = md.hw || 0.8, t = G.t;
+    for (let i = 0; i < gun.length && i < 3; i++) {
+      const a = gun[i], seat = i, side = seat === 0 ? -1 : seat === 1 ? 1 : 0, z = (SEATZ[veh] || SEATZ[1])[seat];
+      const x = side * (hw - 0.05), y = seat === 2 ? ROOF[veh] - 0.95 : (veh === 3 && seat === 1 ? 1.02 - 0.7 : 0.95 - 0.92);
+      const c = CREWC[a.cls.id] || (CREWC[a.cls.id] = (() => { const h = TEX3.hexRGB(a.cls.sleeve); return new Float32Array([h[0] / 255 * 1.3, h[1] / 255 * 1.3, h[2] / 255 * 1.3]); })());
+      const ang = side * 0.75 + Math.sin(t * 0.7 + i) * 0.25, tip = human(R, M, x, y, z, 'atira', 0.3 + i * 0.33, t + i, Math.sin(ang), Math.cos(ang), c);
+      if (tip && a.fireT && t - a.fireT < 0.07) { R.glow(tip[0], tip[1], tip[2], 0.45, 0.45, 1, 0.75, 0.4, 0.95); R.glow(tip[0], tip[1], tip[2], 0.15, 0.15, 1, 1, 0.9, 1); }
+    }
+  }
   function drawPlayer(R, vx, vy, vz, gy, steer, t) {
     const veh = S.veh, up = S.up, md = playerModel(veh, up), v = VEHICLES[veh];
     const col = TEX3.hexRGB(v.cor); TINT[0] = col[0] / 255 * 1.2; TINT[1] = col[1] / 255 * 1.2; TINT[2] = col[2] / 255 * 1.2;
     const yaw = steer * 0.18, f = Z3D.fwd(R, yaw, 0);
-    let M = R.place(MT, vx, vy, vz, f[0], f[1], 1);
-    M = tilt(M, -Math.min(0.06, Math.max(-0.06, (P.speed - (drawPlayer.ls || P.speed)) * 0.4)), -steer * 0.05 * Math.min(1, P.speed / 15));
-    drawPlayer.ls = P.speed;
+    // chão do carro (rodas) e carroceria em cima das molas (CARFX: rolagem, arfagem, altura, derrapagem)
+    const M0 = R.place(MT, vx, vy, vz, f[0], f[1], 1);
+    const M = typeof CARFX !== 'undefined' ? M4.mul(MB2, M0, CARFX.bodyM(BM, 1, md.mid)) : M0;
     for (const p of md.parts) R.model(p.mesh, p.tex, M, { t1: TINT, spec: 0.55 });
+    drawCapo(R, M, md);
+    crew(R, M, md);
     const wm = wheelMesh()[0], spin = P.z / 0.35;
     for (const w of md.wheels) {
-      const r = w[3], steerA = w[2] > 0 ? steer * 0.35 : 0; let W = wheelM(w[0], w[1], w[2], r, w[4], spin * 0.35 / r);
+      // a roda acompanha só um pouco a carroceria (curso da suspensão) e fica no chão
+      const r = w[3], steerA = w[2] > 0 ? steer * 0.35 : 0, lift = typeof CARFX !== 'undefined' ? Math.max(-0.05, Math.min(0.05, CARFX.wheelLift(w[0], w[2] - md.mid) * 0.35)) : 0;
+      let W = wheelM(w[0], w[1] + lift, w[2], r, w[4], spin * 0.35 / r);
       if (steerA) {   // rodas da frente esterçam em volta do próprio centro
         const c = Math.cos(steerA), s = Math.sin(steerA); M4.ident(SR); SR[0] = c; SR[2] = -s; SR[8] = s; SR[10] = c; SR[12] = w[0]; SR[13] = w[1]; SR[14] = w[2];
         M4.ident(SB); SB[12] = -w[0]; SB[13] = -w[1]; SB[14] = -w[2]; W = M4.mul(SC, SR, M4.mul(SC, SB, W));
       }
-      R.model(wm.mesh, wm.tex, M4.mul(MW2, M, W), {});
+      R.model(wm.mesh, wm.tex, M4.mul(MW2, M0, W), {});
     }
     // lanternas e luz de freio
     const wp = (p) => [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
@@ -282,5 +337,5 @@ const V3D = (() => {
     for (let o = 0; o < d.nv * 13; o += 13) { const nx = d.f[o + 11]; d.f[o + 3] = nx; d.f[o + 4] = 1; d.f[o + 5] = -0.15; d.f[o + 11] = 0; }
     R.hood(d);
   }
-  return { draw, drawPlayer, drawHood, enemyModel, playerModel, tex, A, human, wheelMesh };
+  return { draw, drawPlayer, drawHood, drawCapo, enemyModel, playerModel, frontModel, tex, A, human, wheelMesh, BODY, PLAYER, CAPO_MOUNT };
 })();

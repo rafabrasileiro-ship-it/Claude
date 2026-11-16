@@ -82,9 +82,7 @@ void main() {
   vec3 tint = vMat < 0.5 ? vec3(1.0) : (vMat < 1.5 ? uTint1 : uTint2);
   vec3 base = t.rgb * vC * tint;
   vec3 n = normalize(vN);
-#ifdef ATEST
-  if (dot(n, vP) > 0.0) n = -n;
-#endif
+  if (dot(n, vP) > 0.0) n = -n;   // face vista por trás (chapas finas, fitas): ilumina o lado que aparece
   vec3 col = base * max(lightAt(vP, n), vec3(em * uGlow));
   if (uSpec > 0.0) {   // pintura brilhante: reflexo do sol, do céu e dos faróis
     vec3 v = normalize(-vP), h = normalize(uSunD + v);
@@ -236,6 +234,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
       gl.uniform3fv(u.uTint1, (o && o.t1) || ONE); gl.uniform3fv(u.uTint2, (o && o.t2) || ONE);
       gl.uniform1f(u.uFlash, (o && o.flash) || 0); gl.uniform1f(u.uGlow, o && o.glow !== undefined ? o.glow : L.glow); gl.uniform1f(u.uSpec, (o && o.spec) || 0);
       if (o && o.uv) gl.uniform2f(u.uUV, o.uv[0], o.uv[1]); else gl.uniform2f(u.uUV, 0, 0);
+      if (o && o.add) { gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE); gl.depthMask(false); mesh.draw(); gl.depthMask(true); gl.disable(gl.BLEND); return; }   // clarão: soma luz
       mesh.draw();
     },
     skin(mesh, tex, M, bones, o) {
@@ -594,7 +593,7 @@ void main() { vec4 t = texture2D(uT, vUV); gl_FragColor = vec4(t.rgb * vC, mix(t
   function warm() {
     if (!ok) return;
     const jobs = [() => TEX3.asphalt(false), () => TEX3.asphalt(true), () => TEX3.gravel(), () => TEX3.detail(), () => TEX3.macro(), () => TEX3.clouds(), () => TEX3.horizon(), () => TEX3.blob(), () => TEX3.glow(), () => TEX3.decals(), () => TEX3.water(), () => TEX3.cliff(),
-      () => V3D.tex(), () => S3D.tex(), () => S3D.texB()];
+      () => V3D.tex(), () => S3D.tex(), () => S3D.texB(), () => typeof GUN3D !== 'undefined' && GUN3D.tex(), () => typeof ARMS3D !== 'undefined' && ARMS3D.tex(), () => typeof CAB3D !== 'undefined' && CAB3D.tex()];
     for (let id = 0; id < 7; id++) jobs.push(() => Z3D.atlasFor(DRAW.pele({ id, type: 'andarilho' })));
     jobs.push(() => Z3D.atlasFor(DRAW.pele({ id: 0, type: 'engolidor' })));
     let i = 0;

@@ -32,8 +32,8 @@ const ARMS3D = (() => {
     reg(128, 96, 256, 128, (w, h) => { skin(w, h, 23); x.strokeStyle = 'rgba(30,50,110,0.85)'; x.fillStyle = 'rgba(30,50,110,0.55)'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(w * 0.35, 6); x.lineTo(w * 0.65, 6); x.lineTo(w * 0.6, h - 6); x.lineTo(w * 0.4, h - 6); x.closePath(); x.stroke(); x.beginPath(); x.arc(w * 0.5, h * 0.42, 7, 0, 7); x.fill(); x.font = 'bold 7px Arial'; x.textAlign = 'center'; x.fillStyle = 'rgba(20,30,80,0.9)'; x.fillText('MÃE', w * 0.5, h * 0.8); });
     reg(128, 192, 256, 256, (w, h) => { skin(w, h, 27); for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(15,12,10,${0.15 + r() * 0.35})`; x.beginPath(); x.ellipse(r() * w, r() * h, 2 + r() * 10, 1 + r() * 4, r() * 3, 0, 7); x.fill(); } });
     // luva (tingida): couro com costuras e reforço nos nós dos dedos
-    reg(0, 128, 128, 192, (w, h) => { fld(w, h, TEX3.fbm(w, h, 8, 4, 31, 0.6), [150, 150, 150], [205, 205, 205], 22, 3); x.strokeStyle = 'rgba(30,30,30,0.6)'; x.setLineDash([2, 2]); x.lineWidth = 1; for (let X = 16; X < w; X += 32) { x.beginPath(); x.moveTo(X, 0); x.lineTo(X, h); x.stroke(); } x.setLineDash([]); x.fillStyle = 'rgba(255,255,255,0.1)'; for (let i = 0; i < 20; i++) x.fillRect(r() * w, r() * h, 6, 1); });
-    reg(128, 128, 256, 192, (w, h) => { fld(w, h, TEX3.fbm(w, h, 8, 3, 33, 0.6), [140, 140, 140], [190, 190, 190], 20, 4); x.fillStyle = 'rgba(20,20,20,0.35)'; for (let X = 0; X < w; X += 32) x.fillRect(X + 4, 8, 24, h - 16); x.strokeStyle = 'rgba(255,255,255,0.15)'; for (let X = 0; X < w; X += 32) { x.beginPath(); x.moveTo(X + 6, 12); x.lineTo(X + 26, 12); x.stroke(); } });
+    reg(0, 128, 128, 192, (w, h) => { fld(w, h, TEX3.fbm(w, h, 8, 4, 31, 0.6), [150, 150, 150], [205, 205, 205], 22, 3); x.strokeStyle = 'rgba(20,20,20,0.55)'; x.lineWidth = 2; for (let X = 32; X < w; X += 32) { x.beginPath(); x.moveTo(X, 0); x.lineTo(X, h); x.stroke(); } x.fillStyle = 'rgba(255,255,255,0.1)'; for (let i = 0; i < 20; i++) x.fillRect(r() * w, r() * h, 6, 1); });
+    reg(128, 128, 256, 192, (w, h) => { fld(w, h, TEX3.fbm(w, h, 8, 3, 33, 0.6), [150, 150, 150], [200, 200, 200], 20, 4); x.fillStyle = 'rgba(15,15,15,0.55)'; for (let X = 32; X < w; X += 32) x.fillRect(X - 1.5, 0, 3, h); x.fillStyle = 'rgba(255,255,255,0.16)'; for (let X = 0; X < w; X += 32) { x.beginPath(); x.ellipse(X + 16, h * 0.4, 9, 6, 0, 0, 7); x.fill(); } });
     reg(0, 192, 64, 256, (w, h) => { x.fillStyle = '#c8c8c8'; x.fillRect(0, 0, w, h); x.fillStyle = 'rgba(0,0,0,0.3)'; for (let X = 0; X < w; X += 6) x.fillRect(X, 0, 2, h); x.fillStyle = 'rgba(255,255,255,0.35)'; x.fillRect(0, 2, w, 3); });
     reg(64, 192, 96, 224, (w, h) => { x.fillStyle = '#222'; x.fillRect(0, 0, w, h); x.fillStyle = '#d8d8c8'; x.beginPath(); x.arc(16, 16, 12, 0, 7); x.fill(); x.strokeStyle = '#111'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(16, 16); x.lineTo(16, 7); x.moveTo(16, 16); x.lineTo(22, 18); x.stroke(); });
     return TEX3.pack(c, 0);
@@ -45,37 +45,35 @@ const ARMS3D = (() => {
     trovao: { k: 1.12, band: '#c9b060', tat: 1 }, graxa: { k: 0.9, band: '#8a8a8a', dirt: 1 },
     falcao: { k: 1.0, band: '#141414', watch: 1 }, cobra: { k: 1.08, band: '#3a4a2a' },
   };
-  const L1 = 0.3, L2 = 0.27;   // braço e antebraço (m)
+  const L1 = 0.33, L2 = 0.3;   // braço e antebraço (m) de um adulto
   const hexN = (h) => { const a = TEX3.hexRGB(h); return [a[0] / 255, a[1] / 255, a[2] / 255]; };
   // anéis de um tubo ao longo de +y: [y, raio x, raio z]
-  function tube(b, rings, uv, sides, capT, capB) { Z3D.loft(b, rings.map(r => [r[0], r[1], r[2] || r[1]]), sides || 8, uv, capT, capB); }
+  // (a tampa usa um miolo da mesma região: o disco da tampa não pode sair da área da textura)
+  function tube(b, rings, uv, sides, capT, capB) { const h = uv[3] - uv[1]; Z3D.loft(b, rings.map(r => [r[0], r[1], r[2] || r[1]]), sides || 8, uv, capT, capB, [uv[0], uv[1] + h * 0.3, uv[2], uv[3] - h * 0.3]); }
   /* mão fechada (luva) no espaço da mão: punho na origem, +y para os nós dos dedos, +z = palma (lado do que segura),
      o objeto segurado é um cilindro de raio gr com eixo em x passando por (0, 0.075, 0.016 + gr). Polegar do lado −x (mão direita). */
   function hand(b, k, gr) {
-    const cz = 0.016 + gr, cy = 0.075, s = k;
+    const cz = 0.016 + gr, cy = 0.075, s = k * 0.88;
     b.mat = 2;
-    // punho da luva e dorso
-    let m = K3.mark(b); tube(b, [[-0.03, 0.036 * s, 0.03 * s], [0.0, 0.034 * s, 0.028 * s], [0.012, 0.035 * s, 0.027 * s]], A.GLOVE, 8, false, true);
-    m = K3.mark(b); K3.box(b, -0.041 * s, 0.041 * s, 0.006, 0.085, -0.015 * s, 0.016 * s, A.GLOVE);
-    // dedos: quatro arcos de três falanges em volta do cilindro
-    for (let f = 0; f < 4; f++) {
-      const fx = (-0.03 + f * 0.02) * s, w = 0.0085 * s * (f === 3 ? 0.85 : 1), len = f === 3 ? 0.8 : f === 0 ? 0.95 : 1;
-      let a0 = -Math.PI * 0.62;   // começa por cima/atrás do cilindro, desce pela frente e volta para a palma
-      const R0 = gr + 0.012 * s;
-      for (let j = 0; j < 3; j++) {
-        const a1 = a0 + 0.95 * len, am = (a0 + a1) / 2, rr = R0;
-        const p0 = [fx, cy + Math.cos(a0) * rr * -1, cz + Math.sin(a0) * rr], p1 = [fx, cy + Math.cos(a1) * rr * -1, cz + Math.sin(a1) * rr];
-        const dy = p1[1] - p0[1], dz = p1[2] - p0[2], L = Math.hypot(dy, dz) || 0.01, mm = K3.mark(b);
-        K3.box(b, -w, w, -0.009 * s, 0.009 * s, 0, L + 0.004, j === 0 ? A.KNUCK : A.GLOVE);
-        Z3D.xform(b, mm, Math.atan2(-dy, dz), 0, 0, p0[0], p0[1], p0[2]);
-        a0 = a1; void am;
-      }
+    // punho da luva e dorso/palma
+    tube(b, [[-0.035, 0.037 * s, 0.031 * s], [-0.005, 0.034 * s, 0.028 * s], [0.012, 0.035 * s, 0.027 * s]], A.GLOVE, 8, false, true);
+    K3.box(b, -0.04 * s, 0.04 * s, 0.004, 0.084, -0.015 * s, 0.017 * s, A.GLOVE);
+    // dedos como um bloco só (à moda dos personagens de PS1): três gomos que passam por cima do objeto e voltam pela frente;
+    // os nós dos dedos ficam marcados na textura
+    const R0 = gr + 0.0105 * s, segs = 3, step = 0.92;
+    let a0 = -Math.PI * 0.6;
+    for (let j = 0; j < segs; j++) {
+      const a1 = a0 - step, p0 = [0, cy - Math.cos(a0) * R0, cz + Math.sin(a0) * R0], p1 = [0, cy - Math.cos(a1) * R0, cz + Math.sin(a1) * R0];
+      const dy = p1[1] - p0[1], dz = p1[2] - p0[2], L = Math.hypot(dy, dz), mm = K3.mark(b), w = 0.038 * s * (j === 2 ? 0.92 : 1);
+      K3.box(b, -w, w, -0.0095 * s, 0.0095 * s, -0.003, L + 0.003, j === 0 ? A.KNUCK : A.GLOVE);
+      Z3D.xform(b, mm, Math.atan2(-dy, dz), 0, 0, p0[0], p0[1], p0[2]);
+      a0 = a1;
     }
-    // polegar: sai do lado −x perto do punho e abraça o cilindro pelo outro lado
-    const t0 = [-0.04 * s, 0.03, 0.012], t1 = [-0.03 * s, 0.07, cz + gr * 0.2], t2 = [-0.012 * s, 0.085, cz + gr * 0.9];
+    // polegar: sai do lado −x perto do punho e abraça o objeto pelo outro lado
+    const t0 = [-0.036 * s, 0.028, 0.012], t1 = [-0.03 * s, 0.065, cz + gr * 0.1], t2 = [-0.012 * s, 0.08, cz + gr * 0.85];
     for (const [p, q] of [[t0, t1], [t1, t2]]) {
       const dx = q[0] - p[0], dy = q[1] - p[1], dz = q[2] - p[2], L = Math.hypot(dx, dy, dz), mm = K3.mark(b);
-      K3.box(b, -0.011 * s, 0.011 * s, -0.009 * s, 0.009 * s, 0, L + 0.006, A.GLOVE);
+      K3.box(b, -0.0115 * s, 0.0115 * s, -0.0095 * s, 0.0095 * s, -0.004, L + 0.005, A.GLOVE);
       Z3D.xform(b, mm, Math.atan2(-dy, Math.hypot(dx, dz)), Math.atan2(dx, dz), 0, p[0], p[1], p[2]);
     }
   }
@@ -93,7 +91,7 @@ const ARMS3D = (() => {
     b.bone = 1; b.mat = 0; b.col = skinC;
     const sk = o.tat && !left ? A.SKINT : o.dirt ? A.SKIND : A.SKIN;
     tube(b, [[-0.02, 0.041 * k, 0.038 * k], [0.06, 0.043 * k, 0.037 * k], [0.16, 0.036 * k, 0.03 * k], [L2 - 0.01, 0.029 * k, 0.025 * k], [L2 + 0.01, 0.028 * k, 0.024 * k]], sk, 9, false, false);
-    if (left) { b.col = hexN(o.band); tube(b, [[L2 - 0.045, 0.032 * k, 0.028 * k], [L2 - 0.025, 0.032 * k, 0.028 * k]], A.BAND, 9, false, false); if (o.watch) { b.col = [1, 1, 1]; const m = K3.mark(b); K3.box(b, -0.014, 0.014, L2 - 0.05, L2 - 0.02, -0.004, 0.004, A.WATCH); Z3D.xform(b, m, 0, 0, 0, 0, 0, 0.03 * k); } }
+    if (left) { b.col = hexN(o.band); tube(b, [[L2 - 0.045, 0.032 * k, 0.028 * k], [L2 - 0.025, 0.032 * k, 0.028 * k]], A.BAND, 9, false, false); if (o.watch) { b.col = [1, 1, 1]; const m = K3.mark(b); K3.box(b, -0.014, 0.014, L2 - 0.05, L2 - 0.02, -0.004, 0.004, A.WATCH); Z3D.xform(b, m, 0, 0, 0, 0, 0, -0.03 * k); } }
     // mão (luva): bone 2
     b.bone = 2; b.col = [1, 1, 1]; hand(b, k, gr);
     if (left) for (let o2 = 0; o2 < b.v.length; o2 += GL3.STRIDE) { b.v[o2] = -b.v[o2]; b.v[o2 + 3] = -b.v[o2 + 3]; }
@@ -121,7 +119,7 @@ const ARMS3D = (() => {
   function draw(R, clsId, left, sh, hp, hy, hz, pole, gr, mir, o) {
     const am = armMesh(clsId, left, gr || 0.018), k = (CL[clsId] || CL.trovao).k;
     // base da mão: y = punho→dedos, z = palma; para a mão esquerda (malha espelhada) o eixo x inverte
-    const HB = basis(hy, hz); if (left) HB[0] = v3.mul(HB[0], -1);
+    const HB = basis(hy, hz);   // mesma base nas duas mãos: a malha da esquerda já é o espelho da direita
     const cz = 0.016 + (gr || 0.018), local = [0, 0.075, cz];
     const wrist = v3.sub(hp, v3.add(v3.add(v3.mul(HB[0], local[0]), v3.mul(HB[1], local[1])), v3.mul(HB[2], local[2])));
     // dois ossos: cotovelo pelo polo
@@ -130,7 +128,6 @@ const ARMS3D = (() => {
     let pn = v3.sub(pole, v3.mul(dn, v3.dot(pole, dn))); if (v3.len(pn) < 1e-5) pn = [0, -1, 0]; pn = v3.norm(pn);
     const elbow = v3.add(v3.add(sh, v3.mul(dn, a)), v3.mul(pn, h)), wr2 = v3.add(sh, v3.mul(dn, dl));
     const UB = basis(v3.sub(elbow, sh), pn), FB = basis(v3.sub(wr2, elbow), HB[2]);
-    if (left) { UB[0] = v3.mul(UB[0], -1); FB[0] = v3.mul(FB[0], -1); }
     rows(BONES, 0, UB, sh, mir); rows(BONES, 12, FB, elbow, mir); rows(BONES, 24, HB, wr2, mir);
     R.skin(am.mesh, tex(), IDM, BONES, { t1: am.sleeve, t2: am.glove, glow: 0, spec: 0.05, flash: (o && o.flash) || 0 });
     return { elbow, wrist: wr2, k };
