@@ -1,0 +1,7 @@
+# Artefatos do Tizen Studio
+.buildResult/
+.sign/
+.settings/
+*.wgt
+author-signature.xml
+signature*.xml

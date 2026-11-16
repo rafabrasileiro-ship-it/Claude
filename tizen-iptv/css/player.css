@@ -1,0 +1,270 @@
+/*
+ * player.css — contêiner de vídeo (mini / tela cheia), indicador central e OSD.
+ */
+
+.player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: #000000;
+}
+
+.player.mode-hidden {
+  display: none;
+}
+
+/* No modo mini quem recebe cliques/foco é o slot da coluna, por baixo */
+.player.mode-mini {
+  pointer-events: none;
+}
+
+/* TV: com um stream aberto o contêiner fica transparente e mostra o plano de vídeo */
+html.engine-avplay .player.has-stream {
+  background: transparent;
+}
+
+.player-surface,
+.player-video,
+.player-avobject {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.player-video {
+  background: #000000;
+  object-fit: contain;
+}
+
+/* ---------------- Indicador central (carregando, pausado, erro) ---------------- */
+.player-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.player-status.status-idle {
+  background: #0a0d13;
+}
+
+.player-status .spinner {
+  margin-bottom: 1rem;
+}
+
+.player-status-text {
+  max-width: 90%;
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.9);
+}
+
+.status-idle .player-status-text {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.status-error .player-status-text {
+  color: #ffb3b5;
+}
+
+.mode-fullscreen .player-status-text {
+  font-size: 2rem;
+}
+
+.mode-fullscreen .player-status .spinner {
+  width: 5rem;
+  height: 5rem;
+  border-width: 0.5rem;
+}
+
+/* ---------------- OSD (somente em tela cheia) ---------------- */
+.osd {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, visibility 0.2s;
+}
+
+.osd.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mode-mini .osd {
+  display: none;
+}
+
+/* Degradê para garantir contraste do texto sobre qualquer imagem */
+.osd::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0));
+}
+
+.osd-top {
+  position: absolute;
+  top: var(--safe-y);
+  right: var(--safe-x);
+}
+
+.osd-clock {
+  display: inline-block;
+  padding: 0.4rem 1.25rem;
+  border-radius: var(--radius);
+  background: rgba(10, 13, 19, 0.85);
+  font-size: 2.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.osd-bar {
+  position: absolute;
+  left: var(--safe-x);
+  right: var(--safe-x);
+  bottom: calc(var(--safe-y) + 4rem);
+  display: flex;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border: 0.0625rem solid var(--line);
+  border-radius: 1.25rem;
+  background: rgba(13, 17, 24, 0.94);
+}
+
+.osd-num {
+  flex: none;
+  min-width: 5rem;
+  margin-right: 1.5rem;
+  color: var(--accent);
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.osd-logo {
+  width: 9rem;
+  height: 6rem;
+  margin-right: 1.75rem;
+  font-size: 2rem;
+}
+
+.osd-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.osd-name {
+  overflow: hidden;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.osd-group {
+  margin-top: 0.3rem;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.osd-timeline {
+  display: flex;
+  align-items: center;
+  margin-top: 0.9rem;
+}
+
+.osd-progress {
+  flex: 1;
+}
+
+.osd-time {
+  flex: none;
+  margin-left: 1.25rem;
+  font-size: 1.375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.osd-side {
+  flex: none;
+  display: flex;
+  align-items: center;
+  margin-left: 1.5rem;
+}
+
+.osd-side .chip {
+  height: 3rem;
+  margin-left: 0.75rem;
+  padding: 0 1.25rem;
+  font-size: 1.375rem;
+}
+
+.chip-favorite {
+  color: var(--warn);
+}
+
+/* Estado do stream: bolinha colorida + texto */
+.chip-status::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.6rem;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.chip-status.status-playing::before {
+  background: var(--ok);
+}
+
+.chip-status.status-loading::before,
+.chip-status.status-buffering::before,
+.chip-status.status-paused::before {
+  background: var(--warn);
+}
+
+.chip-status.status-error::before {
+  background: var(--danger);
+}
+
+.osd-hints {
+  position: absolute;
+  left: var(--safe-x);
+  right: var(--safe-x);
+  bottom: var(--safe-y);
+  display: flex;
+  align-items: center;
+  height: 3rem;
+  color: #d5dbe5;
+  font-size: 1.25rem;
+  white-space: nowrap;
+}

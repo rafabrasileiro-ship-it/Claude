@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets"
+        xmlns:tizen="http://tizen.org/ns/widgets"
+        id="http://example.org/IPTVPlayer"
+        version="1.0.0"
+        viewmodes="maximized">
+
+    <!-- ID fictício: troque o "package" (10 caracteres) pelo gerado no seu certificado/Tizen Studio se quiser publicar. -->
+    <tizen:application id="Xq7RtB2kLm.IPTVPlayer" package="Xq7RtB2kLm" required_version="5.0"/>
+
+    <name>IPTV Player</name>
+    <description>Player de IPTV (M3U e Xtream Codes) para Samsung Smart TV.</description>
+    <author>IPTV Player</author>
+    <icon src="icon.png"/>
+    <content src="index.html"/>
+
+    <tizen:profile name="tv-samsung"/>
+    <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+
+    <!-- Rede: download de playlists, API Xtream e streams -->
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <!-- Controle remoto: tizen.tvinputdevice.registerKey() -->
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <!-- Ciclo de vida da aplicação -->
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <!-- Player nativo da Samsung (webapis.avplay) -->
+    <tizen:privilege name="http://developer.samsung.com/privilege/avplay"/>
+
+    <!-- Playlists e streams vêm de qualquer domínio/porta -->
+    <access origin="*" subdomains="true"/>
+
+    <tizen:setting screen-orientation="landscape"
+                   context-menu="enable"
+                   background-support="disable"
+                   encryption="disable"
+                   install-location="auto"
+                   hwkey-event="enable"/>
+</widget>

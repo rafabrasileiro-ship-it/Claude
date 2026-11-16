@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPTV Player</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/player.css">
+</head>
+<body>
+
+  <!-- Ícones (referenciados com <use href="#icon-...">) -->
+  <svg xmlns="http://www.w3.org/2000/svg" class="svg-sprite" aria-hidden="true">
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></symbol>
+    <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5l-5.9 3.2 1.2-6.6L2.5 9.5l6.6-.9z"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M10.5 3h3v7.5H21v3h-7.500V21h-3v-7.500H3v-3h7.500z"/></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><path d="M3 5h3v3H3zm5 0h13v3H8zM3 10.5h3v3H3zm5 0h13v3H8zM3 16h3v3H3zm5 0h13v3H8z"/></symbol>
+    <symbol id="icon-server" viewBox="0 0 24 24"><path d="M4 3h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2.500 2.500v3h3v-3zM4 13h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1zm2.500 2.500v3h3v-3z"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><path d="M10 2a8 8 0 0 1 6.320 12.900l5.390 5.390-2.120 2.120-5.390-5.390A8 8 0 1 1 10 2zm0 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></symbol>
+    <symbol id="icon-fullscreen" viewBox="0 0 24 24"><path d="M3 3h7v3H6v4H3zm11 0h7v7h-3V6h-4zM3 14h3v4h4v3H3zm15 0h3v7h-7v-3h4z"/></symbol>
+    <symbol id="icon-updown" viewBox="0 0 24 24"><path d="M12 2l6 8H6zm0 20l-6-8h12z"/></symbol>
+    <symbol id="icon-leftright" viewBox="0 0 24 24"><path d="M2 12l8-6v12zm20 0l-8 6V6z"/></symbol>
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="M12 2.500l10 8.500h-3v10h-5.500v-6.500h-3V21H5V11H2z"/></symbol>
+  </svg>
+
+  <div id="app">
+
+    <!-- ============ Tela inicial: gerenciador de playlists ============ -->
+    <section id="screen-home" class="screen screen-home">
+      <header class="home-header">
+        <div class="brand">
+          <span class="brand-mark">IPTV</span>
+          <span class="brand-name">Player</span>
+        </div>
+        <div class="home-subtitle">Escolha uma playlist ou adicione uma nova</div>
+      </header>
+
+      <div id="home-empty" class="home-empty">
+        Nenhuma playlist cadastrada. Adicione uma lista M3U ou uma conta Xtream Codes —
+        ou carregue a lista de teste para ver o player funcionando agora.
+      </div>
+
+      <div id="profile-grid" class="profile-grid" data-focus-section="profiles"></div>
+
+      <footer class="hints">
+        <span class="hint"><span class="key">OK</span>Abrir</span>
+        <span id="home-hint-manage" class="hint-group">
+          <span class="hint"><span class="key-dot key-red"></span>Remover</span>
+          <span class="hint"><span class="key-dot key-green"></span>Editar</span>
+        </span>
+        <span class="hint"><span class="key">VOLTAR</span>Sair</span>
+        <span id="home-version" class="hints-right"></span>
+      </footer>
+    </section>
+
+    <!-- ============ Tela principal: categorias | canais | player ============ -->
+    <section id="screen-browse" class="screen screen-browse">
+      <header class="topbar">
+        <div class="topbar-title">
+          <span class="brand-mark">IPTV</span>
+          <span id="browse-title" class="topbar-name"></span>
+        </div>
+        <nav class="tabs" data-focus-section="tabs">
+          <div id="tab-live" class="tab" data-focusable="true">Ao Vivo</div>
+          <div id="tab-vod" class="tab" data-focusable="true">Filmes</div>
+          <div id="tab-search" class="tab tab-icon" data-focusable="true"><svg class="icon" aria-hidden="true"><use href="#icon-search" xlink:href="#icon-search"/></svg>Buscar</div>
+          <div id="tab-home" class="tab tab-icon" data-focusable="true"><svg class="icon" aria-hidden="true"><use href="#icon-home" xlink:href="#icon-home"/></svg>Playlists</div>
+        </nav>
+        <div id="browse-clock" class="clock"></div>
+      </header>
+
+      <div class="columns">
+        <!-- Coluna 1: categorias -->
+        <aside class="column column-categories">
+          <h2 class="column-title">Categorias</h2>
+          <div id="category-list" class="column-list" data-focus-section="categories"></div>
+        </aside>
+
+        <!-- Coluna 2: canais -->
+        <main class="column column-channels">
+          <h2 class="column-title">
+            <span id="channels-title" class="column-title-text">Canais</span>
+            <span id="channels-count" class="column-count"></span>
+          </h2>
+          <div id="channel-list" class="column-list" data-focus-section="channels"></div>
+          <div id="channels-empty" class="column-empty" hidden></div>
+        </main>
+
+        <!-- Coluna 3: mini-player + informações -->
+        <aside class="column-preview" data-focus-section="preview">
+          <div id="mini-slot" class="mini-slot" data-focusable="true" data-focus-default="true"></div>
+
+          <div id="now-playing" class="now-playing is-idle">
+            <svg class="icon" aria-hidden="true"><use href="#icon-play" xlink:href="#icon-play"/></svg>
+            <span id="now-playing-name" class="now-playing-name">Nada em reprodução</span>
+            <span id="now-playing-status" class="now-playing-status"></span>
+          </div>
+
+          <div id="channel-info" class="channel-info is-empty">
+            <div id="info-logo" class="logo info-logo">
+              <span id="info-logo-text" class="logo-text"></span>
+              <img id="info-logo-img" class="logo-img" alt="">
+            </div>
+            <div class="info-body">
+              <div id="info-name" class="info-name">Nenhum canal selecionado</div>
+              <div class="info-line">
+                <span id="info-meta"></span>
+                <span id="info-favorite" class="info-favorite" hidden><svg class="icon" aria-hidden="true"><use href="#icon-star" xlink:href="#icon-star"/></svg>Favorito</span>
+              </div>
+              <div id="info-group" class="info-group"></div>
+            </div>
+          </div>
+
+          <div class="preview-actions">
+            <div id="btn-fullscreen" class="btn" data-focusable="true"><svg class="icon" aria-hidden="true"><use href="#icon-fullscreen" xlink:href="#icon-fullscreen"/></svg>Tela cheia</div>
+            <div id="btn-favorite" class="btn" data-focusable="true"><svg class="icon" aria-hidden="true"><use href="#icon-star" xlink:href="#icon-star"/></svg><span id="btn-favorite-label">Favoritar</span></div>
+          </div>
+
+          <div class="preview-tip">
+            <span class="key">OK</span> reproduz o canal. <span class="key">OK</span> de novo abre em tela cheia.
+          </div>
+        </aside>
+      </div>
+
+      <footer class="hints">
+        <span class="hint"><span class="key-dot key-red"></span>Playlists</span>
+        <span class="hint"><span class="key-dot key-green"></span>Favorito</span>
+        <span class="hint"><span class="key-dot key-yellow"></span>Ao Vivo / Filmes</span>
+        <span class="hint"><span class="key-dot key-blue"></span>Buscar</span>
+        <span class="hint"><span class="key">CH</span>Página</span>
+        <span class="hint"><span class="key">VOLTAR</span>Playlists</span>
+      </footer>
+    </section>
+  </div>
+
+  <!-- ============ Player (mini / tela cheia) + OSD ============ -->
+  <div id="player" class="player mode-hidden">
+    <div id="player-surface" class="player-surface"></div>
+
+    <div id="player-status" class="player-status" hidden>
+      <div id="player-spinner" class="spinner"></div>
+      <div id="player-status-text" class="player-status-text"></div>
+    </div>
+
+    <div id="osd" class="osd">
+      <div class="osd-top">
+        <span id="osd-clock" class="osd-clock"></span>
+      </div>
+      <div class="osd-bar">
+        <div id="osd-num" class="osd-num"></div>
+        <div id="osd-logo" class="logo osd-logo">
+          <span id="osd-logo-text" class="logo-text"></span>
+          <img id="osd-logo-img" class="logo-img" alt="">
+        </div>
+        <div class="osd-main">
+          <div id="osd-name" class="osd-name"></div>
+          <div id="osd-group" class="osd-group"></div>
+          <div id="osd-timeline" class="osd-timeline" hidden>
+            <div class="progress osd-progress"><div id="osd-progress-fill" class="progress-fill"></div></div>
+            <span id="osd-time" class="osd-time"></span>
+          </div>
+        </div>
+        <div class="osd-side">
+          <span id="osd-favorite" class="chip chip-favorite" hidden><svg class="icon" aria-hidden="true"><use href="#icon-star" xlink:href="#icon-star"/></svg>Favorito</span>
+          <span id="osd-status" class="chip chip-status"></span>
+          <span id="osd-resolution" class="chip" hidden></span>
+        </div>
+      </div>
+      <div class="osd-hints">
+        <span class="hint"><span class="key"><svg class="icon" aria-hidden="true"><use href="#icon-updown" xlink:href="#icon-updown"/></svg></span>Trocar canal</span>
+        <span id="osd-hint-seek" class="hint" hidden><span class="key"><svg class="icon" aria-hidden="true"><use href="#icon-leftright" xlink:href="#icon-leftright"/></svg></span>10 s</span>
+        <span class="hint"><span class="key">OK</span>Informações</span>
+        <span class="hint"><span class="key-dot key-green"></span>Favorito</span>
+        <span class="hint"><span class="key">VOLTAR</span>Lista de canais</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- API de produto da Samsung (webapis.avplay etc.). Só existe na TV; no PC o 404 é inofensivo. -->
+  <script type="text/javascript" src="$WEBAPIS/webapis/webapis.js"></script>
+
+  <!-- Núcleo -->
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/config.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/navigation.js"></script>
+  <script src="js/core/player.js"></script>
+  <!-- Parsers / fontes de dados -->
+  <script src="js/parsers/m3u-parser.js"></script>
+  <script src="js/parsers/xtream-client.js"></script>
+  <script src="js/parsers/demo-playlist.js"></script>
+  <script src="js/core/catalog.js"></script>
+  <!-- Interface -->
+  <script src="js/ui/components.js"></script>
+  <script src="js/ui/virtual-list.js"></script>
+  <script src="js/ui/player-view.js"></script>
+  <script src="js/ui/profile-form.js"></script>
+  <script src="js/ui/home-screen.js"></script>
+  <script src="js/ui/browse-screen.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

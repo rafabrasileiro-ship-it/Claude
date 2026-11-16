@@ -1,0 +1,296 @@
+/*
+ * components.css — botões, formulários, modais, loader, toasts e listas virtuais.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Botões                                                              */
+/* ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.75rem;
+  padding: 0 1.75rem;
+  margin-right: 1rem;
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  font-size: 1.375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn:last-child {
+  margin-right: 0;
+}
+
+.btn .icon {
+  margin-right: 0.6rem;
+}
+
+.btn-primary {
+  background: #24406e;
+}
+
+.btn-danger {
+  background: #6b2428;
+}
+
+.btn-danger.focused {
+  background-color: #d92d33;
+}
+
+/* ------------------------------------------------------------------ */
+/* Formulários                                                         */
+/* ------------------------------------------------------------------ */
+.form {
+  margin-top: 1.5rem;
+}
+
+.field {
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 1.25rem;
+  color: var(--text-dim);
+}
+
+.field-row {
+  display: flex;
+}
+
+.field-row .field {
+  flex: 1;
+}
+
+.field-row .field + .field {
+  margin-left: 1.25rem;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  height: 3.75rem;
+  padding: 0 1.25rem;
+  border: 0.125rem solid var(--line);
+  border-radius: var(--radius);
+  background: #0a0d13;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.5rem;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.input::-webkit-input-placeholder {
+  color: #6c7a8f;
+}
+
+/* Em foco pelo controle (ainda sem digitar): anel branco, sem escala */
+.input[data-focusable="true"].focused {
+  background-color: #0a0d13;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 0.25rem var(--focus-ring);
+  transform: none;
+}
+
+/* Digitando (teclado virtual aberto) */
+.input[data-focusable="true"]:focus {
+  background-color: #ffffff;
+  color: #0b0e14;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.25rem var(--accent);
+}
+
+.segmented {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.segment {
+  flex: 1;
+  height: 3.75rem;
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 3.75rem;
+  text-align: center;
+}
+
+.segment + .segment {
+  margin-left: 1rem;
+}
+
+.segment.selected {
+  color: var(--accent);
+  box-shadow: inset 0 -0.3rem 0 var(--accent);
+}
+
+.segment.selected.focused {
+  color: #ffffff;
+  box-shadow: inset 0 -0.3rem 0 #ffffff, 0 0 0 0.25rem var(--focus-ring), 0 0.75rem 2rem rgba(0, 0, 0, 0.7);
+}
+
+.form-error {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius);
+  background: rgba(255, 90, 95, 0.16);
+  color: #ffb3b5;
+  font-size: 1.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Modal                                                               */
+/* ------------------------------------------------------------------ */
+.modal-backdrop,
+.loader-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.modal {
+  width: 46rem;
+  max-width: 90vw;
+  padding: 2.5rem;
+  border: 0.0625rem solid var(--line);
+  border-radius: 1.25rem;
+  background: var(--panel);
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.7);
+}
+
+.modal-form {
+  width: 60rem;
+}
+
+.modal-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.modal-message {
+  margin-top: 1rem;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  word-wrap: break-word;
+}
+
+.modal-actions {
+  display: flex;
+  margin-top: 2.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Loader                                                              */
+/* ------------------------------------------------------------------ */
+.loader-backdrop {
+  z-index: 60;
+}
+
+.loader {
+  width: 42rem;
+  max-width: 90vw;
+  padding: 3rem;
+  border-radius: 1.25rem;
+  background: var(--panel);
+  text-align: center;
+}
+
+.loader .spinner {
+  margin: 0 auto 1.75rem;
+}
+
+.loader-message {
+  min-height: 2em;
+  margin-bottom: 1.5rem;
+  font-size: 1.625rem;
+  font-weight: 600;
+}
+
+.loader-hint {
+  margin-top: 1.5rem;
+  color: var(--text-dim);
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Toasts                                                              */
+/* ------------------------------------------------------------------ */
+.toasts {
+  position: fixed;
+  top: var(--safe-y);
+  left: 0;
+  width: 100%;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 70vw;
+  margin-bottom: 0.75rem;
+  padding: 1rem 1.75rem;
+  border-radius: var(--radius);
+  background: #f4f6fa;
+  color: #0b0e14;
+  font-size: 1.375rem;
+  font-weight: 600;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.6);
+}
+
+.toast-error {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Lista virtualizada                                                  */
+/* ------------------------------------------------------------------ */
+.vlist {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.vlist::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.vlist-track {
+  position: relative;
+  width: 100%;
+}
+
+.vrow {
+  position: absolute;
+  left: 0.875rem;
+  right: 0.875rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+
+.row[data-focusable="true"].focused {
+  transform: scale(1.035);
+}
