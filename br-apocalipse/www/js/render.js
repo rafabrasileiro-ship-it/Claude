@@ -186,6 +186,7 @@ const RENDER = (() => {
     const out = [];
     for (const e of G.ents) {
       if (e.dead || e.st !== 'latch') continue;
+      if (forGunner && e.side === 0) continue;   // o artilheiro está com cabeça e braços para fora: o do para-brisa não é visto dali
       let x, y = yb, k = scale; const side = forGunner ? e.side * A.look : e.side;
       if (e.side === 0) { if (forGunner && A.look < 0) continue; x = W / 2 + Math.sin(e.t * 9) * 5; if (forGunner) { k *= 0.7; y = H * 0.98; } else y = yb + Math.abs(Math.sin(e.t * 2.86)) * 14; } else { x = side < 0 ? W * 0.085 : W * 0.915; x += Math.sin(e.t * 7 + e.id) * 4; }
       out.push({ e, x, y, k });
@@ -450,7 +451,7 @@ const RENDER = (() => {
         o3 = { near: (R, cx) => CAB3D.draw(R, cx), latch: latchPlace(H * 0.4, CAB3D.dashY + H * 0.03, false), light };
       }
       else if (role === 'pilot' && fpp) { const dashY = H * 0.64 + sy * 0.4; o3 = { hood: { dashY, hoodH: [0, 0.085, 0.09, 0.1, 0.05, 0.04][S.veh] * H }, latch: latchPlace(H * 0.4, dashY + H * 0.04, false) }; }
-      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false) }; }
+      else if (role === 'pilot') { const k = v.F / 7.5; o3 = { player: { jumpH: jumpY * 0.5 / k }, latch: latchPlace(k, v.hor + v.camH * k, false).filter(L => L.e.side !== 0) }; }
       else if (A.exposed && !(A.down > 0)) { const vmOK = typeof VM3D !== 'undefined', light = vmOK ? VM3D.update(v) : null; o3 = { near: vmOK ? (R, cx) => VM3D.draw(R, cx) : null, latch: latchPlace(H * 0.46, H * 1.12, true), light }; }
     }
     frame3D = !!(use3D && W3D.render(v, o3));

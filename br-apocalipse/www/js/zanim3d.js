@@ -152,11 +152,13 @@
   }
   function latchPose(e, r, A, set, jaw) {
     const t = G.t, id = Math.abs(e.id | 0);
-    if (e.side === 0) {   // no capô: socando o vidro
-      const bt = e.bt || 0, punch = bt < 0.35 ? Math.sin(bt / 0.35 * PI) : 0, a = Math.sin(t * 5 + id);
-      set(HB.CHEST, 0.5 + punch * 0.25, 0.15 * Math.sin(t * 3), 0.08 * a); set(HB.HEAD, -0.15 + 0.1 * Math.sin(t * 7), 0.2 * Math.sin(t * 2), 0.25 * Math.sin(t * 1.3));
-      set(HB.UA, -2.5 + punch * 0.9, 0, 0.35); set(HB.FA, -0.4 - punch * 0.6, 0, 0); set(HB.UB, -2.3 - 0.3 * Math.sin(t * 6), 0, -0.4); set(HB.FB, -0.5 - 0.3 * Math.sin(t * 6 + 1), 0, 0);
-      set(HB.TA, -0.9, 0, 0.15); set(HB.SA, 1.6, 0, 0); set(HB.TB, -0.7, 0, -0.15); set(HB.SB, 1.4, 0, 0); jaw(0.7 + 0.2 * Math.sin(t * 11));
+    if (e.side === 0) {   // colado no para-brisa: deitado de bruços no vidro, membros abertos, soca de vez em quando
+      const bt = e.bt || 0, punch = bt < 0.35 ? Math.sin(bt / 0.35 * PI) : 0, a = Math.sin(t * 5 + id), cl = 0.5 + 0.5 * Math.sin(t * 2.3 + id);
+      set(HB.CHEST, -0.18 + 0.04 * a, 0.05 * Math.sin(t * 3), 0); set(HB.HEAD, -0.55 + 0.1 * Math.sin(t * 7) - punch * 0.2, 0.28 * Math.sin(t * 1.9 + id), 0.12 * Math.sin(t * 1.3));
+      set(HB.UA, -0.5 - punch * 1.1, 0, 1.5 + 0.1 * cl); set(HB.FA, -0.3 - punch * 0.5, 0, 0.5);
+      set(HB.UB, -0.5 - 0.3 * Math.sin(t * 6), 0, -1.5 - 0.1 * cl); set(HB.FB, -0.3, 0, -0.5);
+      set(HB.TA, -0.05, 0, 0.62 + 0.06 * cl); set(HB.SA, 0.9, 0, 0.1); set(HB.TB, -0.05, 0, -0.62 - 0.06 * cl); set(HB.SB, 0.9, 0, -0.1);
+      jaw(0.75 + 0.2 * Math.sin(t * 11)); r.tilt = 0;
     } else {   // pendurado na porta, pernas balançando
       const a = Math.sin(t * 6 + id);
       set(HB.CHEST, 0.2, -0.3 * e.side, 0.1 * a); set(HB.HEAD, 0.1 + 0.15 * Math.sin(t * 4), 0.35 * Math.sin(t * 1.7), 0.2);
@@ -313,7 +315,24 @@
     const r = st(e), dt = track(e, r);
     if (r.drawnT !== G.t) { pose(e, r, dt, r.A); r.drawnT = G.t; }
     const mesh = Z.humanoid(Z.specKey(e), Z.SPEC[Z.specKey(e)]), tex = Z.atlasFor(DRAW.pele(e));
-    const M = R.place(MT, vx, vy, vz, facing[0], facing[1], 1);
+    let M = R.place(MT, vx, vy, vz, facing[0], facing[1], 1);
+    if (e.side === 0) {   // deitado no vidro (que é inclinado): corpo acompanha a inclinação, de barriga para o piloto
+      const sl = Z3D.latchTilt != null ? Z3D.latchTilt : 1.2, sw = Math.sin(G.t * 9 + (e.id | 0)) * 0.02;
+      M = R.place(MT, vx, vy + (Z3D.latchLift != null ? Z3D.latchLift : 0), vz + (Z3D.latchDz != null ? Z3D.latchDz : 1), facing[0], facing[1], Z3D.latchK != null ? Z3D.latchK : 1.3);
+      M = tiltM(M, sl, sw, 0);
+    }
+    tints(e); R.skin(mesh, tex, M, solve(mesh.skel, r.A, r.S, r.root), { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
+    alive.set(e.id, e);
+  }
+
+  // agarrado no para-brisa visto de fora (3ª pessoa): colocado no espaço do carro, deitado sobre o vidro inclinado
+  const MLC = new Float32Array(16);
+  function drawLatchCar(R, e, Mcar, x, y, z, tilt, k) {
+    const r = st(e), dt = track(e, r);
+    if (r.drawnT !== G.t) { pose(e, r, dt, r.A); r.drawnT = G.t; }
+    const mesh = Z.humanoid(Z.specKey(e), Z.SPEC[Z.specKey(e)]), tex = Z.atlasFor(DRAW.pele(e));
+    let M = M4.mul(MT, Mcar, M4.place(MLC, x, y, z, 0, -1, 1, k, 1));
+    M = tiltM(M, tilt, Math.sin(G.t * 9 + (e.id | 0)) * 0.02, 0);
     tints(e); R.skin(mesh, tex, M, solve(mesh.skel, r.A, r.S, r.root), { t1: T1, t2: T2, flash: e.flash > 0 ? 0.55 : 0 });
     alive.set(e.id, e);
   }
@@ -398,5 +417,5 @@
   // vaca pastando (cenário): cabeça baixa, rabo abanando, parada
   const COW = new Float32Array(48);
   function cowPose(seed) { COW.fill(0); const t = G.t + seed; COW[3] = 0.75 + 0.05 * Math.sin(t * 0.7); COW[4] = 0.15 * Math.sin(t * 0.3); COW[30] = 0.3; COW[31] = 0.5 * Math.sin(t * 2.4); return COW; }
-  Object.assign(Z3D, { draw, drawLatch, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; }, boiMesh: boiModel, boiAtlasFor: boiAtlas, cowPose });
+  Object.assign(Z3D, { draw, drawLatch, drawLatchCar, corpses: corpsesPass, fwd, solve, bonePos, st, get corpseList() { return corpses; }, boiMesh: boiModel, boiAtlasFor: boiAtlas, cowPose });
 })();

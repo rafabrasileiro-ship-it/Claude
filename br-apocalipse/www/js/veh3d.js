@@ -302,6 +302,11 @@ const V3D = (() => {
     for (const p of md.parts) R.model(p.mesh, p.tex, M, { t1: TINT, spec: 0.55 });
     drawCapo(R, M, md);
     crew(R, M, md);
+    for (const e of G.ents) {   // agarrado no para-brisa: deitado sobre o vidro, de barriga para a cabine
+      if (e.dead || e.st !== 'latch' || e.side !== 0 || ENEMY[e.type].veh) continue;
+      const d = BODY[PLAYER[veh]], g0 = !d ? [0.62, 1.95] : d.cab ? d.cab[3] : d.low[3], g1 = !d ? [0.3, 2.8] : d.cab ? d.cab[2] : d.low[2], ang = Math.atan2(g1[1] - g0[1], g0[0] - g1[0]);
+      Z3D.drawLatchCar(R, e, M, 0, g0[1] + 0.02, g0[0] - 0.08, Math.max(0.9, Math.min(1.25, Math.PI / 2 - ang + 0.1)), 1.1);
+    }
     const wm = wheelMesh()[0], spin = P.z / 0.35;
     for (const w of md.wheels) {
       // a roda acompanha só um pouco a carroceria (curso da suspensão) e fica no chão
