@@ -237,11 +237,16 @@ const CAB3D = (() => {
     const g = typeof P.gear === 'number' ? P.gear : 0;
     if (g !== ST.gear) { if (ST.shift <= 0 && Math.abs(P.steer) < 0.55) { ST.shift = 1; ST.shiftFrom = ST.gear; } ST.gear = g; }
     ST.shift = Math.max(0, ST.shift - dt / 0.55);
-    // pingente: pêndulo puxado pelas acelerações da cabine (vai para fora na curva, para frente na freada)
-    const w0 = 6.5, z0 = 0.12;
-    let a = -cf.alat * 0.06 - ST.pa * w0 * w0 - 2 * z0 * w0 * ST.pv + cf.vr * 2.5; ST.pv += a * dt; ST.pa += ST.pv * dt;
-    a = cf.alon * 0.045 - ST.pb * w0 * w0 - 2 * z0 * w0 * ST.pw + cf.vp * 2; ST.pw += a * dt; ST.pb += ST.pw * dt;
-    ST.pa = clampN(ST.pa, -0.9, 0.9); ST.pb = clampN(ST.pb, -0.7, 0.7);
+    // pingente: pêndulo de verdade preso ao retrovisor. Na cabine (referencial acelerado) o fio sente a aceleração do carro
+    // (para fora na curva, para a frente na freada), a gravidade efetiva muda com os solavancos verticais e a própria cabine
+    // gira em volta dele (rolagem e arfagem do quadro), então ele balança, passa do ponto e amortece.
+    const L = 0.17, w02 = 9.8 / L, zt0 = 0.1 * Math.sqrt(w02), g1 = Math.max(0.35, 1 + cf.avert / 9.8);
+    const rac = ST.lvr === undefined ? 0 : clampN((cf.vr - ST.lvr) / Math.max(dt, 1e-3), -40, 40), pac = ST.lvp === undefined ? 0 : clampN((cf.vp - ST.lvp) / Math.max(dt, 1e-3), -40, 40); ST.lvr = cf.vr; ST.lvp = cf.vp;
+    let aa = -cf.alat / L * 0.85 - w02 * g1 * Math.sin(ST.pa) - 2 * zt0 * ST.pv - rac * 0.6;
+    ST.pv += aa * dt; ST.pa += ST.pv * dt;
+    aa = cf.alon / L * 0.85 - w02 * g1 * Math.sin(ST.pb) - 2 * zt0 * ST.pw + pac * 0.6;
+    ST.pw += aa * dt; ST.pb += ST.pw * dt;
+    ST.pa = clampN(ST.pa, -1.2, 1.2); ST.pb = clampN(ST.pb, -0.9, 0.9);
     // contorno do para-brisa na tela (o 2D desenha sangue/chuva/rachaduras só dentro dele) e linha do painel
     const D = c.drop, Z = c.dz, zt = Z - 0.42, prj = (p) => { const q = xp(MC, p); return [CX + F * q[0] / q[2], CY - F * q[1] / q[2]]; };
     ST.poly = [prj([c.pw[0] + 0.06, -D, Z + 0.02]), prj([c.pw[1] - 0.06, -D, Z + 0.02]), prj([c.pw[1] - 0.06, c.roof - 0.03, zt]), prj([c.pw[0] + 0.07, c.roof - 0.03, zt])];
@@ -314,10 +319,11 @@ const CAB3D = (() => {
     const knob = xp(MW, [0, 0.215, 0]);
     mirrors3d(R, c);
     // pingente pendurado no retrovisor
-    const pc = v3.add(mirC(c), [0, -0.045, 0.01]); rotM(MQ, ST.pb, 0, ST.pa); M4.ident(MT); MT[12] = pc[0]; MT[13] = pc[1]; MT[14] = pc[2]; M4.mul(MW, MT, MQ);
+    const pc = v3.add(mirC(c), [0, -0.045, 0.01]); rotM(MQ, ST.pb, 0, ST.pa); M4.ident(MT); MT[12] = pc[0]; MT[13] = pc[1]; MT[14] = pc[2]; M4.mul(MW, MT, MQ); MT[0] = MT[5] = MT[10] = 1.5; M4.mul(MW, MW, MT);
     R.model(pendant(typeof cls === 'function' && cls() ? cls().id : 'trovao'), T, M4.mul(MR, MC, MW), { glow: 0, spec: 0.4 });
     wipers(R, c);
     windowsUp(R, c);
+    cracks3d(R, c);
     // braços no volante (e a direita no câmbio na troca de marcha)
     arms(R, c, wc, steerA, knob);
   }
@@ -361,6 +367,36 @@ const CAB3D = (() => {
     }
   }
   // tela de arame (recortada) ou chapas de aço com a fresta na altura do horizonte
+  /* ---------- trincados no para-brisa: presos ao vidro (na cabine), balançam junto com a carroceria ---------- */
+  let crackM = null, crackKey = '';
+  function cracks3d(R, c) {
+    if (!P.cracks.length) return;
+    const key = S.veh + ':' + P.cracks.length + ':' + P.cracks[0].a;
+    if (!crackM || crackKey !== key) {
+      crackKey = key; const D = c.drop, Z = c.dz, top = c.roof, zt = Z - 0.42, L = c.pw[0] + 0.06, Rr = c.pw[1] - 0.06, Wm = Rr - L;
+      const gb = [0, -D, Z + 0.02], gt = [0, top - 0.03, zt], eU = v3.norm(v3.sub(gt, gb)), eR = [1, 0, 0], nrm = v3.norm(v3.cross(eU, eR));   // aponta para o olho
+      const Hh = v3.len ? v3.len(v3.sub(gt, gb)) : Math.hypot(gt[1] - gb[1], gt[2] - gb[2]);
+      const at = (x, h) => { const xx = clampN(x, L + 0.01, Rr - 0.01), hh = clampN(h, 0.01, Hh - 0.01); return [xx, gb[1] + eU[1] * hh - nrm[1] * 0.004, gb[2] + eU[2] * hh - nrm[2] * 0.004]; };   // sempre dentro do vidro
+      const b = new GL3.Builder();
+      const seg = (p, q, w, col, lift) => {
+        const d = v3.norm(v3.sub(q, p)), s2 = v3.mul(v3.norm(v3.cross(nrm, d)), w / 2), o = v3.mul(nrm, lift); b.col = col;
+        const a0 = v3.add(v3.sub(p, s2), o), a1 = v3.add(v3.add(p, s2), o), a2 = v3.add(v3.add(q, s2), o), a3 = v3.add(v3.sub(q, s2), o);
+        K3.quad(b, a0, a1, a2, a3, nrm, A.WHITE, true);
+      };
+      for (const k of P.cracks) {
+        const cx = L + Wm * k.x, ch = Hh * (1 - k.y), pts = [], pp = (a, r) => at(cx + Math.cos(a) * r, ch - Math.sin(a) * r);
+        const C = at(cx, ch);
+        for (let i = 0; i < 9; i++) { const a = k.a + i * 0.7, r = k.r * Wm * (0.5 + DRAW.hash(i + k.a) * 0.9); pts.push([C, pp(a, r * 0.5), pp(a + 0.2, r)]); }
+        const rr = k.r * Wm * 0.4, ring = []; for (let i = 0; i <= 12; i++) ring.push(pp(i / 12 * TAU, rr));
+        for (const [col, w, lift] of [[[0.3, 0.32, 0.36], 0.0046, 0], [[0.93, 0.96, 1], 0.0024, 0.0012]]) {
+          for (const [p0, p1, p2] of pts) { seg(p0, p1, w, col, lift); seg(p1, p2, w * 0.85, col, lift); }
+          for (let i = 0; i < 12; i++) seg(ring[i], ring[i + 1], w, col, lift);
+        }
+      }
+      crackM = b.mesh();
+    }
+    R.model(crackM, tex(), MC, { glow: 0.5, spec: 0.1 });
+  }
   function windowsUp(R, c) {
     const j = S.up.janela || 0; if (!j) return;
     const D = c.drop, Z = c.dz, top = c.roof, zt = Z - 0.42, L = c.pw[0] + 0.02, Rr = c.pw[1] - 0.02, gb = [0, -D, Z + 0.06], gt = [0, top, zt + 0.04];
