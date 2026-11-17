@@ -4,6 +4,7 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.section import WD_ORIENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+TODOS = len(sys.argv) > 3 and sys.argv[3] == "todos"
 rows = list(csv.DictReader(open(sys.argv[1], encoding="utf-8-sig"), delimiter=";"))
 rows.sort(key=lambda c: -float(c["valor_credito_eur"] or 0))
 def e(v):
@@ -15,18 +16,21 @@ st = doc.styles["Normal"]; st.font.name = "Calibri"; st.font.size = Pt(10)
 s = doc.sections[0]; s.orientation = WD_ORIENT.LANDSCAPE
 s.page_width, s.page_height = s.page_height, s.page_width
 for m in ("left_margin", "right_margin", "top_margin", "bottom_margin"): setattr(s, m, Cm(1.5))
-doc.add_heading("Relação de casos – clubes pequenos", 0)
+doc.add_heading("Relação de casos – " + ("todos os clubes" if TODOS else "clubes pequenos"), 0)
 tot = sum(float(c["valor_credito_eur"] or 0) for c in rows)
 doc.add_paragraph(f"{len(rows)} casos, ordenados do maior para o menor crédito gerado. Soma: {e(tot)}. "
-    "Clube pequeno: clube brasileiro que não disputou a Série A nem a Série B de 2025.")
-for t in ["Crédito gerado não é crédito em aberto: nenhum caso foi verificado quanto a pagamento. Cada um precisa ser "
+    + ("Todos os clubes formadores brasileiros identificados, de qualquer divisão." if TODOS else
+       "Clube pequeno: clube brasileiro que não disputou a Série A nem a Série B de 2025."))
+for t in (["Crédito gerado não é crédito em aberto: nenhum caso foi verificado quanto a pagamento. Cada um precisa ser "
           "conferido com o clube credor (extrato da FIFA Clearing House) antes de qualquer cobrança.",
           "Valores calculados sobre a carreira como consta no Transfermarkt e o valor de transferência divulgado; "
           "o valor contratual e a carreira completa (BID) podem alterar o crédito.",
           "Compensação por treinamento estimada a € 60 mil por ano de formação (16–21) e € 10 mil (12–15); o valor real "
           "depende da categoria do clube de destino.",
           "Transferências entre clubes brasileiros seguem o regulamento da CBF, não o da FIFA.",
-          "Prazo: 2 anos contados da transferência; casos com prazo vencendo em breve estão na coluna Limite."]:
+          "Prazo: 2 anos contados da transferência; casos com prazo vencendo em breve estão na coluna Limite."]
+      + (["Categorias de base aparecem com o nome que consta na fonte (ex.: Athletico U20); o credor é o clube principal.",
+          "Na solidariedade, a parte do próprio clube vendedor não está incluída: ela já fica retida no preço. Na compensação, o credor é o clube vendedor."] if TODOS else [])):
     doc.add_paragraph(t, style="List Bullet")
 cab = ["#", "Tipo", "Atleta", "Data", "Transferência (vendedor → devedor)", "Valor da transf.",
        "Clube credor", "Idades no credor", "Crédito gerado", "Âmbito", "Limite"]
