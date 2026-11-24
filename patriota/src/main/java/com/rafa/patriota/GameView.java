@@ -43,7 +43,7 @@ final class GameView extends View {
     private float psc = 1, pox, poy, pvw = 800, pvh = 450; // jogo: escala, deslocamento e tamanho virtual
     private float safeL, safeT, safeR, safeB;         // áreas ocupadas por recortes (câmera) da tela, em pixels
     private boolean port;                             // tela em pé neste momento
-    private boolean vertical;                         // preferência: jogar com o celular na vertical
+    private boolean vertical = true;                         // preferência: jogar com o celular na vertical
     private int vw, vh;
     private long last;
     private boolean running = true;
@@ -106,7 +106,7 @@ final class GameView extends View {
             sfxLv = prefs.getInt("sfx", 3); voiceLv = prefs.getInt("voice", 3); musicLv = prefs.getInt("music", 2);
             sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 2); vibOn = prefs.getInt("vib", 1);
             hero = prefs.getInt("hero", 0);
-            vertical = prefs.getInt("vert", 0) == 1;
+            vertical = prefs.getInt("vert", 1) == 1; // o jogo abre em pé; o jogador pode trocar no menu
         } catch (Exception ignored) { }
         if (hero < 0 || hero > 5 || !heroUnlocked(hero)) hero = 0;
         Draw.q = gfx == 3 ? 2 : gfx;
@@ -542,7 +542,31 @@ final class GameView extends View {
         Draw.text(c, "Paródia satírica — qualquer semelhança é mera coincidência", 400, 435, 14, 0xFFFFFFFF, Paint.Align.CENTER);
     }
 
+    /** menu principal com a tela em pé: usa a altura toda (o espaço de desenho tem 800 de largura e bem mais de 450 de altura). */
+    private void drawMenuPortrait(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        bgDesign(c, false, Data.TH_PAULISTA, screenT * 30, screenT);
+        fill(c, 0x77000000);
+        Draw.text(c, "OPERAÇÃO", 400, T + H * 0.075f, 56, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, "PATRIOTA 3D", 400, T + H * 0.075f + 62, 56, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, T + H * 0.075f + 100, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+        R3.icon(c, heroLooks[hero], 400, T + H * 0.37f, 2.5f, 0, Draw.P_IDLE);
+        float y = T + H * 0.40f;
+        Draw.text(c, "JOGAR COM O CELULAR NA:", 400, y, 15, 0xFFFFFFFF, Paint.Align.CENTER);
+        float bh = Math.min(70f, H * 0.04f);
+        addBtn(c, B_ORIENT_H, 60, y + 12, 390, y + 12 + bh, "HORIZONTAL", true, vertical ? 0xFF37474F : 0xFF1B8F3A);
+        addBtn(c, B_ORIENT_V, 410, y + 12, 740, y + 12 + bh, "VERTICAL", true, vertical ? 0xFF1B8F3A : 0xFF37474F);
+        String[] lab = {"JOGAR (MODO HISTÓRIA)", "2 JOGADORES", "SELEÇÃO DE FASES", "COMO JOGAR", "OPÇÕES", "CRÉDITOS"};
+        int[] id = {B_PLAY, B_COOP, B_STAGES, B_HELP, B_OPTIONS, B_CREDITS};
+        int[] col = {0xFF1B8F3A, 0xFFC62828, 0xFF1D3E9A, 0xFF00838F, 0xFF6A4C93, 0xFFB35C00};
+        float y0 = T + H * 0.50f, step = H * 0.072f, h = step * 0.84f;
+        for (int i = 0; i < 6; i++) addBtn(c, id[i], 110, y0 + i * step, 690, y0 + i * step + h, lab[i], true, col[i]);
+        if (netMsgT > 0) Draw.text(c, netMsg, 400, ey1 - 60, 16, 0xFFFFAB91, Paint.Align.CENTER);
+        Draw.text(c, "Progresso: " + Math.min(cleared, Data.STAGES.size()) + "/" + Data.STAGES.size() + " fases", 400, ey1 - 24, 16, 0xFFFFFFFF, Paint.Align.CENTER);
+    }
+
     private void drawMenu(Canvas c) {
+        if (port) { drawMenuPortrait(c); return; }
         bgDesign(c, false, Data.TH_PAULISTA, screenT * 30, screenT);
         fill(c, 0x66000000);
         Draw.text(c, "OPERAÇÃO PATRIOTA 3D", 400, 70, 42, 0xFFFFD400, Paint.Align.CENTER);
