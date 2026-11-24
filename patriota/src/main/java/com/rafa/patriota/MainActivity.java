@@ -17,9 +17,22 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // a tela inteira é usada, inclusive atrás do recorte da câmera
+        if (Build.VERSION.SDK_INT >= 28) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(lp);
+        }
         gameView = new GameView(this);
         setContentView(gameView);
         hideSystemBars();
+        gameView.applyOrientation();
+    }
+
+    /** horizontal (padrão) ou vertical, conforme a escolha do jogador no menu principal. */
+    void setVertical(boolean vertical) {
+        setRequestedOrientation(vertical ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+                : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
     }
 
     @Override

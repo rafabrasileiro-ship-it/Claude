@@ -19,14 +19,25 @@ final class R3 {
     private static final float CY = 620, CZ = -760;     // posição da câmera (relativa ao centro)
     private static final float FY, FZ, UY, UZ;          // vetores frente/cima
     private static final float F;                       // distância focal (escala 1 na fileira da frente)
-    private static final float OFFY = 125;
+    // ---- tela virtual e modo de visão (horizontal ou vertical)
+    /** tamanho da tela virtual em que o mundo 3D é desenhado (horizontal: 450 de altura; vertical: 450 de largura). */
+    static float vw = 800, vh = 450;
+    static boolean portrait;
+    private static float scx = 400, scy = 350, kz = 1f, zcy = 300; // centro da projeção, zoom da lente e centro do "soco" de câmera
+    private static float latC, zoff, zw = 1f;           // vertical: centro da faixa, profundidade em camX, alargamento lateral dos modelos
+    /** y (tela) onde o piso termina e começa o cenário de fundo. */
+    static float ftop = Scene.FLOOR_TOP;
+    /** vertical: distância (ao longo da fase) visível até o horizonte. */
+    static float xfar = 1200;
     static float cx;
     static float px, py, pd;                            // resultado da projeção
     static float zoom = 1f;                             // "soco" de câmera (zoom rápido nos impactos)
     static int alphaMul = 255;
     static int fog = 0xFFB9DDF2;                        // cor da neblina (por cenário)
     static float fogK = 0.22f;
-    static final float Z_BACK;                          // onde o piso encontra o cenário de fundo
+    static final float Z_BACK;                          // onde o piso encontra o cenário de fundo (visão horizontal)
+    private static float fx0, fx1, fzLo, fzHi;          // extensão do piso (estágio, faixa)
+    private static int vmode = -1; private static float vA, vB;
 
     static {
         float fy = -620, fz = 895;
@@ -40,21 +51,56 @@ final class R3 {
             if (py > Scene.FLOOR_TOP) lo = m; else hi = m;
         }
         Z_BACK = lo;
+        setLandscape(800);
+    }
+
+    /** visão horizontal: a tela virtual tem 450 de altura e w de largura (>= 800 quando o aparelho é mais comprido que 16:9). */
+    static void setLandscape(float w) {
+        portrait = false; vmode = 0; vA = w;
+        vw = w; vh = 450; scx = w / 2; scy = 350; kz = 1f; zcy = 300; zw = 1f; latC = 0; zoff = 0;
+        ftop = Scene.FLOOR_TOP;
+    }
+
+    /** visão vertical: câmera atrás do herói; o avanço da fase vai de baixo para cima na tela (w x h virtuais, w = 450). */
+    static void setPortrait(float w, float h) {
+        portrait = true; vmode = 1; vA = w; vB = h;
+        vw = w; vh = h; kz = 1.1f; zw = 1.3f; latC = zOf((Game.Y0 + Game.Y1) / 2f);
+        zoff = -330; scx = w / 2; zcy = h * 0.62f;
+        float g0 = gAt(zoff), gt = g0 + (h + 6 - 0.26f * h) / (kz * F);
+        float lo = zoff, hi = 8000;
+        for (int i = 0; i < 40; i++) { float m = (lo + hi) / 2; if (gAt(m) < gt) lo = m; else hi = m; }
+        xfar = lo - zoff;
+        scy = h + 6 + kz * F * g0;
+        ftop = 0.26f * h;
+    }
+
+    private static void restoreView() { if (vmode == 1) setPortrait(vA, vB); else setLandscape(vA); }
+
+    /** inclinação do chão (y da câmera / z da câmera) para um ponto do piso à profundidade z. */
+    private static float gAt(float z) {
+        float rz = z - CZ;
+        return (-CY * UY + rz * UZ) / (-CY * FY + rz * FZ);
     }
 
     static float zOf(float gameY) { return (Game.Y1 - gameY) * ZK; }
 
+    /** ponto do mundo do jogo (X = ao longo da fase, Z = faixa) -> tela. */
     static void proj(float X, float Y, float Z) {
-        float ry = Y - CY, rz = Z - CZ;
+        if (portrait) projV(latC - Z, Y, X - cx + zoff); else projV(X - cx, Y, Z);
+    }
+
+    /** espaço da câmera: xl = lateral (0 = centro da tela), zv = profundidade. */
+    private static void projV(float xl, float Y, float zv) {
+        float ry = Y - CY, rz = zv - CZ;
         float zc = ry * FY + rz * FZ;
         float yc = ry * UY + rz * UZ;
         if (zc < 50) zc = 50;
         // escala lateral pela profundidade do chão: mantém as verticais retas (lente "tilt-shift")
         float zg = -CY * FY + rz * FZ;
         if (zg < 50) zg = 50;
-        px = 400 + F * (X - cx) / zg;
-        py = 225 - F * yc / zc + OFFY;
-        if (zoom != 1f) { px = 400 + (px - 400) * zoom; py = 300 + (py - 300) * zoom; }
+        px = scx + kz * F * xl / zg;
+        py = scy - kz * F * yc / zc;
+        if (zoom != 1f) { px = scx + (px - scx) * zoom; py = zcy + (py - zcy) * zoom; }
         pd = zc;
     }
 
@@ -87,7 +133,9 @@ final class R3 {
     static final int TEX_H = 1, TEX_V = 2;
 
     static void begin(float camX) {
-        cx = camX + 400; nq = 0; tp = 0; ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; bias = 0;
+        cx = portrait ? camX : camX + vw / 2; nq = 0;
+        if (portrait) { fx0 = cx - 300; fx1 = cx + xfar; fzLo = latC - 540; fzHi = latC + 540; }
+        else { fx0 = cx - 900; fx1 = cx + 900; fzLo = -160; fzHi = Z_BACK; } tp = 0; ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; bias = 0;
         SHP.reset(); shAny = false; glow = false; tex = 0; yawK = 1f;
     }
 
@@ -96,8 +144,7 @@ final class R3 {
         PT.setStyle(Paint.Style.FILL);
         PT.setColor(shadowCol);
         c.save();
-        proj(cx, 0, Z_BACK);
-        c.clipRect(-200, py, 1000, 700); // a sombra fica só no piso (não sobe pela parede do fundo)
+        c.clipRect(-200, ftop, vw + 200, vh + 300); // a sombra fica só no piso (não sobe pela parede do fundo)
         c.drawPath(SHP, PT);
         c.restore();
         SHP.reset(); shAny = false;
@@ -178,20 +225,23 @@ final class R3 {
 
     private static void vert(int i, float lx, float ly, float lz) {
         float rx = ta * lx + tb * ly + tx, ry = tc * lx + td * ly + ty;
-        WX[i] = ox + mir * sc * rx; WY[i] = oy + sc * ry; WZ[i] = oz + sc * lz;
-        proj(WX[i], WY[i], WZ[i]);
+        float gx = ox + mir * sc * rx, gz = oz + sc * lz * zw;
+        // espaço da câmera (lateral centrada / profundidade): na vertical o mundo é girado 90° em torno do eixo vertical
+        if (portrait) { WX[i] = latC - gz; WZ[i] = gx - cx + zoff; } else { WX[i] = gx - cx; WZ[i] = gz; }
+        WY[i] = oy + sc * ry;
+        projV(WX[i], WY[i], WZ[i]);
         SX[i] = px; SY[i] = py; SD[i] = pd;
     }
 
     /** depois dos vértices: reflexo no piso e sombra projetada (casco convexo dos pontos achatados no chão). */
     private static void extras(int n, int color) {
         boolean solid = (color >>> 24) > 200 && alphaMul > 200 && !glow;
-        if (reflect && solid) for (int i = 0; i < n; i++) { proj(WX[i], -WY[i], WZ[i]); RX[i] = px; RY[i] = py; }
+        if (reflect && solid) for (int i = 0; i < n; i++) { projV(WX[i], -WY[i], WZ[i]); RX[i] = px; RY[i] = py; }
         if (!cast || !solid) return;
         int start = 0;
         for (int i = 0; i < n; i++) {
             float h = WY[i] > 0 ? WY[i] : 0;
-            proj(WX[i] + SKX * h, 0, WZ[i] + SKZ * h);
+            projV(WX[i] + SKX * h, 0, WZ[i] + SKZ * h);
             HX[i] = px; HY[i] = py;
             if (px < HX[start]) start = i;
         }
@@ -218,7 +268,8 @@ final class R3 {
     private static void face(int a, int b, int c2, int d, float nx, float ny, float nz, int color, int side) {
         if (nq > MAXQ - 12) return;
         float mx = (WX[a] + WX[c2]) * 0.5f, my = (WY[a] + WY[c2]) * 0.5f, mz = (WZ[a] + WZ[c2]) * 0.5f;
-        if (nx * (cx - mx) + ny * (CY - my) + nz * (CZ - mz) <= 0) return; // de costas para a câmera
+        if (portrait) { float t = nx; nx = -nz; nz = t; } // normal do espaço do jogo -> espaço da câmera
+        if (nx * (0 - mx) + ny * (CY - my) + nz * (CZ - mz) <= 0) return; // de costas para a câmera
         int al = (color >>> 24) * alphaMul / 255, r = (color >> 16) & 255, g = (color >> 8) & 255, bl = color & 255;
         if (!glow) {
             float lit = nx * LX + ny * LY + nz * LZ;
@@ -463,48 +514,49 @@ final class R3 {
     static void floor(Canvas c, int theme, float camX) {
         int col = FLOOR[theme][0], ln = FLOOR[theme][1];
         floorTone = lit(col);
-        float x0 = cx - 900, x1 = cx + 900;
+        float x0 = fx0, x1 = fx1, zB = fzHi;
+        float l600 = portrait ? fx0 : cx - 600, h600 = portrait ? fx1 : cx + 600, l700 = portrait ? fx0 : cx - 700, h700 = portrait ? fx1 : cx + 700;
         int strips = 12;
-        float zn = -160;
+        float zn = fzLo;
         for (int i = 0; i < strips; i++) {
-            float za = zn + (Z_BACK - zn) * i / strips, zb = zn + (Z_BACK - zn) * (i + 1) / strips;
+            float za = zn + (zB - zn) * i / strips, zb = zn + (zB - zn) * (i + 1) / strips;
             int sc0 = Draw.shade(col, -0.30f * i / strips + 0.04f);
             if (Draw.q >= 1) sc0 = Draw.mix(sc0, fog, 0.16f * i / strips);
             gquad(c, sc0, x0, za, x1, zb, 0);
         }
         boolean hi = Draw.q >= 2;
-        float gx = (float) Math.floor((cx - 900) / 100f) * 100f;
+        float gx = (float) Math.floor(fx0 / 100f) * 100f;
         switch (theme) {
             case Data.TH_NOVELA: case Data.TH_BBB: { // assoalho: tábuas corridas com emendas alternadas
-                for (float z = -150; z < Z_BACK; z += 50) {
+                for (float z = zs(-150, 50); z < zB; z += 50) {
                     int row = (int) Math.floor(z / 50f);
-                    if (hi && (row & 1) == 0) gquad(c, 0x12000000, x0, z, x1, Math.min(Z_BACK, z + 50), 0.1f);
+                    if (hi && (row & 1) == 0) gquad(c, 0x12000000, x0, z, x1, Math.min(zB, z + 50), 0.1f);
                     gline(c, ln, x0, 0.1f, z, x1, 0.1f, z, 1.3f);
                     float sh = (row & 1) * 110 + (row % 3) * 37;
-                    for (float x = gx - 220 + sh; x < cx + 900; x += 220) gline(c, ln, x, 0.1f, z, x, 0.1f, Math.min(Z_BACK, z + 50), 1.2f);
+                    for (float x = gx - 220 + sh; x < fx1; x += 220) gline(c, ln, x, 0.1f, z, x, 0.1f, Math.min(zB, z + 50), 1.2f);
                 }
                 break;
             }
             case Data.TH_CAMPUS: { // gramado com tufos e caminho de saibro
-                if (hi) for (float x = gx; x < cx + 900; x += 100) for (float z = -100; z < Z_BACK; z += 100) {
+                if (hi) for (float x = gx; x < fx1; x += 100) for (float z = zs(-100, 100); z < zB; z += 100) {
                     float h = hash(x * 0.01f, z * 0.01f);
                     if (h > 0.55f) gquad(c, h > 0.8f ? 0x16FFFFFF : 0x14003300, x + h * 30, z + h * 20, x + 60 + h * 30, z + 44, 0.1f);
                 }
                 gquad(c, 0xFFD8C9A0, x0, 40, x1, 200, 0.2f);
                 gquad(c, 0xFFC4B48A, x0, 40, x1, 48, 0.25f); gquad(c, 0xFFC4B48A, x0, 192, x1, 200, 0.25f);
-                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 50) for (int k = 0; k < 3; k++) {
-                    float h = hash(x * 0.02f, k * 3.1f), z = k == 0 ? -120 + h * 150 : 210 + h * (Z_BACK - 240), bx = x + h * 40;
+                if (Draw.q >= 1) for (float x = gx; x < fx1; x += 50) for (int k = 0; k < 3; k++) {
+                    float h = hash(x * 0.02f, k * 3.1f), z = k == 0 ? -120 + h * 150 : 210 + h * (zB - 240), bx = x + h * 40;
                     gline(c, k == 1 ? 0xFF3E8E41 : 0xFF7CC36A, bx, 0, z, bx + 3, 9 + h * 6, z, 1.5f);
                     gline(c, 0xFF4C9A4E, bx + 4, 0, z, bx + 1, 7 + h * 5, z, 1.3f);
                 }
                 break;
             }
             case Data.TH_FAZENDA: { // terra batida com sulcos do arado, palha e manchas de queimado
-                for (float z = -140; z < Z_BACK; z += 42) {
+                for (float z = zs(-140, 42); z < zB; z += 42) {
                     gquad(c, 0x24000000, x0, z, x1, z + 9, 0.1f);
                     if (hi) gquad(c, 0x12FFE0B0, x0, z + 9, x1, z + 14, 0.1f);
                 }
-                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 100) for (float z = -100; z < Z_BACK; z += 100) {
+                if (Draw.q >= 1) for (float x = gx; x < fx1; x += 100) for (float z = zs(-100, 100); z < zB; z += 100) {
                     float h = hash(x * 0.013f, z * 0.017f);
                     if (h > 0.7f) { // mancha de queimado (irregular)
                         float bx = x + h * 40, bz = z + 10;
@@ -517,10 +569,10 @@ final class R3 {
             }
             default: { // placas/ladrilhos em perspectiva real
                 boolean checker = theme == Data.TH_TRIBUNAL || theme == Data.TH_PALCO || theme == Data.TH_JORNAL;
-                if (Draw.q >= 1) for (float x = gx; x < cx + 900; x += 100) for (float z = -200; z < Z_BACK; z += 100) {
+                if (Draw.q >= 1) for (float x = gx; x < fx1; x += 100) for (float z = zs(-200, 100); z < zB; z += 100) {
                     int ix = (int) Math.floor(x / 100f), iz = (int) Math.floor(z / 100f);
                     float h = hash(ix, iz);
-                    float za = Math.max(zn, z), zb = Math.min(Z_BACK, z + 100);
+                    float za = Math.max(zn, z), zb = Math.min(zB, z + 100);
                     if (checker) { if (((ix + iz) & 1) == 0) gquad(c, theme == Data.TH_TRIBUNAL ? 0x24604830 : 0x26000000, x, za, x + 100, zb, 0.1f); }
                     else if (h > 0.6f) gquad(c, h > 0.8f ? 0x12FFFFFF : 0x16000000, x, za, x + 100, zb, 0.1f);
                     if (hi && !checker && h > 0.3f && h < 0.5f) { // remendo e rachadura no asfalto/concreto
@@ -530,35 +582,52 @@ final class R3 {
                     if (hi && theme == Data.TH_TRIBUNAL && h > 0.45f) gline(c, 0x40FFFFFF, x + h * 60, 0.1f, za + 10, x + 30 + h * 60, 0.1f, zb - 20, 1.1f); // veio do mármore
                 }
                 PT.setStyle(Paint.Style.STROKE); PT.setStrokeWidth(1.4f); PT.setColor(lit(ln));
-                for (float x = gx; x < cx + 900; x += 100) { proj(x, 0, zn); float ax = px, ay = py; proj(x, 0, Z_BACK); c.drawLine(ax, ay, px, py, PT); }
-                for (float z = -100; z < Z_BACK; z += 100) { proj(x0, 0, z); float ax = px, ay = py; proj(x1, 0, z); c.drawLine(ax, ay, px, py, PT); }
+                for (float x = gx; x < fx1; x += 100) { proj(x, 0, zn); float ax = px, ay = py; proj(x, 0, zB); c.drawLine(ax, ay, px, py, PT); }
+                for (float z = zs(-100, 100); z < zB; z += 100) { proj(x0, 0, z); float ax = px, ay = py; proj(x1, 0, z); c.drawLine(ax, ay, px, py, PT); }
                 PT.setStyle(Paint.Style.FILL);
             }
         }
         if (theme == Data.TH_PAULISTA) { // faixa tracejada e sarjeta
-            float s = (float) Math.floor((cx - 600) / 160f) * 160f;
-            for (float x = s; x < cx + 600; x += 160) gquad(c, 0xFFFFD600, x, 70, x + 70, 78, 0.2f);
-            gquad(c, 0xFFE8E8E8, x0, Z_BACK - 60, x1, Z_BACK - 54, 0.2f);
+            float s = (float) Math.floor(l600 / 160f) * 160f;
+            for (float x = s; x < h600; x += 160) gquad(c, 0xFFFFD600, x, 70, x + 70, 78, 0.2f);
+            gquad(c, 0xFFE8E8E8, x0, zB - 60, x1, zB - 54, 0.2f);
         }
         if (theme == Data.TH_QUARENT) { // marcação de distanciamento no chão
-            float s = (float) Math.floor((cx - 600) / 240f) * 240f;
-            for (float x = s; x < cx + 600; x += 240) { gquad(c, 0xFFFFD600, x, 60, x + 60, 66, 0.2f); gquad(c, 0xFFFFD600, x, 114, x + 60, 120, 0.2f); gquad(c, 0xFFFFD600, x, 60, x + 6, 120, 0.2f); gquad(c, 0xFFFFD600, x + 54, 60, x + 60, 120, 0.2f); }
+            float s = (float) Math.floor(l600 / 240f) * 240f;
+            for (float x = s; x < h600; x += 240) { gquad(c, 0xFFFFD600, x, 60, x + 60, 66, 0.2f); gquad(c, 0xFFFFD600, x, 114, x + 60, 120, 0.2f); gquad(c, 0xFFFFD600, x, 60, x + 6, 120, 0.2f); gquad(c, 0xFFFFD600, x + 54, 60, x + 60, 120, 0.2f); }
         }
         if (reflect && Draw.q >= 2) { // brilho especular do piso polido
-            float s = (float) Math.floor((cx - 700) / 260f) * 260f;
-            for (float x = s; x < cx + 700; x += 260) gquad(c, 0x14FFFFFF, x + 40, -140, x + 70, Z_BACK, 0.15f);
+            float s = (float) Math.floor(l700 / 260f) * 260f;
+            for (float x = s; x < h700; x += 260) gquad(c, 0x14FFFFFF, x + 40, -140, x + 70, zB, 0.15f);
         }
         // oclusão ao pé da parede do fundo + meio-fio
-        if (Draw.q >= 1) for (int i = 0; i < 4; i++) gquad(c, 0x12000000, x0, Z_BACK - 70 + i * 16, x1, Z_BACK, 0.25f);
-        gquad(c, Draw.shade(col, -0.45f), x0, Z_BACK - 14, x1, Z_BACK, 0.3f);
+        if (Draw.q >= 1) for (int i = 0; i < 4; i++) gquad(c, 0x12000000, x0, zB - 70 + i * 16, x1, zB, 0.25f);
+        gquad(c, Draw.shade(col, -0.45f), x0, zB - 14, x1, zB, 0.3f);
+        horizonHaze(c);
+    }
+
+    /** vertical: o piso se dissolve em névoa perto do horizonte. */
+    private static void horizonHaze(Canvas c) {
+        if (!portrait || Draw.q < 1) return;
+        int n = 14;
+        for (int i = 0; i < n; i++) {
+            float t = i / (float) n;
+            Draw.rect(c, ((int) (0xA8 * (1f - t) * (1f - t)) << 24) | (fog & 0xFFFFFF), 0, ftop - 2 + t * 110, vw, ftop + 110 * (i + 1f) / n);
+        }
     }
 
     /** Objetos 3D de cenário ao fundo da rua (postes, colunas, árvores...). */
     static void props(int theme, float camX) {
-        float zb = zOf(Game.Y0) + 70;
-        float s = (float) Math.floor((cx - 700) / 260f) * 260f;
-        for (float x = s; x < cx + 700; x += 260) {
-            int idx = (int) Math.floor(x / 260f);
+        propsRow(theme, zOf(Game.Y0) + 70, 0);
+        if (portrait) propsRow(theme, zOf(Game.Y1) - 110, 1); // na vertical também há objetos do outro lado da pista
+    }
+
+    private static float zs(float c0, float step) { return portrait ? (float) Math.floor(fzLo / step) * step : c0; }
+
+    private static void propsRow(int theme, float zb, int pass) {
+        float s = (float) Math.floor((portrait ? fx0 : cx - 700) / 260f) * 260f, xe = portrait ? fx1 : cx + 700;
+        for (float x = s; x < xe; x += 260) {
+            int idx = (int) Math.floor(x / 260f) + pass * 3;
             boolean alt = (idx & 1) != 0;
             model(x + 60, 0, zb, 1, 1, 0);
             switch (theme) {
@@ -1246,6 +1315,8 @@ final class R3 {
     /** Desenha uma pessoa 3D com os pés em (sx,sy) na tela, com escala k. */
     static void icon(Canvas c, Look lk, float sx, float sy, float k, float walk, int pose) {
         float oz0 = zoom; zoom = 1f;
+        boolean pt0 = portrait; int vm0 = vmode; float va0 = vA, vb0 = vB;
+        if (pt0) setLandscape(800); // ícones sempre na projeção horizontal
         int r0 = tR, g0 = tG, b0 = tB, sh0 = shadowCol; float rm0 = rim; boolean rf0 = reflect;
         neutral(); noCast = true;
         begin(0);
@@ -1258,6 +1329,7 @@ final class R3 {
         flush(c);
         c.restore();
         noCast = false; tR = r0; tG = g0; tB = b0; shadowCol = sh0; rim = rm0; reflect = rf0;
+        if (pt0) { vmode = vm0; vA = va0; vB = vb0; restoreView(); }
         zoom = oz0;
     }
 
@@ -1293,11 +1365,33 @@ final class R3 {
         }
     }
 
+    /** desenha o fundo 2D do cenário (feito para 800 x 450) cobrindo a tela virtual atual: lado a lado na horizontal, ampliado no horizonte na vertical. */
+    static void backdrop(Canvas c, boolean lake, int theme, float camX, float time, boolean lite) {
+        if (portrait) {
+            float s = Math.max(ftop / Scene.FLOOR_TOP, vw / 800f);
+            c.save();
+            c.clipRect(0, 0, vw, ftop + 4);
+            c.translate((vw - 800 * s) / 2f, ftop - Scene.FLOOR_TOP * s);
+            c.scale(s, s);
+            if (lake) Scene.lake(c, camX * 0.3f, time, lite); else Scene.bg(c, theme, camX * 0.3f, time, lite);
+            c.restore();
+            return;
+        }
+        float dx = (vw - 800) / 2f;
+        for (int k = vw > 801 ? -1 : 0; k <= (vw > 801 ? 1 : 0); k++) {
+            c.save();
+            if (vw > 801) c.clipRect(k < 0 ? 0 : k == 0 ? dx : dx + 800, 0, k < 0 ? dx : k == 0 ? dx + 800 : vw, 450);
+            c.translate(dx + k * 800, 0);
+            if (lake) Scene.lake(c, camX, time, lite); else Scene.bg(c, theme, camX, time, lite);
+            c.restore();
+        }
+    }
+
     static void world(Canvas c, Game g, Look[] kindLooks, Look[] heroLooks, Look heroTorn, boolean lite) {
         int theme = g.theme();
         zoom = 1f + 0.035f * g.punch;
         light(theme, g.dusk(), g.time);
-        Scene.bg(c, theme, g.camX, g.time, lite);
+        backdrop(c, false, theme, g.camX, g.time, lite);
         begin(g.camX);
         floor(c, theme, g.camX);
         if (Draw.q >= 1) props(theme, g.camX);
@@ -1501,8 +1595,8 @@ final class R3 {
     }
 
     static void jetWorld(Canvas c, Jet j, Look[] heroLooks, boolean lite) {
-        Scene.lake(c, j.camX, j.time, lite);
         zoom = 1f; neutral(); Scene.dusk = 0; fog = 0xFFCFEAF8; fogK = 0.3f;
+        backdrop(c, true, 0, j.camX, j.time, lite);
         reflect = Draw.q >= 2; floorTone = 0xFF3A9CC0;
         begin(j.camX);
         water(c, j.camX, j.time);
@@ -1520,21 +1614,21 @@ final class R3 {
     }
 
     static void water(Canvas c, float camX, float time) {
-        float x0 = cx - 900, x1 = cx + 900, zn = -160;
+        float x0 = fx0, x1 = fx1, zn = fzLo, zB = fzHi;
         int strips = 12;
         for (int i = 0; i < strips; i++) {
-            float za = zn + (Z_BACK - zn) * i / strips, zb = zn + (Z_BACK - zn) * (i + 1) / strips;
+            float za = zn + (zB - zn) * i / strips, zb = zn + (zB - zn) * (i + 1) / strips;
             float t = i / (float) (strips - 1);
             gquad(c, Draw.mix(0xFF0B6E99, 0xFF6FD0E6, t), x0, za, x1, zb, 0);
         }
         PT.setStyle(Paint.Style.STROKE);
-        for (float z = -120; z < Z_BACK - 20; z += 46) {
-            float t = (z + 120) / (Z_BACK + 120);
+        for (float z = zs(-120, 46); z < zB - 20; z += 46) {
+            float t = (z - zn) / (zB - zn);
             PT.setStrokeWidth(1.2f + (1f - t) * 1.6f);
             PT.setColor(((int) (60 + (1f - t) * 70) << 24) | 0xFFFFFF);
             PATH.reset();
             boolean first = true;
-            for (float x = cx - 900; x <= cx + 900; x += 50) {
+            for (float x = fx0; x <= fx1; x += 50) {
                 float wy = (float) Math.sin(x * 0.022f + time * 2.1f + z * 0.07f) * 2.4f;
                 proj(x, wy, z);
                 if (first) { PATH.moveTo(px, py); first = false; } else PATH.lineTo(px, py);
@@ -1542,10 +1636,21 @@ final class R3 {
             c.drawPath(PATH, PT);
         }
         PT.setStyle(Paint.Style.FILL);
+        if (portrait && Draw.q >= 1) { // marolas atravessadas que passam pela câmera: dão a noção de avanço
+            PT.setStyle(Paint.Style.STROKE); PT.setStrokeWidth(1.6f); PT.setColor(0x55FFFFFF);
+            for (float x = (float) Math.floor(fx0 / 70f) * 70f; x < fx1; x += 70) {
+                for (int k = 0; k < 4; k++) {
+                    float h = hash(x * 0.07f, k * 5.3f), z = zn + 40 + h * (zB - zn - 80);
+                    gline(c, 0x55FFFFFF, x + h * 30, 0.4f, z, x + h * 30, 0.4f, z + 18 + h * 26, 1.5f);
+                }
+            }
+            PT.setStyle(Paint.Style.FILL);
+        }
+        horizonHaze(c);
         // brilhos do sol na água
         for (int i = 0; i < 40; i++) {
-            float sx = cx - 800 + ((i * 197 + (float) Math.floor(camX * 0.4f)) % 1600);
-            float sz = -60 + (i * 53 % 100) / 100f * (Z_BACK - 40);
+            float sx = fx0 + ((i * 197 + (float) Math.floor(camX * 0.4f)) % (fx1 - fx0));
+            float sz = zn + (i * 53 % 100) / 100f * (zB - zn);
             float tw = (float) Math.sin(time * 3 + i) * 0.5f + 0.5f;
             proj(sx, 0.5f, sz);
             Draw.circle(c, ((int) (40 + tw * 120) << 24) | 0xFFFFFF, px, py, 1.4f + tw * 1.8f);

@@ -80,11 +80,12 @@ final class Scene {
             case Data.TH_FAZENDA: tint = ((int) (12 + 30 * dusk) << 24) | (l3(0xFFFFE8B0, 0xFFFF7A30, 0xFF1A1030, dusk) & 0xFFFFFF); break;
             default: tint = 0x0CFFE8B0;
         }
-        Draw.rect(c, tint, 0, 0, 800, 450);
+        float sw = R3.vw, sh = R3.vh;
+        Draw.rect(c, tint, 0, 0, sw, sh);
         // vinheta: escurece de leve o topo e a base
         for (int i = 0; i < 6; i++) {
-            Draw.rect(c, 0x07000000, 0, 0, 800, 36 - i * 6);
-            Draw.rect(c, 0x07000000, 0, 414 + i * 6, 800, 450);
+            Draw.rect(c, 0x07000000, 0, 0, sw, 36 - i * 6);
+            Draw.rect(c, 0x07000000, 0, sh - 36 + i * 6, sw, sh);
         }
         Draw.P.setStyle(Paint.Style.FILL);
     }
@@ -536,13 +537,14 @@ final class Scene {
 
     /** Fagulhas e cinzas do incêndio: sobem em redemoinho, estalam e caem por todo o cenário. */
     static void embers(Canvas c, float time, float d) {
-        int n = (int) ((Draw.q == 0 ? 10 : 22) + (Draw.q == 0 ? 20 : 70) * d);
+        float sw = R3.vw, sh = R3.vh, fy = R3.portrait ? R3.ftop : 250;
+        int n = (int) (((Draw.q == 0 ? 10 : 22) + (Draw.q == 0 ? 20 : 70) * d) * (sw * sh / 360000f));
         for (int i = 0; i < n; i++) {
             float sp = 0.10f + hs(i) * 0.14f;
             float t = (time * sp + hs(i + 31)) % 1f;
             boolean rising = (i & 3) == 0;
-            float x = (hs(i + 77) * 900 + t * (120 + hs(i + 5) * 160) + (float) Math.sin(t * 11 + i) * 18) % 860 - 30;
-            float y = rising ? 250 - t * 270 + (float) Math.sin(t * 8 + i) * 10 : -20 + t * 500;
+            float x = (hs(i + 77) * (sw + 100) + t * (120 + hs(i + 5) * 160) * sw / 800f + (float) Math.sin(t * 11 + i) * 18) % (sw + 60) - 30;
+            float y = rising ? fy - t * (fy + 20) + (float) Math.sin(t * 8 + i) * 10 : -20 + t * (sh + 50);
             float fl = 0.55f + 0.45f * (float) Math.sin(time * 17 + i * 5.3f);
             float fade = rising ? 1f - t : Math.min(1f, (1f - t) * 3f);
             boolean ash = (i % 7) == 3;
@@ -557,7 +559,7 @@ final class Scene {
             float tt = time * (2.2f + k * 0.9f) + k * 0.5f;
             float bucket = (float) Math.floor(tt), age = tt - bucket;
             if (hs(bucket + k * 13) > 0.35f + 0.4f * (1f - d)) continue;
-            float bx = hs(bucket * 1.7f + k) * 800, by = 215 + hs(bucket * 2.3f) * 38;
+            float bx = hs(bucket * 1.7f + k) * sw, by = fy - 40 + hs(bucket * 2.3f) * 38;
             for (int j = 0; j < 6; j++) {
                 double a = j * 1.05 + bucket;
                 float r0 = age * 10, r1 = age * 22 + 3;
@@ -565,7 +567,7 @@ final class Scene {
             }
         }
         Draw.P.setStyle(Paint.Style.FILL);
-        if (d > 0.2f) Draw.rect(c, al(0xFF5A00, (d - 0.2f) * 22 * (0.8f + 0.2f * (float) Math.sin(time * 9))), 0, 0, 800, 450);
+        if (d > 0.2f) Draw.rect(c, al(0xFF5A00, (d - 0.2f) * 22 * (0.8f + 0.2f * (float) Math.sin(time * 9))), 0, 0, sw, sh);
     }
 
     // ---------------------------------------------------------------- Lago (jet-ski)

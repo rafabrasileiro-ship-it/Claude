@@ -19,7 +19,7 @@ final class GameView extends View {
             SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12, SC_HELP = 13;
 
     // ids de botões de menu
-    private static final int B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_HELP = 17, B_NEXT = 6,
+    private static final int B_ORIENT_H = 18, B_ORIENT_V = 19, B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_HELP = 17, B_NEXT = 6,
             B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_HOSTW = 15, B_JOINW = 16, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
 
     private final Sfx sfx;
@@ -37,7 +37,13 @@ final class GameView extends View {
     private int sfxLv = 3, voiceLv = 3, musicLv = 2, sensLv = 1, gfx = 2, vibOn = 1;
     private String unlockMsg = "";
 
-    private float sc = 1, ox, oy;
+    // tela: "desenho" = espaço 800 x 450 dos menus (centralizado); "jogo" = espaço virtual do mundo 3D (preenche a tela inteira)
+    private float sc = 1, ox, oy;                     // desenho: escala e deslocamento em pixels
+    private float ex0, ey0, ex1, ey1;                 // desenho: limites visíveis da tela (podem passar de 0..800 / 0..450)
+    private float psc = 1, pox, poy, pvw = 800, pvh = 450; // jogo: escala, deslocamento e tamanho virtual
+    private float safeL, safeT, safeR, safeB;         // áreas ocupadas por recortes (câmera) da tela, em pixels
+    private boolean port;                             // tela em pé neste momento
+    private boolean vertical;                         // preferência: jogar com o celular na vertical
     private int vw, vh;
     private long last;
     private boolean running = true;
@@ -100,6 +106,7 @@ final class GameView extends View {
             sfxLv = prefs.getInt("sfx", 3); voiceLv = prefs.getInt("voice", 3); musicLv = prefs.getInt("music", 2);
             sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 2); vibOn = prefs.getInt("vib", 1);
             hero = prefs.getInt("hero", 0);
+            vertical = prefs.getInt("vert", 0) == 1;
         } catch (Exception ignored) { }
         if (hero < 0 || hero > 5 || !heroUnlocked(hero)) hero = 0;
         Draw.q = gfx == 3 ? 2 : gfx;
@@ -109,7 +116,7 @@ final class GameView extends View {
     private void savePrefs() {
         try {
             prefs.edit().putInt("cleared", cleared).putInt("sfx", sfxLv).putInt("voice", voiceLv).putInt("music", musicLv)
-                    .putInt("sens", sensLv).putInt("gfx", gfx).putInt("vib", vibOn).putInt("hero", hero).apply();
+                    .putInt("sens", sensLv).putInt("gfx", gfx).putInt("vib", vibOn).putInt("hero", hero).putInt("vert", vertical ? 1 : 0).apply();
         } catch (Exception ignored) { }
     }
 
@@ -181,9 +188,75 @@ final class GameView extends View {
     // ---------------------------------------------------------------- layout
     @Override protected void onSizeChanged(int w, int h, int ow, int oh) {
         vw = w; vh = h;
-        sc = Math.min(w / (float) Game.W, h / (float) Game.H);
-        ox = (w - Game.W * sc) / 2f; oy = (h - Game.H * sc) / 2f;
+        port = h > w;
+        // menus: o desenho de 800 x 450 cabe inteiro na tela; o que sobra é preenchido pelo fundo
+        sc = Math.min(w / 800f, h / 450f);
+        ox = (w - 800 * sc) / 2f; oy = (h - 450 * sc) / 2f;
+        ex0 = -ox / sc; ey0 = -oy / sc; ex1 = 800 - ex0; ey1 = 450 - ey0;
         u = Math.min(w, h) * 0.108f;
+        // jogo: na horizontal a altura virtual é 450 e a largura acompanha a tela (>= 800); na vertical a largura virtual é 450
+        if (port) { psc = w / 450f; pox = 0; poy = 0; pvw = 450; pvh = h / psc; }
+        else {
+            psc = h / 450f; pvw = w / psc;
+            if (pvw < 800) { psc = w / 800f; pvw = 800; }
+            pox = 0; poy = (h - 450 * psc) / 2f; pvh = 450;
+        }
+        readInsets();
+    }
+
+    @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); readInsets(); requestApplyInsets(); }
+
+    @Override public android.view.WindowInsets onApplyWindowInsets(android.view.WindowInsets in) { readInsets(in); return super.onApplyWindowInsets(in); }
+
+    private void readInsets() {
+        try { if (android.os.Build.VERSION.SDK_INT >= 23) readInsets(getRootWindowInsets()); } catch (Throwable ignored) { }
+    }
+
+    /** recortes da tela (câmera frontal, cantos arredondados): os controles e o placar ficam fora deles. */
+    private void readInsets(android.view.WindowInsets in) {
+        safeL = safeT = safeR = safeB = 0;
+        if (in == null || android.os.Build.VERSION.SDK_INT < 28) return;
+        try {
+            android.view.DisplayCutout dc = in.getDisplayCutout();
+            if (dc != null) { safeL = dc.getSafeInsetLeft(); safeT = dc.getSafeInsetTop(); safeR = dc.getSafeInsetRight(); safeB = dc.getSafeInsetBottom(); }
+        } catch (Throwable ignored) { }
+    }
+
+    private boolean playLike() { return screen == SC_PLAY || screen == SC_PAUSE || screen == SC_OVER || screen == SC_WIN; }
+
+    /** câmera 3D e janela do jogo de acordo com a orientação da tela. */
+    private void applyView(boolean play) {
+        if (!play) { R3.setLandscape(800); return; }
+        if (port) {
+            R3.setPortrait(450, pvh);
+            Game.W = (int) R3.xfar; Game.PW = (int) (R3.xfar * 0.5f); Game.CAMOFF = 140;
+        } else {
+            R3.setLandscape(pvw);
+            Game.W = (int) pvw; Game.PW = Game.W; Game.CAMOFF = Game.W * 0.4375f;
+        }
+    }
+
+    /** pede ao sistema a orientação escolhida no menu. */
+    void applyOrientation() {
+        MainActivity a = act();
+        if (a != null) a.setVertical(vertical);
+    }
+
+    /** preenche toda a tela (inclusive o que sobra além do desenho de 800 x 450). */
+    private void fill(Canvas c, int color) { Draw.rect(c, color, ex0 - 2, ey0 - 2, ex1 + 2, ey1 + 2); }
+
+    /** fundo de cenário (feito para 800 x 450) repetido para cobrir telas mais largas ou compridas. */
+    private void bgDesign(Canvas c, boolean lake, int theme, float cam, float time) {
+        boolean lite = Draw.q == 0;
+        if (ex0 < -1 || ey0 < -1) fill(c, 0xFF101820);
+        int k0 = ex0 < -1 ? -1 : 0, k1 = ex1 > 801 ? 1 : 0;
+        for (int k = k0; k <= k1; k++) {
+            c.save();
+            c.clipRect(k < 0 ? ex0 : k == 0 ? 0 : 800, 0, k < 0 ? 0 : k == 0 ? 800 : ex1, 450);
+            c.translate(k * 800, 0);
+            if (lake) Scene.lake(c, cam, time, lite); else Scene.bg(c, theme, cam, time, lite);
+            c.restore();
+        }
     }
 
     // ---------------------------------------------------------------- desenho
@@ -208,11 +281,16 @@ final class GameView extends View {
         pollNet();
         c.drawColor(0xFF000000);
         btnN = 0;
-
+        applyView(playLike());
+        if (playLike()) {
+            drawPlay(c, dt);
+            if (screen == SC_PLAY) drawControls(c);
+            postInvalidateOnAnimation();
+            return;
+        }
         c.save();
         c.translate(ox, oy);
         c.scale(sc, sc);
-        c.clipRect(0, 0, Game.W, Game.H);
         switch (screen) {
             case SC_SPLASH: drawSplash(c); if (screenT > 2.2f) { screen = SC_MENU; screenT = 0; sfx.music(2); } break;
             case SC_MENU: drawMenu(c); break;
@@ -224,11 +302,9 @@ final class GameView extends View {
             case SC_COOP: drawCoop(c); break;
             case SC_WAIT: drawWait(c); break;
             case SC_BRIEF: drawBrief(c, dt); break;
-            case SC_PLAY: case SC_PAUSE: case SC_OVER: case SC_WIN: drawPlay(c, dt); break;
             default: break;
         }
         c.restore();
-        if (screen == SC_PLAY) drawControls(c);
         postInvalidateOnAnimation();
     }
 
@@ -259,8 +335,8 @@ final class GameView extends View {
     }
 
     private void panelBg(Canvas c, int theme) {
-        Scene.bg(c, theme, screenT * 40, screenT, Draw.q == 0);
-        Draw.rect(c, 0x99000000, 0, 0, Game.W, Game.H);
+        bgDesign(c, false, theme, screenT * 40, screenT);
+        fill(c, 0x99000000);
     }
 
     private void wrap(Canvas c, String text, float x, float y, float maxW, float size, int color, Paint.Align al) {
@@ -438,6 +514,7 @@ final class GameView extends View {
         int oi = 1 - g.local;
         Game.PS q = g.ps[oi];
         if (q.p == null) return;
+        hudBegin(c); c.translate(hudSh() - safeR / hudU(), 0);
         Draw.rect(c, 0x99000000, 560, 56, 792, 92);
         c.save(); c.clipRect(562, 58, 592, 90);
         Draw.noShadow = true;
@@ -451,11 +528,12 @@ final class GameView extends View {
         Draw.text(c, (net.isWifi() ? "Wi-Fi" : "Bluetooth") + (net.rtt >= 0 && net.rtt < 5000 ? " " + net.rtt + " ms" : ""), 790, 102, 10, 0xFFBBBBBB, Paint.Align.RIGHT);
         Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
         Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
+        c.restore();
     }
 
     // ---- telas
     private void drawSplash(Canvas c) {
-        Draw.rect(c, 0xFF0B8A3A, 0, 0, Game.W, Game.H);
+        fill(c, 0xFF0B8A3A);
         Draw.poly(c, 0xFFFFD400, 400, 40, 760, 225, 400, 410, 40, 225);
         Draw.circle(c, 0xFF1D3E9A, 400, 225, 120);
         Draw.rect(c, 0xFFFFFFFF, 290, 215, 510, 235);
@@ -465,8 +543,8 @@ final class GameView extends View {
     }
 
     private void drawMenu(Canvas c) {
-        Scene.bg(c, Data.TH_PAULISTA, screenT * 30, screenT, Draw.q == 0);
-        Draw.rect(c, 0x66000000, 0, 0, Game.W, Game.H);
+        bgDesign(c, false, Data.TH_PAULISTA, screenT * 30, screenT);
+        fill(c, 0x66000000);
         Draw.text(c, "OPERAÇÃO PATRIOTA 3D", 400, 70, 42, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, "Beat 'em up de rua — Jair Bonossauro", 400, 96, 16, 0xFFFFFFFF, Paint.Align.CENTER);
         R3.icon(c, heroLooks[hero], 150, 405, 1.9f, 0, Draw.P_IDLE);
@@ -478,6 +556,10 @@ final class GameView extends View {
         addBtn(c, B_OPTIONS, 290, 312, 560, 356, "OPÇÕES", true, 0xFF6A4C93);
         addBtn(c, B_CREDITS, 290, 364, 560, 408, "CRÉDITOS", true, 0xFFB35C00);
         if (netMsgT > 0) { Draw.text(c, netMsg, 400, 418, 15, 0xFFFFAB91, Paint.Align.CENTER); }
+        // orientação do celular durante o jogo
+        Draw.text(c, "JOGAR COM O CELULAR NA:", 690, 122, 11, 0xFFFFFFFF, Paint.Align.CENTER);
+        addBtn(c, B_ORIENT_H, 590, 130, 790, 172, "HORIZONTAL", true, vertical ? 0xFF37474F : 0xFF1B8F3A);
+        addBtn(c, B_ORIENT_V, 590, 180, 790, 222, "VERTICAL", true, vertical ? 0xFF1B8F3A : 0xFF37474F);
         c.restore();
         Draw.text(c, "Progresso: " + Math.min(cleared, Data.STAGES.size()) + "/" + Data.STAGES.size() + " fases", 790, 440, 14, 0xFFFFFFFF, Paint.Align.RIGHT);
     }
@@ -560,8 +642,8 @@ final class GameView extends View {
     }
 
     private void drawCredits(Canvas c) {
-        Scene.bg(c, Data.TH_TRIBUNAL, screenT * 90, screenT, Draw.q == 0);
-        Draw.rect(c, 0x55000000, 0, 0, Game.W, Game.H);
+        bgDesign(c, false, Data.TH_TRIBUNAL, screenT * 90, screenT);
+        fill(c, 0x55000000);
         // motociata triunfal
         R3.zoom = 1f; R3.light(Data.TH_TRIBUNAL, 0, screenT);
         R3.begin(0);
@@ -582,8 +664,8 @@ final class GameView extends View {
 
     private void drawBrief(Canvas c, float dt) {
         Data.Stage st = Data.STAGES.get(stageSel);
-        if (st.jet) Scene.lake(c, screenT * 40, screenT, Draw.q == 0); else Scene.bg(c, st.segs.get(0).theme, screenT * 20, screenT, Draw.q == 0);
-        Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
+        bgDesign(c, st.jet, st.segs.get(0).theme, screenT * (st.jet ? 40 : 20), screenT);
+        fill(c, 0xAA000000);
         Draw.text(c, "MISSÃO " + st.id, 400, 44, 30, 0xFFFFD400, Paint.Align.CENTER);
         Draw.text(c, st.title, 400, 72, 18, 0xFFFFFFFF, Paint.Align.CENTER);
         // Coronel Helenão
@@ -628,6 +710,31 @@ final class GameView extends View {
         if (Data.STAGES.get(idx).jet && sfx.stageMusic("musica_jetski")) { /* som de jet-ski de fundo */ } else if (Data.STAGES.get(idx).horse && sfx.stageMusic("amb_fogo")) { /* fogo crepitando na plantação */ } else if (idx == Data.ST_GROBO1 && sfx.stageMusic("voz_jornal_vinheta")) { /* vinheta do telejornal como música de fundo */ } else sfx.music(1);
     }
 
+    /** espaço do jogo: o mundo 3D preenche a tela inteira (escala psc, tamanho virtual pvw x pvh). */
+    private void worldBegin(Canvas c) {
+        c.save();
+        c.translate(pox, poy);
+        c.scale(psc, psc);
+        c.clipRect(0, 0, pvw, pvh);
+    }
+
+    /** espaço dos menus/avisos (800 x 450 centralizado) sobre a tela de jogo. */
+    private void designBegin(Canvas c) {
+        c.save();
+        c.translate(ox, oy);
+        c.scale(sc, sc);
+    }
+
+    /** espaço do HUD (desenhado para 800 de largura): na horizontal ancorado nos cantos da tela, na vertical reduzido para caber. */
+    private static final float HS = 450f / 800f;
+    private float hudSh() { return port ? 0 : pvw - 800; }
+    private float hudU() { return port ? psc * HS : psc; }
+    private void hudBegin(Canvas c) {
+        c.save();
+        if (port) { c.translate(0, safeT); c.scale(psc * HS, psc * HS); }
+        else { c.translate(pox, poy); c.scale(psc, psc); }
+    }
+
     private void drawPlay(Canvas c, float dt) {
         if (jetMode) { drawJetPlay(c, dt); return; }
         Game g = game;
@@ -636,8 +743,10 @@ final class GameView extends View {
             byte[] m = net.takeSnap();
             if (m != null) { Snap.read(g, m, noVoice); g.adopt(1); }
             if (g.stage == null || g.ps[0].p == null) {
-                Draw.rect(c, 0xFF000000, 0, 0, Game.W, Game.H);
+                designBegin(c);
+                fill(c, 0xFF000000);
                 Draw.text(c, "Sincronizando com o anfitrião...", 400, 225, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                c.restore();
                 return;
             }
             Snap.smooth(g, dt);
@@ -659,7 +768,7 @@ final class GameView extends View {
             // animação leve de efeitos mesmo em overlays
             if (screen == SC_WIN || screen == SC_OVER) g.update(0);
         }
-        c.save();
+        worldBegin(c);
         if (g.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * g.shake, (rnd.nextFloat() - 0.5f) * g.shake);
         if (coop && !g.mirror && net.connected()) {
             snapT += dt;
@@ -672,8 +781,10 @@ final class GameView extends View {
         drawPops(c, g.pops);
         c.restore();
         if (g.blurT > 0) {
-            Draw.rect(c, ((int) (Math.min(1f, g.blurT) * 150) << 24) | 0xFFFFFF, 0, 0, Game.W, Game.H);
-            for (int i = 0; i < 12; i++) Draw.circle(c, 0x66FFFFFF, (i * 97 + g.time * 40) % 800, (i * 53) % 450, 18 + (i % 4) * 8);
+            worldBegin(c);
+            Draw.rect(c, ((int) (Math.min(1f, g.blurT) * 150) << 24) | 0xFFFFFF, 0, 0, pvw, pvh);
+            for (int i = 0; i < 12; i++) Draw.circle(c, 0x66FFFFFF, (i * 97 + g.time * 40) % pvw, (i * 53) % pvh, 18 + (i % 4) * 8);
+            c.restore();
         }
         drawHud(c);
         if (g.np == 2) drawPartnerHud(c, g);
@@ -681,21 +792,28 @@ final class GameView extends View {
     }
 
     private void drawEndOverlays(Canvas c, int scoreV, float hpV, float maxHpV) {
+        if (screen == SC_PLAY) return;
+        designBegin(c);
+        drawEndOverlays0(c, scoreV, hpV, maxHpV);
+        c.restore();
+    }
+
+    private void drawEndOverlays0(Canvas c, int scoreV, float hpV, float maxHpV) {
         if (screen == SC_PAUSE) {
-            Draw.rect(c, 0xAA000000, 0, 0, Game.W, Game.H);
+            fill(c, 0xAA000000);
             title(c, "PAUSADO", 110);
             addBtn(c, B_RESUME, 290, 140, 510, 196, "CONTINUAR", true, 0xFF1B8F3A);
             addBtn(c, B_RESTART, 290, 208, 510, 264, "REINICIAR FASE", !guestMode(), 0xFF1D3E9A);
             addBtn(c, B_MENU, 290, 276, 510, 332, "MENU PRINCIPAL", true, 0xFFB35C00);
         } else if (screen == SC_OVER) {
-            Draw.rect(c, 0xBB200000, 0, 0, Game.W, Game.H);
+            fill(c, 0xBB200000);
             Draw.text(c, "GAME OVER", 400, 110, 54, 0xFFFF5252, Paint.Align.CENTER);
             Draw.text(c, "CORONEL HELENÃO (rádio): “Levanta, recruta!”", 400, 160, 20, 0xFFFFFFFF, Paint.Align.CENTER);
             Draw.text(c, "Pontuação: " + scoreV, 400, 195, 18, 0xFFFFD400, Paint.Align.CENTER);
             addBtn(c, B_CONTINUE, 290, 225, 510, 285, guestMode() ? "Aguardando o anfitrião..." : "CONTINUAR", !guestMode(), 0xFF1B8F3A);
             addBtn(c, B_MENU, 290, 300, 510, 350, "MENU PRINCIPAL", true, 0xFFB35C00);
         } else if (screen == SC_WIN) {
-            Draw.rect(c, 0xBB001A00, 0, 0, Game.W, Game.H);
+            fill(c, 0xBB001A00);
             Draw.text(c, "MISSÃO CUMPRIDA!", 400, 100, 46, 0xFFFFD400, Paint.Align.CENTER);
             Draw.text(c, Data.STAGES.get(stageSel).title, 400, 135, 18, 0xFFFFFFFF, Paint.Align.CENTER);
             Draw.text(c, "Pontuação: " + scoreV, 400, 175, 26, 0xFFFFFFFF, Paint.Align.CENTER);
@@ -727,8 +845,10 @@ final class GameView extends View {
             byte[] m = net.takeSnap();
             if (m != null) { Snap.readJet(j, m, noVoice); }
             if (j.ps[0].maxHp == 0 || j.ps[1].maxHp == 0) {
-                Draw.rect(c, 0xFF000000, 0, 0, Game.W, Game.H);
+                designBegin(c);
+                fill(c, 0xFF000000);
                 Draw.text(c, "Sincronizando com o anfitrião...", 400, 225, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+                c.restore();
                 return;
             }
             j.smooth(dt);
@@ -752,7 +872,7 @@ final class GameView extends View {
             snapT += dt;
             if (snapT >= 1f / net.rate) { snapT = 0; net.sendSnap(Snap.writeJet(j, relay)); }
         }
-        c.save();
+        worldBegin(c);
         if (j.shake > 0 && screen == SC_PLAY) c.translate((rnd.nextFloat() - 0.5f) * j.shake, (rnd.nextFloat() - 0.5f) * j.shake);
         R3.jetWorld(c, j, heroLooks, Draw.q == 0);
         for (Jet.Whale w : j.whales) {
@@ -775,6 +895,7 @@ final class GameView extends View {
     private void drawJetPartner(Canvas c, Jet j) {
         Jet.JS q = j.ps[1 - j.local];
         int oi = 1 - j.local;
+        hudBegin(c); c.translate(hudSh() - safeR / hudU(), 0);
         Draw.rect(c, 0x99000000, 560, 56, 792, 92);
         c.save(); c.clipRect(562, 58, 592, 90);
         Draw.noShadow = true;
@@ -788,11 +909,15 @@ final class GameView extends View {
         Draw.text(c, (net.isWifi() ? "Wi-Fi" : "Bluetooth") + (net.rtt >= 0 && net.rtt < 5000 ? " " + net.rtt + " ms" : ""), 790, 102, 10, 0xFFBBBBBB, Paint.Align.RIGHT);
         Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
         Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
+        c.restore();
     }
 
     private void drawJetHud(Canvas c) {
         Jet j = jet;
         j.adopt(j.local);
+        float sh = hudSh(), lm = safeL / hudU(), rm = safeR / hudU();
+        hudBegin(c);
+        c.save(); c.translate(lm, 0);
         Draw.rect(c, 0xFF223322, 8, 8, 66, 66);
         c.save(); c.clipRect(8, 8, 66, 66);
         R3.icon(c, heroLooks[j.hero], 30, 278, 1.5f, 0, Draw.P_IDLE);
@@ -808,11 +933,15 @@ final class GameView extends View {
         Draw.rect(c, 0xFF000000, 155, 45, 157, 57);
         Draw.text(c, j.meter >= 50 ? "D: PATRIOTAS!" : "PATRIOTISMO", 243, 56, 10, 0xFFFFFFFF, Paint.Align.LEFT);
         if (j.combo >= 2) Draw.text(c, "COMBO x" + j.combo, 74, 78, 14, 0xFFFFD400, Paint.Align.LEFT);
+        c.restore();
+        c.save(); c.translate(sh - rm, 0);
         Draw.text(c, String.format("%07d", j.score), 730, 30, 22, 0xFFFFFFFF, Paint.Align.RIGHT);
         Draw.text(c, "Baleias: " + j.kills, 730, 48, 12, 0xFFDDDDDD, Paint.Align.RIGHT);
         Draw.rect(c, 0xAA000000, 742, 8, 792, 50);
         Draw.rect(c, 0xFFFFFFFF, 758, 18, 764, 40);
         Draw.rect(c, 0xFFFFFFFF, 772, 18, 778, 40);
+        c.restore();
+        c.save(); c.translate(sh / 2f, 0);
         // progresso da travessia
         Draw.rect(c, 0xAA000000, 290, 10, 610, 24);
         Draw.rect(c, 0xFF1B8F3A, 292, 12, 292 + 316 * j.progress(), 22);
@@ -820,7 +949,9 @@ final class GameView extends View {
         Draw.text(c, "TRAVESSIA DO LAGO", 450, 40, 12, 0xFFFFFFFF, Paint.Align.CENTER);
         Draw.text(c, "CAIS", 622, 22, 11, 0xFFFFD400, Paint.Align.LEFT);
         if (j.specialT > 0) Draw.text(c, "PATRIOTAS DE JET-SKI!", 400, 70, 20, 0xFFFFE082, Paint.Align.CENTER);
-        if (j.time < 6f) Draw.text(c, "A bater de frente • B pula • C turbo • D chama os patriotas", 400, 436, 13, 0xFFFFFFFF, Paint.Align.CENTER);
+        if (j.time < 6f) Draw.text(c, "A bater de frente • B pula • C turbo • D chama os patriotas", 400, port ? 100 : 436, 13, 0xFFFFFFFF, Paint.Align.CENTER);
+        c.restore();
+        c.restore();
     }
 
     // entrada: despacha para o modo de jogo atual
@@ -866,7 +997,7 @@ final class GameView extends View {
             float a = Math.max(0f, Math.min(1f, (q.life - q.t) / 0.35f));
             float row = Math.max(Game.Y0, Math.min(Game.Y1, q.y + 95));
             R3.proj(q.x, (row - q.y) * 1.25f, R3.zOf(row));
-            float tx = Math.max(60, Math.min(740, R3.px));
+            float tx = Math.max(60, Math.min(R3.vw - 60, R3.px));
             Draw.text(c, q.s, tx, Math.max(20, R3.py), 15, ((int) (a * 255) << 24) | (q.color & 0xFFFFFF), Paint.Align.CENTER);
         }
     }
@@ -921,6 +1052,9 @@ final class GameView extends View {
     // ---------------------------------------------------------------- HUD
     private void drawHud(Canvas c) {
         Game g = game;
+        float sh = hudSh(), lm = safeL / hudU(), rm = safeR / hudU();
+        hudBegin(c);
+        c.save(); c.translate(lm, 0);
         // retrato
         c.save();
         c.clipRect(8, 8, 66, 66);
@@ -949,12 +1083,19 @@ final class GameView extends View {
         if (g.cloroImmune) { Draw.text(c, "Imune ao álcool", 74, yy, 11, 0xFFFFFFFF, Paint.Align.LEFT); yy += 13; }
         if (g.slowT > 0) { Draw.text(c, "LENTO", 74, yy, 11, 0xFFFFA000, Paint.Align.LEFT); yy += 13; }
         if (g.rootT > 0) { Draw.text(c, "PRESO!", 74, yy, 11, 0xFFFFEB3B, Paint.Align.LEFT); }
+        c.restore();
         // pontuação e pausa
+        c.save(); c.translate(sh - rm, 0);
         Draw.text(c, String.format("%07d", g.score), 730, 30, 22, 0xFFFFFFFF, Paint.Align.RIGHT);
         Draw.text(c, "Fase " + Data.STAGES.get(stageSel).id, 730, 48, 12, 0xFFDDDDDD, Paint.Align.RIGHT);
         Draw.rect(c, 0xAA000000, 742, 8, 792, 50);
         Draw.rect(c, 0xFFFFFFFF, 758, 18, 764, 40);
         Draw.rect(c, 0xFFFFFFFF, 772, 18, 778, 40);
+        if (g.goT > 0 && ((int) (g.time * 3) & 1) == 0) {
+            Draw.text(c, "VÁ ▶", 735, 230, 30, 0xFFFFD400, Paint.Align.CENTER);
+        }
+        c.restore();
+        c.save(); c.translate(sh / 2f, 0);
         // chefe
         Ent b = g.bossRef;
         if (b != null && b.alive) {
@@ -981,26 +1122,28 @@ final class GameView extends View {
             Draw.text(c, "CORONEL HELENÃO (rádio)", 158, 76, 11, 0xFF76FF03, Paint.Align.LEFT);
             wrap(c, "“" + g.radio + "”", 158, 96, 480, 15, 0xFFFFFFFF, Paint.Align.LEFT);
         }
-        if (g.goT > 0 && ((int) (g.time * 3) & 1) == 0) {
-            Draw.text(c, "VÁ ▶", 735, 230, 30, 0xFFFFD400, Paint.Align.CENTER);
-        }
+        c.restore();
+        c.restore();
     }
 
     // ---------------------------------------------------------------- controles virtuais
+    /** margem inferior dos controles (a barra de gestos do sistema fica embaixo, principalmente em pé). */
+    private float padB() { return (port ? 0.7f * u : 0.1f * u) + safeB; }
+
     private float bx(int i) {
-        float cx = vw - 2.35f * u, R = 1.1f * u;
+        float cx = vw - 2.35f * u - safeR, R = 1.1f * u;
         return i == 0 ? cx + R : i == 1 ? cx : i == 2 ? cx - R : cx;
     }
 
     private float by(int i) {
-        float cy = vh - 2.25f * u, R = 1.1f * u;
+        float cy = vh - 2.25f * u - padB(), R = 1.1f * u;
         return i == 0 ? cy : i == 1 ? cy + R : i == 2 ? cy : cy - R;
     }
 
     private void drawControls(Canvas c) {
         Paint p = Draw.P;
         float R = 1.45f * u;
-        float jx0 = joyActive ? joyCx : 2.6f * u, jy0 = joyActive ? joyCy : vh - 2.6f * u;
+        float jx0 = joyActive ? joyCx : 2.6f * u + safeL, jy0 = joyActive ? joyCy : vh - 2.6f * u - padB();
         p.setStyle(Paint.Style.FILL);
         p.setColor(joyActive ? 0x44FFFFFF : 0x22FFFFFF);
         c.drawCircle(jx0, jy0, R, p);
@@ -1068,11 +1211,19 @@ final class GameView extends View {
         return null;
     }
 
+    /** toque no botão de pausa (canto superior direito do HUD). */
+    private boolean pauseHit(float x, float y) {
+        float hu = hudU(), X, Y;
+        if (port) { X = x / hu - 0; Y = (y - safeT) / hu; }
+        else { X = (x - pox) / hu - hudSh(); Y = (y - poy) / hu; }
+        X += safeR / hu;
+        return X > 728 && X < 806 && Y < 62;
+    }
+
     private void touchDown(int id, float x, float y) {
         if (id >= role.length) return;
         if (screen == SC_PLAY) {
-            float X = vx(x), Y = vy(y);
-            if (X > 735 && X < 800 && Y < 56) { screen = SC_PAUSE; resetTouch(); return; }
+            if (pauseHit(x, y)) { screen = SC_PAUSE; resetTouch(); return; }
             for (int i = 0; i < 4; i++) {
                 float dx = x - bx(i), dy = y - by(i), r = (i == 0 ? 0.88f : 0.76f) * u * 1.25f;
                 if (dx * dx + dy * dy <= r * r) {
@@ -1109,7 +1260,8 @@ final class GameView extends View {
         float gain = sensLv == 0 ? 0.8f : sensLv == 1 ? 1.15f : 1.6f;
         if (mag < dead) { inMove(0, 0); return; }
         float k = Math.min(1f, (mag - dead) / (1f - dead) * gain) / mag;
-        inMove(nx * k, ny * k);
+        // na vertical, "para cima" na tela é avançar pela fase e os lados são as faixas
+        if (port) inMove(-ny * k, nx * k); else inMove(nx * k, ny * k);
     }
 
     private void touchUp(int id, float x, float y) {
@@ -1129,6 +1281,11 @@ final class GameView extends View {
 
     private void onButton(int id) {
         switch (id) {
+            case B_ORIENT_H: case B_ORIENT_V: {
+                boolean v = id == B_ORIENT_V;
+                if (v != vertical) { vertical = v; savePrefs(); applyOrientation(); }
+                break;
+            }
             case B_PLAY: fromStageList = false; stageSel = 0; screen = SC_SELECT; screenT = 0; break;
             case B_STAGES: screen = SC_STAGES; screenT = 0; break;
             case B_COOP: net.close(); coopSub = 0; screen = SC_COOP; screenT = 0; break;

@@ -7,7 +7,13 @@ import com.rafa.patriota.Data.Kind;
 
 /** Lógica do beat 'em up. Não depende de Android (pode ser testada na JVM). */
 final class Game {
-    static final int W = 800, H = 450, Y0 = 285, Y1 = 420;
+    static final int H = 450, Y0 = 285, Y1 = 420;
+    /** janela visível ao longo da fase (unidades do jogo): na horizontal = largura da tela virtual; na vertical = alcance até o horizonte. */
+    static int W = 800;
+    /** janela onde herói e inimigos circulam (na vertical é menor que W: o fundo da tela fica só para a chegada dos inimigos). */
+    static int PW = 800;
+    /** distância do herói à borda de trás da janela com a câmera parada. */
+    static float CAMOFF = 350;
     static final float GRAV = 900f;
 
     interface Listener {
@@ -299,13 +305,13 @@ final class Game {
             for (int i = fxs.size() - 1; i >= 0; i--) { Fx f = fxs.get(i); f.t += dt; if (f.t > f.life) fxs.remove(i); }
             return;
         }
-        if (introT > 0) { introT -= dt; if (introT <= 0 && L.hasClip("Se prepare!")) { L.voice("Se prepare!"); pop("\u201CSe prepare!\u201D", camX + W / 2f, 150, 1.6f, 0xFFFFE082); ambT = Math.max(ambT, 7f); } }
+        if (introT > 0) { introT -= dt; if (introT <= 0 && L.hasClip("Se prepare!")) { L.voice("Se prepare!"); pop("\u201CSe prepare!\u201D", camX + PW / 2f, 150, 1.6f, 0xFFFFE082); ambT = Math.max(ambT, 7f); } }
         updateAmbient(dt);
 
         for (int i = 0; i < np; i++) { use(i); updatePlayer(dt); }
         use(0);
         updateSeg(dt);
-        if (!sawSmoke && voiceCd <= 0) for (Ent e : ents) if (e.type == Ent.ENEMY && e.alive && Data.KINDS[e.kind].joint && e.x > camX + 20 && e.x < camX + W - 20) { sawSmoke = true; jairSay("Vagabundo!"); break; }
+        if (!sawSmoke && voiceCd <= 0) for (Ent e : ents) if (e.type == Ent.ENEMY && e.alive && Data.KINDS[e.kind].joint && e.x > camX + 20 && e.x < camX + PW - 20) { sawSmoke = true; jairSay("Vagabundo!"); break; }
         auraNow = false;
         for (int i = 0; i < ents.size(); i++) {
             Ent e = ents.get(i);
@@ -344,7 +350,7 @@ final class Game {
         if (n == 0) { sx = ps[0].p.x; sf = ps[0].p.face; n = 1; }
         float mx = sx / n, mf = sf / n;
         camLead += (mf * 45 - camLead) * Math.min(1f, 2.5f * dt);
-        float target = mx - 350 + camLead;
+        float target = mx - CAMOFF + camLead;
         camX += (target - camX) * Math.min(1f, 5f * dt);
         if (camX < camMin) camX = camMin;
         if (camX > camMax) camX = camMax;
@@ -443,7 +449,7 @@ final class Game {
         } else if (k.boss) {
             bossRef = e;
             if (kind == Data.K_REITOR || kind == Data.K_BONE || kind == Data.K_MULA) jairSay("Vagabundo!");
-            e.x = camX + W - 100; e.y = 350; e.face = -1;
+            e.x = camX + PW - 100; e.y = 350; e.face = -1;
             if (kind == Data.K_BONE) {
                 e.invul = true; e.aux2 = 1; e.y = 330;
                 Ent d = new Ent();
@@ -554,7 +560,7 @@ final class Game {
         String s = pool[rnd.nextInt(pool.length)];
         if (!L.hasClip(s)) { ambT = 5f; return; }
         L.voice(s);
-        pop("\uD83D\uDD0A " + s, camX + W / 2f, 150, Math.min(4f, clipLen(s)), 0xFFFFE082);
+        pop("\uD83D\uDD0A " + s, camX + PW / 2f, 150, Math.min(4f, clipLen(s)), 0xFFFFE082);
         ambT = clipLen(s) + 7f + rnd.nextFloat() * 7f;
         bossVoiceCd = time;
     }
@@ -742,7 +748,7 @@ final class Game {
             default: break;
         }
         if (!(o.st == S_SPECIAL && (spK == SP_RIDE || spK == SP_TRUCK))) {
-            o.x = Math.max(camX + 18, Math.min(camX + W - 18, o.x));
+            o.x = Math.max(camX + 18, Math.min(camX + PW - 18, o.x));
         }
         o.y = Math.max(Y0, Math.min(Y1, o.y));
     }
@@ -990,7 +996,7 @@ final class Game {
                     landHit(t, (spK == SP_TRUCK ? 45 : 35) * Data.HERO_DMG[hero] / (spK == SP_TRUCK ? 1.5f : 1f), 2, o.face, true);
                 }
                 if (o.t >= spDur) {
-                    o.x = Math.max(camX + 40, Math.min(camX + W - 40, o.x)); endSpecial();
+                    o.x = Math.max(camX + 40, Math.min(camX + PW - 40, o.x)); endSpecial();
                 }
                 break;
             }
@@ -1308,7 +1314,7 @@ final class Game {
     }
 
     private void steer(Ent e, float tx, float ty, float sp, float dt) {
-        tx = Math.max(camX + 40, Math.min(camX + W - 40, tx));
+        tx = Math.max(camX + 40, Math.min(camX + PW - 40, tx));
         float dx = tx - e.x, dy = ty - e.y;
         float d = (float) Math.sqrt(dx * dx + dy * dy);
         if (d < 3) return;
@@ -1411,7 +1417,7 @@ final class Game {
                         break;
                     }
                     case Data.AT_STAB: {
-                        float edge = e.aux > 0 ? camX + W - 50 : camX + 50;
+                        float edge = e.aux > 0 ? camX + PW - 50 : camX + 50;
                         if (e.aux2 == 0) {
                             steer(e, edge, p.y, k.spd, dt);
                             if (Math.abs(e.x - edge) < 25) e.aux2 = 1;

@@ -5,7 +5,6 @@ import java.util.Random;
 
 /** Fase do jet-ski: lógica pura (sem Android). Mundo no mesmo sistema do Game (x lateral, y = faixa de água). */
 final class Jet {
-    static final int W = Game.W;
     static final float GOAL = 16000f;           // distância até o cais
     static final float Y_MIN = Game.Y0 + 22, Y_MAX = Game.Y1 - 6;
 
@@ -104,7 +103,7 @@ final class Jet {
         for (int i = 0; i < np; i++) { JS q = (i == cur) ? null : ps[i]; if (q != null) { q.hp = q.maxHp; q.inv = 2.5f; q.hurtT = 0; q.deadT = 0; } }
         hp = maxHp; inv = 2.5f; hurtT = 0; deadT = 0; result = 0; endT = 0;
         save(ps[cur]);
-        for (int i = whales.size() - 1; i >= 0; i--) if (whales.get(i).x < camX + W + 700) whales.remove(i);
+        for (int i = whales.size() - 1; i >= 0; i--) if (whales.get(i).x < camX + Game.W + 700) whales.remove(i);
         spawnT = 2.5f;
     }
 
@@ -211,7 +210,7 @@ final class Jet {
             float rel = x - camX;
             float ax = jx * 270f * (Data.HERO_SPD[hero] > 1f ? 1.1f : 1f);
             rel += (ax + (ramT > 0 ? 330f : 0f)) * dt;
-            rel = Math.max(90, Math.min(500, rel));
+            rel = Math.max(90, Math.min(Math.max(220, Game.PW - 300), rel));
             if (ramT <= 0 && Math.abs(jx) < 0.1f) rel += (240f - rel) * Math.min(1f, 1.2f * dt);
             x = camX + rel;
             y += jy * 190f * dt;
@@ -253,7 +252,7 @@ final class Jet {
             w.type = rnd.nextInt(2);
             w.size = w.type == 0 ? 1.0f : 1.25f;
             w.maxHp = w.hp = w.type == 0 ? 2f : 3f;
-            w.x = camX + W + 120 + i * 140;
+            w.x = camX + Game.W + 120 + i * 140;
             w.y = Y_MIN + rnd.nextFloat() * (Y_MAX - Y_MIN);
             w.vx = -(30f + rnd.nextFloat() * 60f);
             w.id = nextId++;
@@ -337,7 +336,7 @@ final class Jet {
                 for (Whale w : whales) {
                     if (w.dying) continue;
                     float d = Math.abs(w.y - p.y) * 1.5f + Math.max(0f, w.x - p.x) * 0.25f;
-                    if (w.x > p.x - 20 && d < best && w.x < camX + W + 200) { best = d; p.target = w; }
+                    if (w.x > p.x - 20 && d < best && w.x < camX + Game.W + 200) { best = d; p.target = w; }
                 }
             }
             float vx = 330f, vy = 0;
@@ -356,14 +355,14 @@ final class Jet {
                 vy = (p.ty - p.y) * 2f;
             }
             p.x += vx * dt; p.y = Math.max(Y_MIN, Math.min(Y_MAX, p.y + vy * dt));
-            if (p.life <= 0 && p.x > camX + W + 80) p.gone = true;
+            if (p.life <= 0 && p.x > camX + Game.W + 80) p.gone = true;
             if (rnd.nextFloat() < 0.5f) fxs.add(new Game.Fx(Game.FX_DUST, p.x - 40, p.y, 2, 0.5f, 12, 0xFFE0F7FA));
         }
         // no fim do especial os patriotas aceleram e saem de cena
         for (int i = patriots.size() - 1; i >= 0; i--) {
             Patriot p = patriots.get(i);
             if (p.life <= 0) { p.x += 500 * dt; }
-            if (p.gone || p.x > camX + W + 200) patriots.remove(i);
+            if (p.gone || p.x > camX + Game.W + 200) patriots.remove(i);
         }
     }
 
