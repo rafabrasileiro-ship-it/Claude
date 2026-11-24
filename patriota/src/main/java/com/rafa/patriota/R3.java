@@ -211,7 +211,11 @@ final class R3 {
     /** desliga as sombras projetadas (ícones de menu). */
     static boolean noCast;
 
+    /** giro extra do modelo em torno do eixo vertical (radianos; 0 = de frente para a fase; usado na vertical para mostrar o herói de perfil). */
+    private static float turn, tcos = 1, tsin;
+
     private static void model(float X, float Y, float Z, int face, float scale, float flash) {
+        tcos = (float) Math.cos(turn); tsin = (float) Math.sin(turn);
         ox = X; oy = Y; oz = Z; mir = (face >= 0 ? 1 : -1) * yawK; sc = scale * BIG;
         ta = 1; tb = 0; tc = 0; td = 1; tx = 0; ty = 0; tp = 0; bias = 0;
         flashK = flash > 0 ? 0.7f : 0f;
@@ -225,7 +229,8 @@ final class R3 {
 
     private static void vert(int i, float lx, float ly, float lz) {
         float rx = ta * lx + tb * ly + tx, ry = tc * lx + td * ly + ty;
-        float gx = ox + mir * sc * rx, gz = oz + sc * lz * zw;
+        float dx = mir * sc * rx, dz = sc * lz * zw;
+        float gx = ox + dx * tcos - dz * tsin, gz = oz + dx * tsin + dz * tcos;
         // espaço da câmera (lateral centrada / profundidade): na vertical o mundo é girado 90° em torno do eixo vertical
         if (portrait) { WX[i] = latC - gz; WZ[i] = gx - cx + zoff; } else { WX[i] = gx - cx; WZ[i] = gz; }
         WY[i] = oy + sc * ry;
@@ -268,6 +273,7 @@ final class R3 {
     private static void face(int a, int b, int c2, int d, float nx, float ny, float nz, int color, int side) {
         if (nq > MAXQ - 12) return;
         float mx = (WX[a] + WX[c2]) * 0.5f, my = (WY[a] + WY[c2]) * 0.5f, mz = (WZ[a] + WZ[c2]) * 0.5f;
+        if (tsin != 0f) { float t = nx * tcos - nz * tsin; nz = nx * tsin + nz * tcos; nx = t; }
         if (portrait) { float t = nx; nx = -nz; nz = t; } // normal do espaço do jogo -> espaço da câmera
         if (nx * (0 - mx) + ny * (CY - my) + nz * (CZ - mz) <= 0) return; // de costas para a câmera
         int al = (color >>> 24) * alphaMul / 255, r = (color >> 16) & 255, g = (color >> 8) & 255, bl = color & 255;
@@ -1432,7 +1438,36 @@ final class R3 {
         }
     }
 
+    private static final float[] PYAW = new float[2], PPX = new float[2], PPY = new float[2], PTM = new float[2];
+
+    /** vertical: ângulo (graus, + = direita da tela) com que o herói se vira ao andar de lado; suavizado pela velocidade na tela. */
+    private static float sideYaw(Game g, Ent o) {
+        int i = (g.np == 2 && g.p == g.ps[1].p) ? 1 : 0;
+        float dt = Draw.time - PTM[i];
+        if (dt <= 0f) return PYAW[i];
+        if (dt > 0.2f) { PPX[i] = o.x; PPY[i] = o.y; PYAW[i] = 0; }
+        PTM[i] = Draw.time;
+        float vx = (o.x - PPX[i]) / dt, vy = (o.y - PPY[i]) / dt;
+        PPX[i] = o.x; PPY[i] = o.y;
+        float target = 0;
+        boolean walking = o.st == Game.S_IDLE || o.st == Game.S_GUARD;
+        if (portrait && walking && Math.abs(vy) > 14f) {
+            float fx = vx / 168f, fy = vy / 104f;
+            if (!(fx < -0.15f && Math.abs(fy) <= Math.abs(fx) * 1.2f)) target = Math.max(-90f, Math.min(90f, (float) Math.toDegrees(Math.atan2(fy, Math.abs(fx))) * 1.3f));
+        }
+        PYAW[i] += (target - PYAW[i]) * Math.min(1f, 14f * dt);
+        return PYAW[i];
+    }
+
     private static void player(Canvas c, Game g, Look[] heroLooks, Look heroTorn) {
+        Ent o = g.p;
+        float sy = sideYaw(g, o);
+        turn = Math.abs(sy) > 1f ? (float) Math.toRadians(-sy) : 0f;
+        playerBody(c, g, heroLooks, heroTorn, turn != 0f ? 1 : o.face);
+        turn = 0f;
+    }
+
+    private static void playerBody(Canvas c, Game g, Look[] heroLooks, Look heroTorn, int fc) {
         Ent o = g.p;
         float Z = zOf(o.y);
         if (o.inv > 0 && o.inv < 3 && o.st != Game.S_SPECIAL && ((int) (g.time * 14) & 1) == 0 && o.st != Game.S_DOWN) return;
@@ -1459,12 +1494,12 @@ final class R3 {
         }
         if (o.st == Game.S_SPECIAL && (g.spK == Game.SP_RIDE || g.spK == Game.SP_TRUCK)) {
             boolean truck = g.spK == Game.SP_TRUCK;
-            moto(c, o.x, Z, o.face, truck);
-            person(c, o.x - o.face * (truck ? 20 : 6), truck ? 62 : 8, Z, o.face, lk, 0, 0, Draw.P_SPEC, 0, 0, -1, false, false);
+            moto(c, o.x, Z, fc, truck);
+            person(c, o.x - fc * (truck ? 20 : 6), truck ? 62 : 8, Z, fc, lk, 0, 0, Draw.P_SPEC, 0, 0, -1, false, false);
             return;
         }
         if (g.mounted && g.horse()) {
-            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, o.face, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
+            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, fc, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
             int mode = 0; float kick = 0, wp = 0, yk = 1f;
             boolean lance = o.st == Game.S_SPECIAL && g.spK == Game.SP_LANCE;
             if (o.st == Game.S_SPECIAL && g.spK == Game.SP_COICE) {
@@ -1475,26 +1510,26 @@ final class R3 {
             if (o.st == Game.S_ATK) wp = Math.max(0.02f, pt);
             else if (o.st == Game.S_JKICK) wp = 0.3f + 0.4f * Math.abs((float) Math.sin(g.time * 14));
             yawK = yk;
-            horse(c, o.x, o.h, Z, o.face, lance ? g.time * 900 : o.walk, lance ? 1.3f : mv, mode, kick, o.flash, lk, wp, lance ? 1f : (mv > 0 ? 0.85f : 0.12f));
+            horse(c, o.x, o.h, Z, fc, lance ? g.time * 900 : o.walk, lance ? 1.3f : mv, mode, kick, o.flash, lk, wp, lance ? 1f : (mv > 0 ? 0.85f : 0.12f));
             yawK = 1f;
             return;
         }
         if (g.mounted) {
-            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, o.face, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
+            if (o.st == Game.S_DOWN || o.st == Game.S_DEAD) { person(c, o.x, o.h, Z, fc, lk, 0, 0, Draw.P_DOWN, 0, o.flash, -1, false, true); return; }
             boolean roar = o.st == Game.S_SPECIAL && g.spK == Game.SP_ROAR;
             int rp = Draw.P_IDLE;
             if (o.st == Game.S_ATK) rp = g.comboStep == 3 ? Draw.P_KICK : Draw.P_PUNCH;
             else if (o.st == Game.S_JKICK) rp = Draw.P_SPIN;
             else if (o.st == Game.S_SPECIAL && g.spK == Game.SP_LANCE) rp = Draw.P_SPEC;
-            raptor(c, o.x, o.h, Z, o.face, o.walk, mv, rp, pt, o.flash, roar);
+            raptor(c, o.x, o.h, Z, fc, o.walk, mv, rp, pt, o.flash, roar);
             float old = lk.scale; lk.scale = 0.8f;
-            person(c, o.x - o.face * 4, o.h + 70, Z, o.face, lk, 0, 0, Draw.P_SPEC, 0, o.flash, -1, false, false);
+            person(c, o.x - fc * 4, o.h + 70, Z, fc, lk, 0, 0, Draw.P_SPEC, 0, o.flash, -1, false, false);
             lk.scale = old;
             return;
         }
         // 1º soco = braço esquerdo, 2º = braço direito (o esquerdo é o de trás quando o herói olha para a direita)
-        Draw.atkArm = (o.st == Game.S_ATK && g.weapon < 0 && g.comboStep < 3 && ((g.comboStep == 1) == (o.face > 0))) ? 1 : 0;
-        person(c, o.x, o.h, Z, o.face, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false, true);
+        Draw.atkArm = (o.st == Game.S_ATK && g.weapon < 0 && g.comboStep < 3 && ((g.comboStep == 1) == (fc > 0))) ? 1 : 0;
+        person(c, o.x, o.h, Z, fc, lk, o.walk, mv, pose, pt, o.flash, g.weapon, false, true);
         Draw.atkArm = 0;
     }
 

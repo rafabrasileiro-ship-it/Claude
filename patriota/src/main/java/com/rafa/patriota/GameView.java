@@ -448,6 +448,7 @@ final class GameView extends View {
     }
 
     private void drawCoop(Canvas c) {
+        if (port) { drawCoopP(c); return; }
         panelBg(c, Data.TH_PAULISTA);
         title(c, "2 JOGADORES", 44);
         if (coopSub == 0) {
@@ -501,6 +502,7 @@ final class GameView extends View {
     }
 
     private void drawWait(Canvas c) {
+        if (port) { drawWaitP(c); return; }
         panelBg(c, Data.TH_CAMPUS);
         title(c, "PRONTO!", 70);
         R3.icon(c, heroLooks[hero], 400, 290, 1.6f, 0, Draw.P_WIND);
@@ -529,6 +531,167 @@ final class GameView extends View {
         Draw.rect(c, 0xFF000000, 597, 84, 789, 89);
         Draw.rect(c, 0xFFC9A400, 598, 85, 598 + 190 * Math.min(1f, q.meter / 100f), 88);
         c.restore();
+    }
+
+    // ---------------------------------------------------------------- telas com o celular em pé
+    // o espaço de desenho tem 800 de largura e (ey1 - ey0) de altura; T = topo, H = altura.
+
+    private void titleP(Canvas c, String s) { Draw.text(c, s, 400, ey0 + 70, 40, 0xFFFFD400, Paint.Align.CENTER); }
+
+    private void drawSelectP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_CAMPUS);
+        titleP(c, coop ? "ESCOLHA SEU PERSONAGEM (DUPLA)" : "ESCOLHA SEU PERSONAGEM");
+        float ch = (H - 100 - 150 - 28) / 3f, k = ch > 450 ? 1.5f : 1.2f;
+        for (int i = 0; i < 6; i++) {
+            float x0 = 20 + (i % 2) * 390, x1 = x0 + 370, y0 = T + 100 + (i / 2) * (ch + 14), y1 = y0 + ch;
+            boolean ok = heroUnlocked(i), sel = i == hero;
+            Draw.rect(c, sel ? 0xCC1B8F3A : 0xCC222222, x0, y0, x1, y1);
+            Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(sel ? 5 : 2); Draw.P.setColor(sel ? 0xFFFFD400 : 0xFF888888);
+            c.drawRect(x0, y0, x1, y1, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
+            float cx = (x0 + x1) / 2;
+            R3.icon(c, heroLooks[i], cx, y0 + ch * 0.50f, k, 0, i == hero ? Draw.P_WIND : Draw.P_IDLE);
+            Draw.text(c, Data.HERO_NAME[i], cx, y0 + ch * 0.58f, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+            String[] ds = Data.HERO_DESC[i].split("\n");
+            for (int q = 0; q < ds.length; q++) Draw.text(c, ds[q], cx, y0 + ch * 0.58f + 26 + q * 20, 14, 0xFFDDDDDD, Paint.Align.CENTER);
+            Draw.text(c, "HP " + (int) Data.HERO_HP[i] + "  VEL " + (int) (Data.HERO_SPD[i] * 100) + "  DANO " + (int) (Data.HERO_DMG[i] * 100), cx, y1 - 62, 13, 0xFFFFD400, Paint.Align.CENTER);
+            if (!ok) {
+                Draw.rect(c, 0xCC000000, x0, y0, x1, y1);
+                Draw.text(c, "BLOQUEADO", cx, y0 + ch * 0.45f, 26, 0xFFFF5252, Paint.Align.CENTER);
+                Draw.text(c, "Vença a fase " + Data.STAGES.get(i - 1).id, cx, y0 + ch * 0.45f + 28, 16, 0xFFFFFFFF, Paint.Align.CENTER);
+            }
+            addBtn(c, B_HERO + i, x0 + 20, y1 - 50, x1 - 20, y1 - 10, ok ? (sel ? "ESCOLHER ✔" : "ESCOLHER") : "—", ok, ok ? 0xFF1D3E9A : 0xFF555555);
+        }
+        float by = ey1 - 110;
+        addBtn(c, B_BACK, 40, by, 380, by + 80, "VOLTAR", true, 0xFF7B1FA2);
+        addBtn(c, B_NEXT, 420, by, 760, by + 80, coop && localIdx() == 1 ? "PRONTO ▶" : "AVANÇAR ▶", true, 0xFF1B8F3A);
+    }
+
+    private void drawStagesP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_PAULISTA);
+        titleP(c, "SELEÇÃO DE FASES");
+        int n = Data.STAGES.size();
+        float step = Math.min(110f, (H - 100 - 130) / n), h = step * 0.86f;
+        for (int i = 0; i < n; i++) {
+            float y0 = T + 100 + i * step;
+            boolean ok = i <= cleared;
+            String name = Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0];
+            addBtn(c, B_STAGE + i, 50, y0, 750, y0 + h, ok ? name : "🔒 " + Data.STAGES.get(i).id + " · bloqueada", ok, ok ? (i < cleared ? 0xFF1B8F3A : 0xFF1D3E9A) : 0xFF555555);
+        }
+        addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "VOLTAR", true, 0xFF7B1FA2);
+    }
+
+    private void drawOptionsP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_QUARENT);
+        titleP(c, "OPÇÕES");
+        String[] t = {"Efeitos sonoros: " + LV[sfxLv], "Volume das vozes: " + LV[voiceLv], "Música: " + LV[musicLv],
+                "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv],
+                "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático"}[gfx], "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada")};
+        float step = Math.min(130f, (H - 100 - 130) / 6f), h = step * 0.82f;
+        for (int i = 0; i < 6; i++) addBtn(c, B_OPT + i, 60, T + 110 + i * step, 740, T + 110 + i * step + h, t[i], true, 0xFF1D3E9A);
+        addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "VOLTAR", true, 0xFF7B1FA2);
+    }
+
+    private void drawHelpP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_CAMPUS);
+        titleP(c, "COMO JOGAR");
+        String[][] rows = {
+            {"ANALÓGICO", "Move o herói: para cima avança pela fase, para os lados troca de faixa. Segure para o lado e aperte A para arremessar um inimigo agarrado."},
+            {"A", "Soco esquerdo, soco direito e, no 3º toque seguido, chute baixo de lado. Segure A por 1 s para a onda de choque."},
+            {"B", "Pula. No ar, aperte A para a voadora de lado (losango aberto)."},
+            {"C", "Toque: pega item ou agarra o inimigo. Segure: defesa de boxe, que bloqueia golpes de frente e anda devagar."},
+            {"D", "Especial: gasta 50 de Patriotismo (a barra enche mais devagar) e varre os inimigos da tela."},
+        };
+        float rh = Math.min(190f, (H - 100 - 240) / 5f), y = T + 100;
+        for (String[] r : rows) {
+            Draw.rect(c, 0xCC222222, 30, y, 770, y + rh - 10);
+            Draw.rect(c, 0xFFFFD400, 30, y, 170, y + rh - 10);
+            Draw.text(c, r[0], 100, y + rh / 2 + 4, r[0].length() > 2 ? 17 : 34, 0xFF111111, Paint.Align.CENTER);
+            Draw.wrapText(c, r[1], 184, y + 34, 570, 18, 0xFFFFFFFF);
+            y += rh;
+        }
+        Draw.wrapText(c, "A cavalo (fazenda): A = chicote, C = investida, D = 5 coices. Em dupla, cada celular controla o seu herói.", 40, y + 22, 720, 17, 0xFFFFE082);
+        addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "VOLTAR", true, 0xFF7B1FA2);
+    }
+
+    private void drawBriefP(Canvas c, float dt) {
+        float T = ey0, H = ey1 - ey0;
+        Data.Stage st = Data.STAGES.get(stageSel);
+        bgDesign(c, st.jet, st.segs.get(0).theme, screenT * (st.jet ? 40 : 20), screenT);
+        fill(c, 0xAA000000);
+        Draw.text(c, "MISSÃO " + st.id, 400, T + 80, 44, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.wrapText(c, st.title, 60, T + 120, 680, 24, 0xFFFFFFFF);
+        // Coronel Helenão
+        float py0 = T + H * 0.15f, ph = 300;
+        c.save();
+        c.clipRect(40, py0, 280, py0 + ph);
+        Draw.rect(c, 0xFF2E3B2A, 40, py0, 280, py0 + ph);
+        R3.icon(c, helenao, 160, py0 + ph - 20, 1.9f, 0, Draw.P_IDLE);
+        c.restore();
+        Draw.P.setStyle(Paint.Style.STROKE); Draw.P.setStrokeWidth(4); Draw.P.setColor(0xFFFFD400);
+        c.drawRect(40, py0, 280, py0 + ph, Draw.P); Draw.P.setStyle(Paint.Style.FILL);
+        Draw.text(c, "CORONEL HELENÃO", 160, py0 + ph + 30, 18, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, "(via rádio)", 160, py0 + ph + 54, 15, 0xFFBBBBBB, Paint.Align.CENTER);
+        briefT += dt * 45;
+        String full = "“" + st.briefing + "”";
+        int cnt = Math.min(full.length(), (int) briefT);
+        Draw.rect(c, 0xCC101810, 300, py0, 780, py0 + ph + 60);
+        wrap(c, full.substring(0, cnt), 316, py0 + 34, 450, 20, 0xFFFFFFFF, Paint.Align.LEFT);
+        float y = py0 + ph + 110;
+        Draw.wrapText(c, "Controles: analógico à esquerda (para cima avança) • A soco (segure 1s = onda de choque) • B pulo (B+A voadora)", 40, y, 720, 16, 0xFFDDDDDD);
+        Draw.wrapText(c, "C agarrar/pegar arma (perto do inimigo: A soca, direção+A arremessa) • D especial (gasta 50 de Patriotismo)", 40, y + 70, 720, 16, 0xFFDDDDDD);
+        Draw.text(c, coop ? "Dupla: " + Data.HERO_NAME[hero] + " + " + (partnerHero >= 0 ? Data.HERO_NAME[partnerHero] : "(amigo escolhendo...)") : "Personagem: " + Data.HERO_NAME[hero], 400, y + 160, 20, 0xFFFFD400, Paint.Align.CENTER);
+        float by = ey1 - 110;
+        addBtn(c, B_BACK, 40, by, 380, by + 80, "VOLTAR", true, 0xFF7B1FA2);
+        addBtn(c, B_NEXT, 420, by, 760, by + 80, cnt < full.length() ? "AVANÇAR ▶▶" : "AVANÇAR ▶", !coop || partnerHero >= 0, 0xFF1B8F3A);
+    }
+
+    private void drawWaitP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_CAMPUS);
+        titleP(c, "PRONTO!");
+        R3.icon(c, heroLooks[hero], 400, T + H * 0.5f, 2.6f, 0, Draw.P_WIND);
+        Draw.text(c, "Seu herói: " + Data.HERO_NAME[hero], 400, T + H * 0.5f + 50, 24, 0xFFFFD400, Paint.Align.CENTER);
+        Draw.text(c, "Aguardando o anfitrião escolher a fase" + dots(), 400, T + 160, 20, 0xFFFFFFFF, Paint.Align.CENTER);
+        addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "SAIR DA SALA", true, 0xFF7B1FA2);
+    }
+
+    private void drawCoopP(Canvas c) {
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_PAULISTA);
+        titleP(c, "2 JOGADORES");
+        if (coopSub == 0) {
+            Draw.wrapText(c, "Os dois heróis jogam na mesma tela: o dobro de inimigos e chefões com o dobro de vida. Wi-Fi é o mais rápido e fluido: os dois celulares na mesma rede (ou no ponto de acesso de um deles). Um jogador CRIA A SALA; o outro toca em ENTRAR. O anfitrião escolhe a fase.", 50, T + 120, 700, 18, 0xFFFFFFFF);
+            String[] lab = {"CRIAR SALA — Wi-Fi (recomendado)", "ENTRAR NA SALA — Wi-Fi", "Criar sala — Bluetooth", "Entrar na sala — Bluetooth", "Parear aparelhos (Bluetooth): abrir config."};
+            int[] id = {B_HOSTW, B_JOINW, B_HOST, B_JOIN, B_BTSET};
+            int[] col = {0xFF1B8F3A, 0xFF1D3E9A, 0xFF2E7D32, 0xFF283593, 0xFF6A4C93};
+            float y0 = T + H * 0.30f, step = Math.min(120f, H * 0.085f);
+            for (int i = 0; i < 5; i++) addBtn(c, id[i], 60, y0 + i * step, 740, y0 + i * step + step * 0.85f, lab[i], true, col[i]);
+        } else if (coopSub == 1) {
+            Draw.wrapText(c, "Sala criada (" + (coopWifi ? "Wi-Fi" : "Bluetooth") + ")! Aguardando o amigo" + dots(), 60, T + H * 0.35f, 680, 26, 0xFFFFFFFF);
+            Draw.wrapText(c, "No outro celular: DUPLA > ENTRAR NA SALA > toque no nome deste aparelho.", 60, T + H * 0.35f + 80, 680, 18, 0xFFDDDDDD);
+        } else if (coopSub == 2) {
+            java.util.ArrayList<String> names = new java.util.ArrayList<>();
+            if (coopWifi) {
+                wifiList.clear();
+                java.util.ArrayList<String> keys = new java.util.ArrayList<>(net.found.keySet());
+                java.util.Collections.sort(keys);
+                for (String k : keys) { Object[] v = net.found.get(k); if (v != null) { wifiList.add(new String[]{k, (String) v[0]}); names.add((String) v[0]); } }
+            } else for (android.bluetooth.BluetoothDevice d : devices) names.add(Net.nameOf(d));
+            if (names.isEmpty()) {
+                Draw.wrapText(c, coopWifi ? "Procurando salas na rede" + dots() + " O amigo precisa tocar em CRIAR SALA — Wi-Fi, na mesma rede." : "Nenhum aparelho pareado. Volte e use PAREAR APARELHOS; depois entre de novo aqui.", 60, T + H * 0.3f, 680, 22, 0xFFFFFFFF);
+            } else {
+                Draw.text(c, coopWifi ? "Salas encontradas — toque na do amigo:" : "Toque no aparelho do anfitrião (que já criou a sala):", 400, T + 130, 18, 0xFFFFFFFF, Paint.Align.CENTER);
+                for (int i = 0; i < Math.min(8, names.size()); i++) addBtn(c, B_DEV + i, 60, T + 160 + i * 100, 740, T + 160 + i * 100 + 84, names.get(i), true, 0xFF1D3E9A);
+            }
+        } else {
+            Draw.text(c, "Conectando a " + net.info + dots(), 400, T + H * 0.4f, 24, 0xFFFFFFFF, Paint.Align.CENTER);
+        }
+        if (netMsgT > 0) Draw.wrapText(c, netMsg, 50, ey1 - 160, 700, 17, 0xFFFFAB91);
+        addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, coopSub == 0 ? "VOLTAR" : "CANCELAR", true, 0xFF7B1FA2);
     }
 
     // ---- telas
@@ -589,6 +752,7 @@ final class GameView extends View {
     }
 
     private void drawHelp(Canvas c) {
+        if (port) { drawHelpP(c); return; }
         panelBg(c, Data.TH_CAMPUS);
         title(c, "COMO JOGAR", 44);
         String[][] rows = {
@@ -611,6 +775,7 @@ final class GameView extends View {
     }
 
     private void drawSelect(Canvas c) {
+        if (port) { drawSelectP(c); return; }
         panelBg(c, Data.TH_CAMPUS);
         title(c, coop ? "ESCOLHA SEU PERSONAGEM (DUPLA)" : "ESCOLHA SEU PERSONAGEM", 44);
         for (int i = 0; i < 6; i++) {
@@ -637,6 +802,7 @@ final class GameView extends View {
     }
 
     private void drawStages(Canvas c) {
+        if (port) { drawStagesP(c); return; }
         panelBg(c, Data.TH_PAULISTA);
         title(c, "SELEÇÃO DE FASES", 44);
         int n = Data.STAGES.size();
@@ -654,6 +820,7 @@ final class GameView extends View {
     private static final String[] LV = {"0%", "33%", "66%", "100%"};
 
     private void drawOptions(Canvas c) {
+        if (port) { drawOptionsP(c); return; }
         panelBg(c, Data.TH_QUARENT);
         title(c, "OPÇÕES", 44);
         addBtn(c, B_OPT + 0, 120, 70, 680, 118, "Efeitos sonoros: " + LV[sfxLv], true, 0xFF1D3E9A);
@@ -681,12 +848,13 @@ final class GameView extends View {
         String[] lines = {"OPERAÇÃO PATRIOTA 3D", "", "Um beat 'em up satírico", "", "Design de jogo: Rafa", "Programação: Claude", "", "Personagens: Jair Bonossauro, Coronel Helenão,",
                 "Patriota do Caminhão, Tiozão do Zap, Véio da Havan-a", "", "Chefes: Doutor Atila-mento, Reitor Desconstruído,", "Apresentador Domingão, William Boné,", "Xerxes de Moraes e Mula", "",
                 "Obra de ficção e paródia.", "Qualquer semelhança é mera coincidência.", "", "Obrigado por jogar!"};
-        float y = 460 - (screenT * 38) % (lines.length * 26 + 520);
+        float y = (port ? ey1 + 10 : 460) - (screenT * 38) % (lines.length * 26 + (port ? ey1 - ey0 + 70 : 520));
         for (String s : lines) { Draw.text(c, s, 400, y, 20, 0xFFFFFFFF, Paint.Align.CENTER); y += 26; }
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
 
     private void drawBrief(Canvas c, float dt) {
+        if (port) { drawBriefP(c, dt); return; }
         Data.Stage st = Data.STAGES.get(stageSel);
         bgDesign(c, st.jet, st.segs.get(0).theme, screenT * (st.jet ? 40 : 20), screenT);
         fill(c, 0xAA000000);
