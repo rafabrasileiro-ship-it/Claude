@@ -11,26 +11,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DINO_KEYSTORE: ${{ github.workspace }}/dino-release.keystore
-      DINO_STORE_PASS: ${{ secrets.DINO_STORE_PASS || 'dino-ci-chave' }}
-      DINO_KEYSTORE_B64: ${{ secrets.DINO_KEYSTORE_B64 }}
+      DINO_KEYSTORE: ${{ github.workspace }}/ci/dino-release.keystore
+      DINO_STORE_PASS: EzOx0QmvydlEbReZhSd38Xix
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Chave de assinatura (secret do GitHub)
-        run: |
-          if [ -n "$DINO_KEYSTORE_B64" ]; then
-            echo "$DINO_KEYSTORE_B64" | base64 -d > dino-release.keystore
-          else
-            echo "::warning::Secrets DINO_KEYSTORE_B64 e DINO_STORE_PASS não cadastrados: usando chave temporaria (o APK NAO instala por cima do anterior)."
-            keytool -genkeypair -keystore dino-release.keystore -alias dino \
-              -keyalg RSA -keysize 2048 -validity 36500 \
-              -storepass "$DINO_STORE_PASS" -keypass "$DINO_STORE_PASS" \
-              -dname "CN=Jogo do Dino"
-          fi
+      # chave de assinatura fixa no repositorio (privado): todo APK instala por cima do anterior
       - name: Compilar APK
         run: |
           chmod +x gradlew
