@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts, Merriweather_400Regular, Merriweather_700Bold } from '@expo-google-fonts/merriweather';
-import { Inter_400Regular, Inter_500Medium, Inter_700Bold } from '@expo-google-fonts/inter';
+import { useFonts } from 'expo-font';
+// Importa só as variações usadas (o índice do pacote embute todas e infla o APK).
+import { Merriweather_400Regular } from '@expo-google-fonts/merriweather/400Regular';
+import { Merriweather_700Bold } from '@expo-google-fonts/merriweather/700Bold';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { colors, fonts, fs } from './theme';
 import { StoreProvider, useStore } from './store';
 import Home, { LessonRef } from './screens/Home';
