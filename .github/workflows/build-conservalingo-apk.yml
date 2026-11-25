@@ -29,8 +29,8 @@ jobs:
       - run: npm test
       - name: Gerar projeto Android nativo
         run: npx expo prebuild --platform android --no-install
-      - name: Reduzir ABIs (celulares ARM de 32 e 64 bits)
-        run: sed -i 's/^reactNativeArchitectures=.*/reactNativeArchitectures=armeabi-v7a,arm64-v8a/' android/gradle.properties
+      - name: Reduzir ABIs (somente ARM 64 bits, o padrão dos celulares atuais)
+        run: sed -i 's/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties
       - name: Compilar APK (release)
         working-directory: conservalingo/android
         run: ./gradlew assembleRelease --no-daemon

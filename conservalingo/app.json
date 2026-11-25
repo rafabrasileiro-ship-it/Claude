@@ -24,7 +24,7 @@
           "android": {
             "enableMinifyInReleaseBuild": true,
             "enableShrinkResourcesInReleaseBuild": true,
-            "useLegacyPackaging": false
+            "useLegacyPackaging": true
           }
         }
       ]
