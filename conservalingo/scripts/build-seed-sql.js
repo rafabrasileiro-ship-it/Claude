@@ -16,7 +16,7 @@ for (const f of families) {
 ins('characters', ['id', 'name', 'role', 'sex', 'age', 'profession', 'archetype', 'pedagogical_focus', 'family_head_id', 'spouse_id', 'parent_id'], chars);
 // cônjuges (referência cruzada após inserir todos)
 for (const f of families) out.push(`update characters set spouse_id=${q(f.spouse.id)} where id=${q(f.id)};`, `update characters set spouse_id=${q(f.id)} where id=${q(f.spouse.id)};`);
-out.push(`insert into courses (id,title,module) values (${q(course.id)},${q(course.title)},${course.module});`);
+out.push(`insert into courses (id,title,module,dialect) values (${q(course.id)},${q(course.title)},${course.module},${q(course.dialect)});`);
 ins('units', ['id', 'course_id', 'position', 'title', 'icon', 'topics'], units.map((u, i) => [q(u.id), q(course.id), i + 1, q(u.title), q(u.icon), q(u.topics)]));
 ins('unit_cast', ['unit_id', 'character_id'], units.flatMap((u) => u.cast.map((c) => [q(u.id), q(c)])));
 ins('lessons', ['id', 'unit_id', 'position', 'title'], units.flatMap((u) => u.lessons.map((l, i) => [q(l.id), q(u.id), i + 1, q(l.title)])));

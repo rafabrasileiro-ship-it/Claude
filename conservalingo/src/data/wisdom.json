@@ -1,20 +1,128 @@
 [
-  {"id": "w01", "en": "A good name is rather to be chosen than great riches.", "pt": "Mais vale o bom nome do que grandes riquezas.", "source": "Provérbios 22:1", "kind": "bible"},
-  {"id": "w02", "en": "A soft answer turneth away wrath.", "pt": "A resposta branda desvia o furor.", "source": "Provérbios 15:1", "kind": "bible"},
-  {"id": "w03", "en": "The hand of the diligent maketh rich.", "pt": "A mão diligente enriquece.", "source": "Provérbios 10:4", "kind": "bible"},
-  {"id": "w04", "en": "Honour thy father and thy mother.", "pt": "Honra teu pai e tua mãe.", "source": "Êxodo 20:12", "kind": "bible"},
-  {"id": "w05", "en": "The fear of the Lord is the beginning of knowledge.", "pt": "O temor do Senhor é o princípio do conhecimento.", "source": "Provérbios 1:7", "kind": "bible"},
-  {"id": "w06", "en": "Train up a child in the way he should go.", "pt": "Instrui a criança no caminho em que deve andar.", "source": "Provérbios 22:6", "kind": "bible"},
-  {"id": "w07", "en": "Trust in the Lord with all thine heart.", "pt": "Confia no Senhor de todo o teu coração.", "source": "Provérbios 3:5", "kind": "bible"},
-  {"id": "w08", "en": "Righteousness exalteth a nation.", "pt": "A justiça engrandece uma nação.", "source": "Provérbios 14:34", "kind": "bible"},
-  {"id": "w09", "en": "Iron sharpeneth iron.", "pt": "O ferro com o ferro se afia.", "source": "Provérbios 27:17", "kind": "bible"},
-  {"id": "w10", "en": "Go to the ant, thou sluggard; consider her ways, and be wise.", "pt": "Vai ter com a formiga, preguiçoso; observa seus caminhos e sê sábio.", "source": "Provérbios 6:6", "kind": "bible"},
-  {"id": "w11", "en": "The Lord is my shepherd; I shall not want.", "pt": "O Senhor é o meu pastor; nada me faltará.", "source": "Salmo 23:1", "kind": "bible"},
-  {"id": "w12", "en": "Pride goeth before destruction.", "pt": "A soberba precede a ruína.", "source": "Provérbios 16:18", "kind": "bible"},
-  {"id": "w13", "en": "Commit thy works unto the Lord, and thy thoughts shall be established.", "pt": "Confia ao Senhor as tuas obras, e teus planos se firmarão.", "source": "Provérbios 16:3", "kind": "bible"},
-  {"id": "w14", "en": "Courage is not simply one of the virtues, but the form of every virtue at the testing point.", "pt": "A coragem não é apenas uma das virtudes, mas a forma de toda virtude no momento da prova.", "source": "C. S. Lewis, The Screwtape Letters", "kind": "classic"},
-  {"id": "w15", "en": "The Christian ideal has not been tried and found wanting. It has been found difficult and left untried.", "pt": "O ideal cristão não foi tentado e achado insuficiente. Foi achado difícil e deixado sem tentativa.", "source": "G. K. Chesterton, What's Wrong with the World", "kind": "classic"},
-  {"id": "w16", "en": "Tradition means giving a vote to the most obscure of all classes, our ancestors.", "pt": "Tradição significa dar voto à mais obscura de todas as classes: nossos antepassados.", "source": "G. K. Chesterton, Orthodoxy", "kind": "classic"},
-  {"id": "w17", "en": "Society is a partnership between those who are living, those who are dead, and those who are to be born.", "pt": "A sociedade é uma parceria entre os que vivem, os que morreram e os que ainda hão de nascer.", "source": "Edmund Burke, Reflections on the Revolution in France", "kind": "classic"},
-  {"id": "w18", "en": "Do not waste time bothering whether you love your neighbour; act as if you did.", "pt": "Não perca tempo se perguntando se ama o seu próximo; aja como se amasse.", "source": "C. S. Lewis, Mere Christianity", "kind": "classic"}
+ {
+  "id": "w01",
+  "en": "A good name is to be chosen rather than great riches.",
+  "pt": "Mais vale o bom nome do que grandes riquezas.",
+  "source": "Provérbios 22:1",
+  "kind": "bible"
+ },
+ {
+  "id": "w02",
+  "en": "A soft answer turns away wrath.",
+  "pt": "A resposta branda desvia o furor.",
+  "source": "Provérbios 15:1",
+  "kind": "bible"
+ },
+ {
+  "id": "w03",
+  "en": "A slack hand causes poverty, but the hand of the diligent makes rich.",
+  "pt": "A mão negligente empobrece, mas a mão diligente enriquece.",
+  "source": "Provérbios 10:4",
+  "kind": "bible"
+ },
+ {
+  "id": "w04",
+  "en": "Honor your father and your mother.",
+  "pt": "Honra teu pai e tua mãe.",
+  "source": "Êxodo 20:12",
+  "kind": "bible"
+ },
+ {
+  "id": "w05",
+  "en": "The fear of the Lord is the beginning of knowledge.",
+  "pt": "O temor do Senhor é o princípio do conhecimento.",
+  "source": "Provérbios 1:7",
+  "kind": "bible"
+ },
+ {
+  "id": "w06",
+  "en": "Train up a child in the way he should go.",
+  "pt": "Instrui a criança no caminho em que deve andar.",
+  "source": "Provérbios 22:6",
+  "kind": "bible"
+ },
+ {
+  "id": "w07",
+  "en": "Trust in the Lord with all your heart.",
+  "pt": "Confia no Senhor de todo o teu coração.",
+  "source": "Provérbios 3:5",
+  "kind": "bible"
+ },
+ {
+  "id": "w08",
+  "en": "Righteousness exalts a nation.",
+  "pt": "A justiça engrandece uma nação.",
+  "source": "Provérbios 14:34",
+  "kind": "bible"
+ },
+ {
+  "id": "w09",
+  "en": "Iron sharpens iron, and one man sharpens another.",
+  "pt": "O ferro com o ferro se afia, e um homem afia o outro.",
+  "source": "Provérbios 27:17",
+  "kind": "bible"
+ },
+ {
+  "id": "w10",
+  "en": "Go to the ant, O sluggard; consider her ways, and be wise.",
+  "pt": "Vai ter com a formiga, preguiçoso; observa seus caminhos e sê sábio.",
+  "source": "Provérbios 6:6",
+  "kind": "bible"
+ },
+ {
+  "id": "w11",
+  "en": "The Lord is my shepherd; I shall not want.",
+  "pt": "O Senhor é o meu pastor; nada me faltará.",
+  "source": "Salmo 23:1",
+  "kind": "bible"
+ },
+ {
+  "id": "w12",
+  "en": "Pride goes before destruction, and a haughty spirit before a fall.",
+  "pt": "A soberba precede a ruína, e o espírito altivo precede a queda.",
+  "source": "Provérbios 16:18",
+  "kind": "bible"
+ },
+ {
+  "id": "w13",
+  "en": "Commit your work to the Lord, and your plans will be established.",
+  "pt": "Confia ao Senhor as tuas obras, e teus planos se firmarão.",
+  "source": "Provérbios 16:3",
+  "kind": "bible"
+ },
+ {
+  "id": "w14",
+  "en": "Courage is not simply one of the virtues, but the form of every virtue at the testing point.",
+  "pt": "A coragem não é apenas uma das virtudes, mas a forma de toda virtude no momento da prova.",
+  "source": "C. S. Lewis, The Screwtape Letters",
+  "kind": "classic"
+ },
+ {
+  "id": "w15",
+  "en": "The Christian ideal has not been tried and found wanting. It has been found difficult and left untried.",
+  "pt": "O ideal cristão não foi tentado e achado insuficiente. Foi achado difícil e deixado sem tentativa.",
+  "source": "G. K. Chesterton, What's Wrong with the World",
+  "kind": "classic"
+ },
+ {
+  "id": "w16",
+  "en": "Tradition means giving a vote to the most obscure of all classes, our ancestors.",
+  "pt": "Tradição significa dar voto à mais obscura de todas as classes: nossos antepassados.",
+  "source": "G. K. Chesterton, Orthodoxy",
+  "kind": "classic"
+ },
+ {
+  "id": "w17",
+  "en": "Society is a partnership between those who are living, those who are dead, and those who are to be born.",
+  "pt": "A sociedade é uma parceria entre os que vivem, os que morreram e os que ainda hão de nascer.",
+  "source": "Edmund Burke, Reflections on the Revolution in France",
+  "kind": "classic"
+ },
+ {
+  "id": "w18",
+  "en": "Do not waste time bothering whether you love your neighbor; act as if you did.",
+  "pt": "Não perca tempo se perguntando se ama o seu próximo; aja como se amasse.",
+  "source": "C. S. Lewis, Mere Christianity",
+  "kind": "classic"
+ }
 ]

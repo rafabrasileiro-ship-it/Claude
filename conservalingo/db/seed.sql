@@ -38,7 +38,7 @@ update characters set spouse_id='gabriel' where id='maria';
 update characters set spouse_id='maria' where id='gabriel';
 update characters set spouse_id='rafael' where id='flavia';
 update characters set spouse_id='flavia' where id='rafael';
-insert into courses (id,title,module) values ('en-for-pt','Inglês para Falantes de Português',1);
+insert into courses (id,title,module,dialect) values ('en-for-pt','Inglês para Falantes de Português',1,'en-US');
 insert into units (id,course_id,position,title,icon,topics) values
   ('u1','en-for-pt',1,'Saudações, Cortesia e Respeito','🤝','Cumprimentos formais, apresentações respeitosas, títulos de tratamento, verbo to be no presente.'),
   ('u2','en-for-pt',2,'O Lar e a Família','🏡','Grau de parentesco, cômodos da casa, refeições em família, agradecimento à mesa.'),
@@ -342,26 +342,26 @@ insert into dialogue_lines (id,lesson_id,position,character_id,en,pt) values
   ('u6l4:d:2','u6l4',3,'flavia','First, finish your homework, Noah.','Primeiro, termine sua lição de casa, Noah.'),
   ('u6l4:d:3','u6l4',4,'noah','Yes, Mom. I will obey.','Sim, mamãe. Eu vou obedecer.');
 insert into wisdom_quotes (id,kind,en,pt,source) values
-  ('w01','bible','A good name is rather to be chosen than great riches.','Mais vale o bom nome do que grandes riquezas.','Provérbios 22:1'),
-  ('w02','bible','A soft answer turneth away wrath.','A resposta branda desvia o furor.','Provérbios 15:1'),
-  ('w03','bible','The hand of the diligent maketh rich.','A mão diligente enriquece.','Provérbios 10:4'),
-  ('w04','bible','Honour thy father and thy mother.','Honra teu pai e tua mãe.','Êxodo 20:12'),
+  ('w01','bible','A good name is to be chosen rather than great riches.','Mais vale o bom nome do que grandes riquezas.','Provérbios 22:1'),
+  ('w02','bible','A soft answer turns away wrath.','A resposta branda desvia o furor.','Provérbios 15:1'),
+  ('w03','bible','A slack hand causes poverty, but the hand of the diligent makes rich.','A mão negligente empobrece, mas a mão diligente enriquece.','Provérbios 10:4'),
+  ('w04','bible','Honor your father and your mother.','Honra teu pai e tua mãe.','Êxodo 20:12'),
   ('w05','bible','The fear of the Lord is the beginning of knowledge.','O temor do Senhor é o princípio do conhecimento.','Provérbios 1:7'),
   ('w06','bible','Train up a child in the way he should go.','Instrui a criança no caminho em que deve andar.','Provérbios 22:6'),
-  ('w07','bible','Trust in the Lord with all thine heart.','Confia no Senhor de todo o teu coração.','Provérbios 3:5'),
-  ('w08','bible','Righteousness exalteth a nation.','A justiça engrandece uma nação.','Provérbios 14:34'),
-  ('w09','bible','Iron sharpeneth iron.','O ferro com o ferro se afia.','Provérbios 27:17'),
-  ('w10','bible','Go to the ant, thou sluggard; consider her ways, and be wise.','Vai ter com a formiga, preguiçoso; observa seus caminhos e sê sábio.','Provérbios 6:6'),
+  ('w07','bible','Trust in the Lord with all your heart.','Confia no Senhor de todo o teu coração.','Provérbios 3:5'),
+  ('w08','bible','Righteousness exalts a nation.','A justiça engrandece uma nação.','Provérbios 14:34'),
+  ('w09','bible','Iron sharpens iron, and one man sharpens another.','O ferro com o ferro se afia, e um homem afia o outro.','Provérbios 27:17'),
+  ('w10','bible','Go to the ant, O sluggard; consider her ways, and be wise.','Vai ter com a formiga, preguiçoso; observa seus caminhos e sê sábio.','Provérbios 6:6'),
   ('w11','bible','The Lord is my shepherd; I shall not want.','O Senhor é o meu pastor; nada me faltará.','Salmo 23:1'),
-  ('w12','bible','Pride goeth before destruction.','A soberba precede a ruína.','Provérbios 16:18'),
-  ('w13','bible','Commit thy works unto the Lord, and thy thoughts shall be established.','Confia ao Senhor as tuas obras, e teus planos se firmarão.','Provérbios 16:3'),
+  ('w12','bible','Pride goes before destruction, and a haughty spirit before a fall.','A soberba precede a ruína, e o espírito altivo precede a queda.','Provérbios 16:18'),
+  ('w13','bible','Commit your work to the Lord, and your plans will be established.','Confia ao Senhor as tuas obras, e teus planos se firmarão.','Provérbios 16:3'),
   ('w14','classic','Courage is not simply one of the virtues, but the form of every virtue at the testing point.','A coragem não é apenas uma das virtudes, mas a forma de toda virtude no momento da prova.','C. S. Lewis, The Screwtape Letters'),
   ('w15','classic','The Christian ideal has not been tried and found wanting. It has been found difficult and left untried.','O ideal cristão não foi tentado e achado insuficiente. Foi achado difícil e deixado sem tentativa.','G. K. Chesterton, What''s Wrong with the World'),
   ('w16','classic','Tradition means giving a vote to the most obscure of all classes, our ancestors.','Tradição significa dar voto à mais obscura de todas as classes: nossos antepassados.','G. K. Chesterton, Orthodoxy'),
   ('w17','classic','Society is a partnership between those who are living, those who are dead, and those who are to be born.','A sociedade é uma parceria entre os que vivem, os que morreram e os que ainda hão de nascer.','Edmund Burke, Reflections on the Revolution in France'),
-  ('w18','classic','Do not waste time bothering whether you love your neighbour; act as if you did.','Não perca tempo se perguntando se ama o seu próximo; aja como se amasse.','C. S. Lewis, Mere Christianity');
+  ('w18','classic','Do not waste time bothering whether you love your neighbor; act as if you did.','Não perca tempo se perguntando se ama o seu próximo; aja como se amasse.','C. S. Lewis, Mere Christianity');
 insert into readings (id,title,author,level,cost_talents,words,source_note) values
-  ('r1','Salmo 23 (trecho)','King James Version',1,0,'[["The Lord","O Senhor"],["is","é"],["my","meu"],["shepherd","pastor"],["I","eu"],["shall","irei"],["not","não"],["want","faltar"],["He","Ele"],["maketh me","me faz"],["to lie down","deitar"],["in green pastures","em verdes pastos"],["He leadeth me","Ele me conduz"],["beside","ao lado de"],["the still waters","as águas tranquilas"]]'::jsonb,'Domínio público. Salmo 23:1-2.'),
+  ('r1','Salmo 23 (trecho)','King James Version',1,0,'[["The Lord","O Senhor"],["is","é"],["my","meu"],["shepherd","pastor"],["I shall not want","nada me faltará"],["He makes me","Ele me faz"],["lie down","deitar"],["in green pastures","em verdes pastos"],["He leads me","Ele me conduz"],["beside","ao lado de"],["still waters","águas tranquilas"]]'::jsonb,'Salmo 23:1-2, em inglês americano atual.'),
   ('r2','A Formiga Diligente','Provérbios 6 e fábula clássica (adaptação)',1,20,'[["In summer,","No verão,"],["the ant","a formiga"],["works","trabalha"],["every day.","todos os dias."],["She","Ela"],["gathers","recolhe"],["food","comida"],["for the winter.","para o inverno."],["The grasshopper","O gafanhoto"],["only","apenas"],["sings","canta"],["and plays.","e brinca."],["When winter comes,","Quando o inverno chega,"],["the ant","a formiga"],["has bread,","tem pão,"],["but he has none.","mas ele não tem nenhum."]]'::jsonb,'Adaptação didática de fábula de Esopo; ver Provérbios 6:6-8.'),
   ('r3','O Peregrino (abertura)','John Bunyan, The Pilgrim''s Progress',2,40,'[["As I walked","Enquanto eu caminhava"],["through the wilderness","pelo deserto"],["of this world,","deste mundo,"],["I lighted on","deparei-me com"],["a certain place","um certo lugar"],["where was a den,","onde havia uma cova,"],["and I laid me down","e me deitei"],["in that place","naquele lugar"],["to sleep;","para dormir;"],["and, as I slept,","e, enquanto dormia,"],["I dreamed a dream.","tive um sonho."]]'::jsonb,'Domínio público (1678). Texto original, grafia modernizada.');
 commit;

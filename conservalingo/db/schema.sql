@@ -40,7 +40,8 @@ create table characters (
 );
 
 -- Currículo ------------------------------------------------------------------
-create table courses (id text primary key, title text not null, module smallint not null);
+-- dialect: 'en-US' (Módulo 1, inglês padrão americano). Inglês britânico = capítulo/curso próprio ('en-GB').
+create table courses (id text primary key, title text not null, module smallint not null, dialect text not null default 'en-US' check (dialect in ('en-US','en-GB')));
 create table units (
   id text primary key, course_id text not null references courses(id),
   position smallint not null, title text not null, icon text, topics text,

@@ -59,6 +59,16 @@ if (wisdom.length < 10) err('banco de sabedoria pequeno');
 wisdom.forEach((w) => { if (!w.en || !w.pt || !w.source) err(`sabedoria ${w.id} incompleta`); });
 reading.forEach((r) => { if (!r.words.length || r.words.some((w) => w.length !== 2)) err(`leitura ${r.id} inválida`); });
 
+// Inglês padrão dos EUA: sem grafias/vocabulário britânicos e sem inglês arcaico (exceto texto histórico marcado).
+const BRIT = /\b(honour|neighbour|favour|colour|labour|harbour|behaviour|centre|theatre|defence|licence|grey|programme|whilst|lorry|autumn|holiday|flat|mum|biscuit|petrol|organis\w*|realis\w*|recognis\w*)\b/i;
+const ARCH = /\b(thy|thou|thee|thine|doth|hath|\w+eth)\b/i;
+const ARCH_OK = new Set(['r3']);
+const checkUS = (where, t) => { if (BRIT.test(t)) err(`${where}: grafia/vocabulário britânico em "${t}"`); if (ARCH.test(t)) err(`${where}: inglês arcaico em "${t}"`); };
+if (d('units.json').course.dialect !== 'en-US') err('curso deve declarar dialect en-US');
+for (const u of units) for (const l of u.lessons) { l.vocab.forEach((v) => checkUS(l.id, v.en)); l.dialogue.forEach((x) => checkUS(l.id, x.en)); }
+wisdom.forEach((w) => checkUS(w.id, w.en));
+reading.forEach((r) => { if (!ARCH_OK.has(r.id)) r.words.forEach((x) => checkUS(r.id, x[0])); });
+
 // Cobertura de áudio: todo texto em inglês falado pelo app precisa ter clipe pré-gravado.
 const manifest = fs.readFileSync(path.join(__dirname, '../src/audio/manifest.ts'), 'utf8');
 const have = new Set([...manifest.matchAll(/^  ("(?:[^"\\]|\\.)*"):/gm)].map((m) => JSON.parse(m[1])));

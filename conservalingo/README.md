@@ -45,3 +45,10 @@ ou estrutura do Módulo 1 divergirem do handoff.
   e o PIN dos pais deve ser guardado com hash no servidor (hoje fica no dispositivo).
 - **Ligas semanais**: patentes são por XP total; o XP semanal já é registrado (`weekXp`) para ligas com ranking online.
 - **Citações**: revisar atribuições e traduções com um editor antes do lançamento.
+
+## Dialeto do inglês
+
+O Módulo 1 usa **inglês padrão dos Estados Unidos** (grafia americana, vozes `en_US` e fallback `en-US`).
+`npm run validate` falha se aparecer grafia/vocabulário britânico ou inglês arcaico. O inglês britânico terá um
+capítulo próprio (curso `en-GB`; o schema já prevê `courses.dialect`) com vozes e textos separados.
+Os versículos usam inglês americano atual (ex.: "Honor your father and your mother").
