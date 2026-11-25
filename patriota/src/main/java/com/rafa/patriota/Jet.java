@@ -296,8 +296,8 @@ final class Jet {
         if (w.hp <= 0 && !w.dying) {
             w.dying = true; w.sinkT = 0; w.vx = -20;
             kills++;
-            if (hero == 0 && time - lastVoice > 5f && Game.extraOn(jetStageIdx()) && rnd.nextFloat() < 0.5f) {
-                String ln = Game.EXTRA[rnd.nextInt(Game.EXTRA.length)];
+            String ln = hero == 0 && time - lastVoice > 5f && rnd.nextFloat() < 0.5f ? Game.extraLine(rnd, jetStageIdx()) : null;
+            if (ln != null) {
                 if (L.hasClip(ln)) { lastVoice = time; L.voice(ln); pop(ln, x, y - 100, 1.8f, 0xFFFFFFFF); }
             }
             score += w.type == 0 ? 300 : 450;

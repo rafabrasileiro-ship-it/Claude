@@ -40,4 +40,4 @@ voz_lula_se_prepare    -> início da fase final
 v84: 20 falas extras do Jair (voz_petralhada, voz_decepcao, voz_ta_ok, voz_tem_que_se_fuder, voz_tem_que_dar_vida, voz_so_voce_nao_estuprar,
 voz_pervertidos, voz_pedrinhas, voz_presidios_1/2, voz_seminario_lgbt, voz_respeitar, voz_kit_gay, voz_de_brincadeira, voz_homofobia,
 voz_orgao_excretor, voz_criancas_6_anos, voz_vagabundos_marginais, voz_pode_beijar, voz_mst_1).
-Tocam nas brigas (40% das provocações) e, no jet-ski, ao derrotar baleias. Painel: Opções > "Falas do Jair" (escolhe as fases ou TODAS AS FASES).
+Tocam nas brigas (40% das provocações) e, no jet-ski, ao derrotar baleias, conforme a tabela EXTRA_FASES em Game.java (escolhida pelo Rafa, fala por fala). "Presídios!" ficou de fora.

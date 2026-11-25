@@ -530,8 +530,20 @@ final class Game {
             "Só você não estuprar, não sequestrar!", "Pervertidos!", "A única coisa boa do Maranhão é o presídio de Pedrinhas!", "Presídios!",
             "Besteiras como seminário LGBT infantil!", "Respeitar!", "Kit gay!", "Tá de brincadeira?", "Homofobia!", "Órgão excretor!",
             "Nós não podemos estimular crianças de 6 anos a serem homo...", "Vagabundos e marginais que vivem nas costas do governo!", "Pode beijar à vontade!", "MST!"};
-    static int extraMask = -1;
-    static boolean extraOn(int stageIdx) { return stageIdx >= 0 && stageIdx < 31 && ((extraMask >>> stageIdx) & 1) != 0; }
+    // fases (bit i = fase i da lista): A = 1, 2, 2.5, 3; B = 4.1 a 4.4; C = jet-ski e 5
+    private static final int FA = 0x0F, FB = 0xF0, FC = 0x300, FALL = 0x3FF;
+    /** em quais fases cada fala extra toca (escolhido pelo jogador, fala por fala). */
+    private static final int[] EXTRA_FASES = {FALL, FB, FA | FB, FALL, FA | FB, FB, FALL, FALL, 0, FALL, FA | FB, FALL, FALL, FA | FB, FALL, FB, FA | FB, FB, FA};
+    static boolean extraOn(int stageIdx) { for (int m : EXTRA_FASES) if (stageIdx >= 0 && ((m >>> stageIdx) & 1) != 0) return true; return false; }
+    /** fala extra sorteada para a fase (null se nenhuma toca nela). */
+    static String extraLine(java.util.Random r, int stageIdx) {
+        int n = 0;
+        for (int m : EXTRA_FASES) if (stageIdx >= 0 && ((m >>> stageIdx) & 1) != 0) n++;
+        if (n == 0) return null;
+        int k = r.nextInt(n);
+        for (int i = 0; i < EXTRA_FASES.length; i++) if (stageIdx >= 0 && ((EXTRA_FASES[i] >>> stageIdx) & 1) != 0 && k-- == 0) return EXTRA[i];
+        return null;
+    }
     static float lineLen(String s) { return clipLen(s); }
 
     private static float clipLen(String s) {
@@ -607,7 +619,7 @@ final class Game {
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
         if (hero != 0 || voiceCd > 0) return;
-        if (extraOn(stageIdx) && rnd.nextFloat() < 0.4f) { voice(EXTRA[rnd.nextInt(EXTRA.length)], false); return; }
+        if (rnd.nextFloat() < 0.4f) { String x = extraLine(rnd, stageIdx); if (x != null) { voice(x, false); return; } }
         String[] pool = BRIGA;
         // falas específicas por fase: estúdios da Grobo (4.1 a 4.4) e universidade (fase 3)
         if (bossRef != null && bossRef.kind == Data.K_MULA && rnd.nextFloat() < 0.6f) pool = CONTRA_MULA;
