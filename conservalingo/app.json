@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "Conservalingo",
+    "slug": "conservalingo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F9F7F2",
+    "ios": { "supportsTablet": true, "bundleIdentifier": "br.com.conservalingo.app" },
+    "android": { "package": "br.com.conservalingo.app" },
+    "web": { "bundler": "metro" },
+    "plugins": ["expo-font"]
+  }
+}

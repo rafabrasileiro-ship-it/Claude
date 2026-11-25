@@ -1,0 +1,456 @@
+{
+  "course": { "id": "en-for-pt", "title": "Inglês para Falantes de Português", "module": 1 },
+  "units": [
+    {
+      "id": "u1", "title": "Saudações, Cortesia e Respeito", "icon": "🤝",
+      "cast": ["ayrton", "alice"],
+      "topics": "Cumprimentos formais, apresentações respeitosas, títulos de tratamento, verbo to be no presente.",
+      "lessons": [
+        {
+          "id": "u1l1", "title": "Good morning, Sir",
+          "vocab": [
+            {"en": "Good morning", "pt": "Bom dia"},
+            {"en": "Good afternoon", "pt": "Boa tarde"},
+            {"en": "Good evening", "pt": "Boa noite"},
+            {"en": "Sir", "pt": "Senhor"},
+            {"en": "Ma'am", "pt": "Senhora"},
+            {"en": "Goodbye", "pt": "Adeus"}
+          ],
+          "dialogue": [
+            {"who": "alice", "en": "Good morning, Sir.", "pt": "Bom dia, senhor."},
+            {"who": "ayrton", "en": "Good morning, Ma'am. You are on time.", "pt": "Bom dia, senhora. A senhora está pontual."},
+            {"who": "alice", "en": "Punctuality is a form of respect.", "pt": "A pontualidade é uma forma de respeito."},
+            {"who": "ayrton", "en": "Indeed. Good afternoon, and goodbye.", "pt": "De fato. Boa tarde e adeus."}
+          ]
+        },
+        {
+          "id": "u1l2", "title": "Nice to meet you",
+          "vocab": [
+            {"en": "My name is", "pt": "Meu nome é"},
+            {"en": "Nice to meet you", "pt": "Prazer em conhecê-lo"},
+            {"en": "Mister", "pt": "Senhor (título)"},
+            {"en": "Miss", "pt": "Senhorita"},
+            {"en": "Doctor", "pt": "Doutor"},
+            {"en": "Welcome", "pt": "Bem-vindo"}
+          ],
+          "dialogue": [
+            {"who": "ayrton", "en": "My name is Ayrton. I am an engineer.", "pt": "Meu nome é Ayrton. Sou engenheiro."},
+            {"who": "alice", "en": "Nice to meet you, Mister Ayrton. I am Alice.", "pt": "Prazer em conhecê-lo, senhor Ayrton. Sou Alice."},
+            {"who": "ayrton", "en": "Welcome to our meeting, Doctor Alice.", "pt": "Bem-vinda à nossa reunião, doutora Alice."},
+            {"who": "alice", "en": "Thank you. The pleasure is mine.", "pt": "Obrigada. O prazer é meu."}
+          ]
+        },
+        {
+          "id": "u1l3", "title": "I am, you are",
+          "vocab": [
+            {"en": "I am", "pt": "Eu sou / estou"},
+            {"en": "You are", "pt": "Você é / está"},
+            {"en": "He is", "pt": "Ele é / está"},
+            {"en": "She is", "pt": "Ela é / está"},
+            {"en": "We are", "pt": "Nós somos / estamos"},
+            {"en": "They are", "pt": "Eles são / estão"}
+          ],
+          "dialogue": [
+            {"who": "alice", "en": "I am a lawyer. You are an engineer.", "pt": "Sou advogada. Você é engenheiro."},
+            {"who": "ayrton", "en": "Yes. He is a soldier, and she is a teacher.", "pt": "Sim. Ele é soldado e ela é professora."},
+            {"who": "alice", "en": "We are neighbors and they are our friends.", "pt": "Somos vizinhos e eles são nossos amigos."},
+            {"who": "ayrton", "en": "We are ready to begin.", "pt": "Estamos prontos para começar."}
+          ]
+        },
+        {
+          "id": "u1l4", "title": "Courtesy and manners",
+          "vocab": [
+            {"en": "Please", "pt": "Por favor"},
+            {"en": "Thank you", "pt": "Obrigado"},
+            {"en": "You are welcome", "pt": "De nada"},
+            {"en": "Excuse me", "pt": "Com licença"},
+            {"en": "I am sorry", "pt": "Sinto muito"},
+            {"en": "With pleasure", "pt": "Com prazer"}
+          ],
+          "dialogue": [
+            {"who": "ayrton", "en": "Excuse me, Ma'am. Please sit here.", "pt": "Com licença, senhora. Por favor, sente-se aqui."},
+            {"who": "alice", "en": "Thank you very much, Sir.", "pt": "Muito obrigada, senhor."},
+            {"who": "ayrton", "en": "You are welcome. I am sorry for the delay.", "pt": "De nada. Sinto muito pelo atraso."},
+            {"who": "alice", "en": "No problem. I will help you with pleasure.", "pt": "Sem problema. Eu o ajudarei com prazer."}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u2", "title": "O Lar e a Família", "icon": "🏡",
+      "cast": ["maria", "gabriel", "davi", "liz"],
+      "topics": "Grau de parentesco, cômodos da casa, refeições em família, agradecimento à mesa.",
+      "lessons": [
+        {
+          "id": "u2l1", "title": "My family",
+          "vocab": [
+            {"en": "husband", "pt": "marido"},
+            {"en": "wife", "pt": "esposa"},
+            {"en": "father", "pt": "pai"},
+            {"en": "mother", "pt": "mãe"},
+            {"en": "son", "pt": "filho"},
+            {"en": "daughter", "pt": "filha"}
+          ],
+          "dialogue": [
+            {"who": "maria", "en": "This is my husband, Gabriel.", "pt": "Este é meu marido, Gabriel."},
+            {"who": "gabriel", "en": "And this is my wife, Maria.", "pt": "E esta é minha esposa, Maria."},
+            {"who": "davi", "en": "I am your son, Davi. I love my mother and my father.", "pt": "Sou seu filho, Davi. Amo minha mãe e meu pai."},
+            {"who": "liz", "en": "I am your daughter, Liz.", "pt": "Sou sua filha, Liz."}
+          ]
+        },
+        {
+          "id": "u2l2", "title": "Rooms of the house",
+          "vocab": [
+            {"en": "kitchen", "pt": "cozinha"},
+            {"en": "living room", "pt": "sala de estar"},
+            {"en": "bedroom", "pt": "quarto"},
+            {"en": "bathroom", "pt": "banheiro"},
+            {"en": "dining room", "pt": "sala de jantar"},
+            {"en": "garden", "pt": "jardim"}
+          ],
+          "dialogue": [
+            {"who": "maria", "en": "Welcome to our home. This is the living room.", "pt": "Bem-vindos ao nosso lar. Esta é a sala de estar."},
+            {"who": "davi", "en": "Mom, where is Dad?", "pt": "Mãe, onde está o papai?"},
+            {"who": "maria", "en": "He is in the kitchen. He is cooking.", "pt": "Ele está na cozinha. Está cozinhando."},
+            {"who": "liz", "en": "I am in the garden with the flowers.", "pt": "Estou no jardim com as flores."}
+          ]
+        },
+        {
+          "id": "u2l3", "title": "Family meals",
+          "vocab": [
+            {"en": "breakfast", "pt": "café da manhã"},
+            {"en": "lunch", "pt": "almoço"},
+            {"en": "dinner", "pt": "jantar"},
+            {"en": "bread", "pt": "pão"},
+            {"en": "soup", "pt": "sopa"},
+            {"en": "water", "pt": "água"}
+          ],
+          "dialogue": [
+            {"who": "gabriel", "en": "Dinner is ready. Please come to the table.", "pt": "O jantar está pronto. Venham à mesa, por favor."},
+            {"who": "davi", "en": "I want soup and bread, please.", "pt": "Quero sopa e pão, por favor."},
+            {"who": "liz", "en": "I want water, Dad.", "pt": "Quero água, papai."},
+            {"who": "maria", "en": "We eat dinner together every night.", "pt": "Jantamos juntos toda noite."}
+          ]
+        },
+        {
+          "id": "u2l4", "title": "Thanks at the table",
+          "vocab": [
+            {"en": "Let us give thanks", "pt": "Vamos dar graças"},
+            {"en": "bless this food", "pt": "abençoe este alimento"},
+            {"en": "delicious", "pt": "delicioso"},
+            {"en": "more", "pt": "mais"},
+            {"en": "Pass the bread, please", "pt": "Passe o pão, por favor"},
+            {"en": "Amen", "pt": "Amém"}
+          ],
+          "dialogue": [
+            {"who": "gabriel", "en": "Let us give thanks. Lord, bless this food.", "pt": "Vamos dar graças. Senhor, abençoe este alimento."},
+            {"who": "liz", "en": "Amen.", "pt": "Amém."},
+            {"who": "davi", "en": "Pass the bread, please. This soup is delicious.", "pt": "Passe o pão, por favor. Esta sopa está deliciosa."},
+            {"who": "maria", "en": "Thank you, my dear. Would you like more?", "pt": "Obrigada, querido. Você quer mais?"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u3", "title": "Trabalho, Mérito e Vocação", "icon": "⚙️",
+      "cast": ["jose", "flavia"],
+      "topics": "Profissões, números, horas, rotina produtiva, negócios básicos.",
+      "lessons": [
+        {
+          "id": "u3l1", "title": "Professions",
+          "vocab": [
+            {"en": "engineer", "pt": "engenheiro"},
+            {"en": "doctor", "pt": "médico"},
+            {"en": "lawyer", "pt": "advogado"},
+            {"en": "teacher", "pt": "professor"},
+            {"en": "farmer", "pt": "agricultor"},
+            {"en": "manager", "pt": "gestor"}
+          ],
+          "dialogue": [
+            {"who": "jose", "en": "I am the founder of this company.", "pt": "Sou o fundador desta empresa."},
+            {"who": "flavia", "en": "I am the manager of a farm. My husband is an engineer.", "pt": "Sou a gestora de uma fazenda. Meu marido é engenheiro."},
+            {"who": "jose", "en": "My wife is an architect. Work is a blessing.", "pt": "Minha esposa é arquiteta. O trabalho é uma bênção."},
+            {"who": "flavia", "en": "Good work builds a good country.", "pt": "O bom trabalho constrói um bom país."}
+          ]
+        },
+        {
+          "id": "u3l2", "title": "Numbers and time",
+          "vocab": [
+            {"en": "one", "pt": "um"},
+            {"en": "two", "pt": "dois"},
+            {"en": "five", "pt": "cinco"},
+            {"en": "ten", "pt": "dez"},
+            {"en": "hour", "pt": "hora"},
+            {"en": "o'clock", "pt": "em ponto"}
+          ],
+          "dialogue": [
+            {"who": "jose", "en": "What time is it?", "pt": "Que horas são?"},
+            {"who": "flavia", "en": "It is eight o'clock.", "pt": "São oito horas em ponto."},
+            {"who": "jose", "en": "The meeting is at nine. We have one hour.", "pt": "A reunião é às nove. Temos uma hora."},
+            {"who": "flavia", "en": "Ten people will come. We will be ready.", "pt": "Dez pessoas virão. Estaremos prontos."}
+          ]
+        },
+        {
+          "id": "u3l3", "title": "A productive routine",
+          "vocab": [
+            {"en": "wake up", "pt": "acordar"},
+            {"en": "work", "pt": "trabalhar"},
+            {"en": "early", "pt": "cedo"},
+            {"en": "late", "pt": "tarde (atrasado)"},
+            {"en": "every day", "pt": "todos os dias"},
+            {"en": "rest", "pt": "descansar"}
+          ],
+          "dialogue": [
+            {"who": "flavia", "en": "I wake up early every day.", "pt": "Eu acordo cedo todos os dias."},
+            {"who": "jose", "en": "I work hard, and I rest on Sunday.", "pt": "Eu trabalho duro e descanso no domingo."},
+            {"who": "flavia", "en": "Never be late. Time is a gift.", "pt": "Nunca se atrase. O tempo é um presente."},
+            {"who": "jose", "en": "A good routine is the road to success.", "pt": "Uma boa rotina é o caminho para o sucesso."}
+          ]
+        },
+        {
+          "id": "u3l4", "title": "Business basics",
+          "vocab": [
+            {"en": "hard work", "pt": "trabalho duro"},
+            {"en": "honesty", "pt": "honestidade"},
+            {"en": "profit", "pt": "lucro"},
+            {"en": "property", "pt": "propriedade"},
+            {"en": "agreement", "pt": "acordo"},
+            {"en": "contract", "pt": "contrato"}
+          ],
+          "dialogue": [
+            {"who": "jose", "en": "Honesty is the base of every good business.", "pt": "A honestidade é a base de todo bom negócio."},
+            {"who": "flavia", "en": "We have an agreement. Please sign the contract.", "pt": "Temos um acordo. Por favor, assine o contrato."},
+            {"who": "jose", "en": "Profit comes from hard work.", "pt": "O lucro vem do trabalho duro."},
+            {"who": "flavia", "en": "And private property must be respected.", "pt": "E a propriedade privada deve ser respeitada."}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u4", "title": "Pátria, Ordem e Dever Cívico", "icon": "🏛️",
+      "cast": ["lucas", "ayrton"],
+      "topics": "Direções, lugares da cidade, instituições, símbolos nacionais, deveres cívicos.",
+      "lessons": [
+        {
+          "id": "u4l1", "title": "Directions",
+          "vocab": [
+            {"en": "left", "pt": "esquerda"},
+            {"en": "right", "pt": "direita"},
+            {"en": "straight ahead", "pt": "em frente"},
+            {"en": "near", "pt": "perto"},
+            {"en": "far", "pt": "longe"},
+            {"en": "corner", "pt": "esquina"}
+          ],
+          "dialogue": [
+            {"who": "ayrton", "en": "Excuse me, Captain. Where is the city hall?", "pt": "Com licença, capitão. Onde fica a prefeitura?"},
+            {"who": "lucas", "en": "Go straight ahead. Turn left at the corner.", "pt": "Siga em frente. Vire à esquerda na esquina."},
+            {"who": "ayrton", "en": "Is it far from here?", "pt": "Fica longe daqui?"},
+            {"who": "lucas", "en": "No, it is near. It is on your right.", "pt": "Não, é perto. Fica à sua direita."}
+          ]
+        },
+        {
+          "id": "u4l2", "title": "Places in the city",
+          "vocab": [
+            {"en": "church", "pt": "igreja"},
+            {"en": "school", "pt": "escola"},
+            {"en": "bank", "pt": "banco"},
+            {"en": "courthouse", "pt": "fórum"},
+            {"en": "hospital", "pt": "hospital"},
+            {"en": "park", "pt": "parque"}
+          ],
+          "dialogue": [
+            {"who": "lucas", "en": "This is a peaceful city. The church is near the school.", "pt": "Esta é uma cidade pacífica. A igreja fica perto da escola."},
+            {"who": "ayrton", "en": "I am building a new hospital next to the park.", "pt": "Estou construindo um novo hospital ao lado do parque."},
+            {"who": "lucas", "en": "The bank and the courthouse are on the same street.", "pt": "O banco e o fórum ficam na mesma rua."},
+            {"who": "ayrton", "en": "A good city needs order.", "pt": "Uma boa cidade precisa de ordem."}
+          ]
+        },
+        {
+          "id": "u4l3", "title": "Our country",
+          "vocab": [
+            {"en": "flag", "pt": "bandeira"},
+            {"en": "country", "pt": "país"},
+            {"en": "anthem", "pt": "hino"},
+            {"en": "homeland", "pt": "pátria"},
+            {"en": "citizen", "pt": "cidadão"},
+            {"en": "soldier", "pt": "soldado"}
+          ],
+          "dialogue": [
+            {"who": "lucas", "en": "I am a soldier. I serve my country.", "pt": "Sou soldado. Sirvo meu país."},
+            {"who": "ayrton", "en": "I am a citizen. I respect our flag.", "pt": "Sou cidadão. Respeito nossa bandeira."},
+            {"who": "lucas", "en": "We stand for the anthem with respect.", "pt": "Ficamos de pé com respeito durante o hino."},
+            {"who": "ayrton", "en": "We love our homeland.", "pt": "Amamos nossa pátria."}
+          ]
+        },
+        {
+          "id": "u4l4", "title": "Civic duty",
+          "vocab": [
+            {"en": "duty", "pt": "dever"},
+            {"en": "law", "pt": "lei"},
+            {"en": "order", "pt": "ordem"},
+            {"en": "freedom", "pt": "liberdade"},
+            {"en": "vote", "pt": "votar"},
+            {"en": "serve", "pt": "servir"}
+          ],
+          "dialogue": [
+            {"who": "lucas", "en": "Duty comes before comfort.", "pt": "O dever vem antes do conforto."},
+            {"who": "ayrton", "en": "We obey the law, and we vote with responsibility.", "pt": "Obedecemos à lei e votamos com responsabilidade."},
+            {"who": "lucas", "en": "Order protects our freedom.", "pt": "A ordem protege nossa liberdade."},
+            {"who": "ayrton", "en": "Free men serve their country with honor.", "pt": "Homens livres servem seu país com honra."}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u5", "title": "Tradição, Fé e Sabedoria", "icon": "✝️",
+      "cast": ["beto", "clara", "gael", "laura"],
+      "topics": "Dias da semana (ênfase no domingo em família), virtudes cardeais, provérbios em inglês.",
+      "lessons": [
+        {
+          "id": "u5l1", "title": "Days of the week",
+          "vocab": [
+            {"en": "Sunday", "pt": "domingo"},
+            {"en": "Monday", "pt": "segunda-feira"},
+            {"en": "Tuesday", "pt": "terça-feira"},
+            {"en": "Wednesday", "pt": "quarta-feira"},
+            {"en": "Thursday", "pt": "quinta-feira"},
+            {"en": "Friday", "pt": "sexta-feira"},
+            {"en": "Saturday", "pt": "sábado"}
+          ],
+          "dialogue": [
+            {"who": "beto", "en": "Children, what day is today?", "pt": "Crianças, que dia é hoje?"},
+            {"who": "gael", "en": "Today is Sunday, Dad!", "pt": "Hoje é domingo, papai!"},
+            {"who": "beto", "en": "Correct. Monday comes after Sunday, and Friday comes before Saturday.", "pt": "Correto. A segunda vem depois do domingo, e a sexta vem antes do sábado."},
+            {"who": "laura", "en": "I like Sunday the most.", "pt": "Eu gosto mais do domingo."}
+          ]
+        },
+        {
+          "id": "u5l2", "title": "Sunday with the family",
+          "vocab": [
+            {"en": "pray", "pt": "orar"},
+            {"en": "together", "pt": "juntos"},
+            {"en": "Bible", "pt": "Bíblia"},
+            {"en": "grandparents", "pt": "avós"},
+            {"en": "tradition", "pt": "tradição"},
+            {"en": "blessing", "pt": "bênção"}
+          ],
+          "dialogue": [
+            {"who": "clara", "en": "On Sunday, we go to church together.", "pt": "No domingo, vamos juntos à igreja."},
+            {"who": "gael", "en": "We pray, and we read the Bible.", "pt": "Nós oramos e lemos a Bíblia."},
+            {"who": "beto", "en": "Then we visit the grandparents. It is a family tradition.", "pt": "Depois visitamos os avós. É uma tradição de família."},
+            {"who": "laura", "en": "Family is a blessing.", "pt": "A família é uma bênção."}
+          ]
+        },
+        {
+          "id": "u5l3", "title": "The cardinal virtues",
+          "vocab": [
+            {"en": "prudence", "pt": "prudência"},
+            {"en": "justice", "pt": "justiça"},
+            {"en": "fortitude", "pt": "fortaleza"},
+            {"en": "temperance", "pt": "temperança"},
+            {"en": "faith", "pt": "fé"},
+            {"en": "virtue", "pt": "virtude"}
+          ],
+          "dialogue": [
+            {"who": "beto", "en": "A virtue is a good habit. There are four cardinal virtues.", "pt": "Uma virtude é um bom hábito. Há quatro virtudes cardeais."},
+            {"who": "clara", "en": "They are prudence, justice, fortitude and temperance.", "pt": "São prudência, justiça, fortaleza e temperança."},
+            {"who": "gael", "en": "Prudence means thinking before acting.", "pt": "Prudência significa pensar antes de agir."},
+            {"who": "beto", "en": "And faith gives us strength.", "pt": "E a fé nos dá força."}
+          ]
+        },
+        {
+          "id": "u5l4", "title": "Proverbs and wisdom",
+          "vocab": [
+            {"en": "wisdom", "pt": "sabedoria"},
+            {"en": "proverb", "pt": "provérbio"},
+            {"en": "honor", "pt": "honrar"},
+            {"en": "humble", "pt": "humilde"},
+            {"en": "diligent", "pt": "diligente"},
+            {"en": "patient", "pt": "paciente"}
+          ],
+          "dialogue": [
+            {"who": "beto", "en": "A proverb is a short sentence full of wisdom.", "pt": "Um provérbio é uma frase curta cheia de sabedoria."},
+            {"who": "clara", "en": "Honor your father and your mother.", "pt": "Honra teu pai e tua mãe."},
+            {"who": "gael", "en": "A soft answer turns away anger.", "pt": "A resposta branda desvia o furor."},
+            {"who": "beto", "en": "Be humble, be diligent and be patient.", "pt": "Seja humilde, diligente e paciente."}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u6", "title": "A Nova Geração e o Futuro", "icon": "🌱",
+      "cast": ["miguel", "heloisa", "gael", "laura", "arthur", "cecilia", "theo", "maite", "davi", "liz", "noah", "antonella"],
+      "topics": "Cores, animais, natureza, atividades ao ar livre, obediência aos pais, rotina escolar saudável.",
+      "lessons": [
+        {
+          "id": "u6l1", "title": "Colors",
+          "vocab": [
+            {"en": "blue", "pt": "azul"},
+            {"en": "green", "pt": "verde"},
+            {"en": "yellow", "pt": "amarelo"},
+            {"en": "red", "pt": "vermelho"},
+            {"en": "white", "pt": "branco"},
+            {"en": "black", "pt": "preto"}
+          ],
+          "dialogue": [
+            {"who": "miguel", "en": "The flag is green and yellow, and it has a blue circle.", "pt": "A bandeira é verde e amarela, e tem um círculo azul."},
+            {"who": "heloisa", "en": "My dress is white.", "pt": "Meu vestido é branco."},
+            {"who": "arthur", "en": "My shoes are black. My ball is red.", "pt": "Meus sapatos são pretos. Minha bola é vermelha."},
+            {"who": "cecilia", "en": "I like all the colors.", "pt": "Eu gosto de todas as cores."}
+          ]
+        },
+        {
+          "id": "u6l2", "title": "Animals",
+          "vocab": [
+            {"en": "dog", "pt": "cachorro"},
+            {"en": "cat", "pt": "gato"},
+            {"en": "horse", "pt": "cavalo"},
+            {"en": "cow", "pt": "vaca"},
+            {"en": "bird", "pt": "pássaro"},
+            {"en": "eagle", "pt": "águia"}
+          ],
+          "dialogue": [
+            {"who": "noah", "en": "There is a horse and a cow on the farm.", "pt": "Há um cavalo e uma vaca na fazenda."},
+            {"who": "antonella", "en": "I see a little bird.", "pt": "Eu vejo um passarinho."},
+            {"who": "theo", "en": "Look! The eagle is flying high.", "pt": "Olhem! A águia está voando alto."},
+            {"who": "maite", "en": "Doggy! My dog is nice.", "pt": "Cachorrinho! Meu cachorro é legal."}
+          ]
+        },
+        {
+          "id": "u6l3", "title": "Nature and outdoor play",
+          "vocab": [
+            {"en": "tree", "pt": "árvore"},
+            {"en": "river", "pt": "rio"},
+            {"en": "mountain", "pt": "montanha"},
+            {"en": "sun", "pt": "sol"},
+            {"en": "rain", "pt": "chuva"},
+            {"en": "play outside", "pt": "brincar ao ar livre"}
+          ],
+          "dialogue": [
+            {"who": "davi", "en": "The sun is bright. Let us play outside.", "pt": "O sol está forte. Vamos brincar lá fora."},
+            {"who": "liz", "en": "I see a big tree near the river.", "pt": "Eu vejo uma árvore grande perto do rio."},
+            {"who": "miguel", "en": "We can climb the mountain with Dad.", "pt": "Podemos subir a montanha com o papai."},
+            {"who": "heloisa", "en": "Look at the rain. God makes the flowers grow.", "pt": "Olhe a chuva. Deus faz as flores crescerem."}
+          ]
+        },
+        {
+          "id": "u6l4", "title": "Obedience and school",
+          "vocab": [
+            {"en": "obey", "pt": "obedecer"},
+            {"en": "listen", "pt": "ouvir"},
+            {"en": "homework", "pt": "lição de casa"},
+            {"en": "school", "pt": "escola"},
+            {"en": "teacher", "pt": "professora"},
+            {"en": "Yes, Mom", "pt": "Sim, mamãe"}
+          ],
+          "dialogue": [
+            {"who": "arthur", "en": "Dad says: obey your parents and listen to your teacher.", "pt": "O papai diz: obedeça seus pais e ouça sua professora."},
+            {"who": "noah", "en": "Mom, may I play now?", "pt": "Mamãe, posso brincar agora?"},
+            {"who": "flavia", "en": "First, finish your homework, Noah.", "pt": "Primeiro, termine sua lição de casa, Noah."},
+            {"who": "noah", "en": "Yes, Mom. I will obey.", "pt": "Sim, mamãe. Eu vou obedecer."}
+          ]
+        }
+      ]
+    }
+  ]
+}

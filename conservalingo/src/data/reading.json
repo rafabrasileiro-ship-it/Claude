@@ -1,0 +1,32 @@
+[
+  {
+    "id": "r1", "title": "Salmo 23 (trecho)", "author": "King James Version", "level": 1, "cost": 0,
+    "words": [
+      ["The Lord", "O Senhor"], ["is", "é"], ["my", "meu"], ["shepherd", "pastor"],
+      ["I", "eu"], ["shall", "irei"], ["not", "não"], ["want", "faltar"],
+      ["He", "Ele"], ["maketh me", "me faz"], ["to lie down", "deitar"], ["in green pastures", "em verdes pastos"],
+      ["He leadeth me", "Ele me conduz"], ["beside", "ao lado de"], ["the still waters", "as águas tranquilas"]
+    ],
+    "sourceNote": "Domínio público. Salmo 23:1-2."
+  },
+  {
+    "id": "r2", "title": "A Formiga Diligente", "author": "Provérbios 6 e fábula clássica (adaptação)", "level": 1, "cost": 20,
+    "words": [
+      ["In summer,", "No verão,"], ["the ant", "a formiga"], ["works", "trabalha"], ["every day.", "todos os dias."],
+      ["She", "Ela"], ["gathers", "recolhe"], ["food", "comida"], ["for the winter.", "para o inverno."],
+      ["The grasshopper", "O gafanhoto"], ["only", "apenas"], ["sings", "canta"], ["and plays.", "e brinca."],
+      ["When winter comes,", "Quando o inverno chega,"], ["the ant", "a formiga"], ["has bread,", "tem pão,"], ["but he has none.", "mas ele não tem nenhum."]
+    ],
+    "sourceNote": "Adaptação didática de fábula de Esopo; ver Provérbios 6:6-8."
+  },
+  {
+    "id": "r3", "title": "O Peregrino (abertura)", "author": "John Bunyan, The Pilgrim's Progress", "level": 2, "cost": 40,
+    "words": [
+      ["As I walked", "Enquanto eu caminhava"], ["through the wilderness", "pelo deserto"], ["of this world,", "deste mundo,"],
+      ["I lighted on", "deparei-me com"], ["a certain place", "um certo lugar"], ["where was a den,", "onde havia uma cova,"],
+      ["and I laid me down", "e me deitei"], ["in that place", "naquele lugar"], ["to sleep;", "para dormir;"],
+      ["and, as I slept,", "e, enquanto dormia,"], ["I dreamed a dream.", "tive um sonho."]
+    ],
+    "sourceNote": "Domínio público (1678). Texto original, grafia modernizada."
+  }
+]
