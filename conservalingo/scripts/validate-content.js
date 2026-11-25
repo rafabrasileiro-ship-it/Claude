@@ -65,11 +65,11 @@ const have = new Set([...manifest.matchAll(/^  ("(?:[^"\\]|\\.)*"):/gm)].map((m)
 const sexOf = {}; families.forEach((f) => { sexOf[f.id] = f.sex; sexOf[f.spouse.id] = f.spouse.sex; f.children.forEach((c) => (sexOf[c.id] = c.sex)); });
 const need = (k) => { if (!have.has(k)) err(`áudio ausente: ${k}`); };
 for (const u of units) for (const l of u.lessons) {
-  l.vocab.forEach((v) => need(`M|n|${v.en}`));
-  l.dialogue.forEach((x) => { const v = sexOf[x.who] || 'M'; need(`${v}|n|${x.en}`); if (x.en.split(/\s+/).length >= 3) need(`${v}|s|${x.en}`); });
+  l.vocab.forEach((v) => { need(`M|n|${v.en}`); need(`M|s|${v.en}`); });
+  l.dialogue.forEach((x) => { const v = sexOf[x.who] || 'M'; need(`${v}|n|${x.en}`); need(`${v}|s|${x.en}`); });
 }
-wisdom.forEach((w) => need(`M|n|${w.en}`));
-reading.forEach((r) => { need(`M|n|${r.words.map((w) => w[0]).join(' ')}`); r.words.forEach((w) => need(`M|n|${w[0]}`)); });
+wisdom.forEach((w) => { need(`M|n|${w.en}`); need(`M|s|${w.en}`); });
+reading.forEach((r) => { need(`M|n|${r.words.map((w) => w[0]).join(' ')}`); need(`M|s|${r.words.map((w) => w[0]).join(' ')}`); r.words.forEach((w) => need(`M|n|${w[0]}`)); });
 
 if (errs.length) { console.error('✖ Falhas:\n - ' + errs.join('\n - ')); process.exit(1); }
 console.log(`✔ Conteúdo válido: ${units.length} unidades, ${lessonIds.size} lições, ${wisdom.length} citações, ${reading.length} leituras, ${ids.size} personagens.`);

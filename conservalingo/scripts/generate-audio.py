@@ -15,7 +15,7 @@ DATA = ROOT / "src/data"
 OUT = ROOT / "src/audio/clips"
 models = Path(sys.argv[1])
 VOICES = {"M": "en_US-ryan-high.onnx", "F": "en_US-amy-medium.onnx"}
-SLOW = 1.35  # length_scale: maior = mais devagar
+SLOW = 1.9  # length_scale: maior = mais devagar (alonga fonemas, mantém o tom)
 
 chars = json.loads((DATA / "characters.json").read_text())
 sex = {}
@@ -25,10 +25,9 @@ for f in chars["families"]:
 sex["bento"] = "M"
 
 jobs = {}  # (voice, speed, text)
-def add(text, voice="M", slow=True):
+def add(text, voice="M"):
     jobs[(voice, "n", text)] = 1
-    if slow and len(text.split()) >= 3:
-        jobs[(voice, "s", text)] = 1
+    jobs[(voice, "s", text)] = 1  # toda fala tem versão lenta (botão 🐢)
 
 for u in json.loads((DATA / "units.json").read_text())["units"]:
     for l in u["lessons"]:

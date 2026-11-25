@@ -37,7 +37,7 @@ function speakDevice(text: string, language: 'en-US' | 'pt-BR', slow: boolean, v
 export function say(text: string, voice: Voice = 'M', slow = false) {
   try {
     stopAll();
-    const isSlow = slow && text.trim().split(/\s+/).length >= 3;
+    const isSlow = slow;
     const src = clips[`${voice}|${isSlow ? 's' : 'n'}|${text}`] ?? clips[`${voice}|n|${text}`] ?? clips[`M|${isSlow ? 's' : 'n'}|${text}`] ?? clips[`M|n|${text}`];
     if (src !== undefined) {
       if (!modeSet) { modeSet = true; setAudioModeAsync({ playsInSilentMode: true }).catch(() => {}); }
