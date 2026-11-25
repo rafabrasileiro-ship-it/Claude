@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle, TextStyle, StyleProp } from 'react-native';
-import { colors, fonts, radius, space } from '../theme';
+import { colors, fonts, radius, space, fs } from '../theme';
 
 export function Btn({ title, onPress, kind = 'primary', disabled, style }: {
   title: string; onPress: () => void; kind?: 'primary' | 'gold' | 'ghost' | 'danger'; disabled?: boolean; style?: ViewStyle;
@@ -31,14 +31,14 @@ export function P({ children, style }: { children: React.ReactNode; style?: Text
 export function Stat({ icon, value, label, color }: { icon: string; value: string | number; label: string; color: string }) {
   return (
     <View style={s.stat} accessibilityLabel={`${label}: ${value}`}>
-      <Text style={{ fontSize: 18 }}>{icon}</Text>
-      <Text style={[s.statVal, { color }]}>{value}</Text>
+      <Text style={{ fontSize: fs(18) }}>{icon}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={[s.statVal, { color }]}>{value}</Text>
       <Text style={s.statLabel}>{label}</Text>
     </View>
   );
 }
 
-export function Avatar({ emoji, color, size = 40 }: { emoji: string; color: string; size?: number }) {
+export function Avatar({ emoji, color, size = 52 }: { emoji: string; color: string; size?: number }) {
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ fontSize: size * 0.55 }}>{emoji}</Text>
@@ -55,14 +55,14 @@ export function ProgressBar({ value, color = colors.olive }: { value: number; co
 }
 
 const s = StyleSheet.create({
-  btn: { paddingVertical: 14, paddingHorizontal: space.lg, borderRadius: radius.md, alignItems: 'center' },
-  btnText: { fontFamily: fonts.sansBold, fontSize: 16, letterSpacing: 0.3 },
+  btn: { paddingVertical: 18, paddingHorizontal: space.lg, borderRadius: radius.md, alignItems: 'center' },
+  btnText: { fontFamily: fonts.sansBold, fontSize: fs(16), letterSpacing: 0.3 },
   card: { backgroundColor: colors.card, borderRadius: radius.lg, padding: space.md, borderWidth: 1, borderColor: colors.line },
-  h1: { fontFamily: fonts.serif, fontSize: 22, color: colors.navy },
-  p: { fontFamily: fonts.sans, fontSize: 15, color: colors.ink, lineHeight: 22 },
-  stat: { alignItems: 'center', flex: 1 },
-  statVal: { fontFamily: fonts.sansBold, fontSize: 18 },
-  statLabel: { fontFamily: fonts.sans, fontSize: 11, color: colors.muted },
+  h1: { fontFamily: fonts.serif, fontSize: fs(22), color: colors.navy },
+  p: { fontFamily: fonts.sans, fontSize: fs(15), color: colors.ink, lineHeight: 22 },
+  stat: { alignItems: "center", flex: 1, paddingHorizontal: 2 },
+  statVal: { fontFamily: fonts.sansBold, fontSize: fs(18) },
+  statLabel: { fontFamily: fonts.sans, fontSize: fs(11), color: colors.muted },
   barBg: { height: 10, borderRadius: 5, backgroundColor: colors.line, overflow: 'hidden' },
   barFill: { height: 10, borderRadius: 5 },
 });

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Exercise } from '../types';
-import { colors, fonts, radius, space } from '../theme';
+import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, H1, P } from './ui';
 import { say } from '../engine/audio';
 import { checkAnswer } from '../engine/exercises';
@@ -28,7 +28,7 @@ export default function ExerciseView({ ex, onDone }: Props) {
     return (
       <View style={s.wrap}>
         <P style={s.prompt}>{ex.prompt}</P>
-        <H1 style={{ textAlign: 'center', fontSize: 20 }}>{ex.question}</H1>
+        <H1 style={{ textAlign: 'center', fontSize: fs(20) }}>{ex.question}</H1>
         <Btn kind="ghost" title="🔊 Ouvir pronúncia" onPress={() => say(ex.speak!)} />
         <Btn kind="ghost" title="🐢 Ouvir devagar" onPress={() => say(ex.speak!, 'M', true)} />
         {/* Reconhecimento de fala: trocar a autoavaliação por expo-speech-recognition quando disponível. */}
@@ -107,11 +107,11 @@ const s = StyleSheet.create({
   wrap: { gap: space.md },
   prompt: { fontFamily: fonts.sansMedium, color: colors.muted, textAlign: 'center' },
   opt: { padding: space.md, borderRadius: radius.md, borderWidth: 2, borderColor: colors.line, backgroundColor: colors.card },
-  optText: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.ink },
+  optText: { fontFamily: fonts.sansMedium, fontSize: fs(16), color: colors.ink },
   answerBox: { minHeight: 56, flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 8, borderBottomWidth: 2, borderBottomColor: colors.line },
   bank: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   chip: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: radius.sm, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.card },
-  chipText: { fontFamily: fonts.sansMedium, fontSize: 16, color: colors.ink },
+  chipText: { fontFamily: fonts.sansMedium, fontSize: fs(16), color: colors.ink },
   feedback: { padding: space.md, borderRadius: radius.md, gap: space.sm },
-  fbTitle: { fontFamily: fonts.serif, fontSize: 16 },
+  fbTitle: { fontFamily: fonts.serif, fontSize: fs(16) },
 });

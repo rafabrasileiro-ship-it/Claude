@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
-import { colors, fonts, radius, space } from '../theme';
+import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, Card, H1, P } from '../components/ui';
 import { readings } from '../engine/content';
 import { useStore } from '../store';
@@ -34,7 +34,7 @@ export default function Reading() {
           ))}
         </Card>
         {gloss && <Card style={{ backgroundColor: colors.goldSoft }}><P>{gloss}</P></Card>}
-        <P style={{ color: colors.muted, fontSize: 12 }}>{open.sourceNote}</P>
+        <P style={{ color: colors.muted, fontSize: fs(12) }}>{open.sourceNote}</P>
       </ScrollView>
     );
   }
@@ -65,9 +65,9 @@ export default function Reading() {
 const s = StyleSheet.create({
   pad: { padding: space.md, gap: space.md, paddingBottom: 60 },
   back: { fontFamily: fonts.sansBold, color: colors.navy },
-  title: { fontFamily: fonts.serif, fontSize: 17, color: colors.navy },
+  title: { fontFamily: fonts.serif, fontSize: fs(17), color: colors.navy },
   text: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, backgroundColor: colors.ivory },
   word: { alignItems: 'center' },
-  en: { fontFamily: fonts.serifRegular, fontSize: 17, color: colors.ink },
-  pt: { fontFamily: fonts.sans, fontSize: 11, color: colors.olive },
+  en: { fontFamily: fonts.serifRegular, fontSize: fs(17), color: colors.ink },
+  pt: { fontFamily: fonts.sans, fontSize: fs(11), color: colors.olive },
 });

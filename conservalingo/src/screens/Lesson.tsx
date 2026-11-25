@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
-import { colors, fonts, radius, space } from '../theme';
+import { colors, fonts, radius, space, fs } from '../theme';
 import { Avatar, Btn, Card, H1, P, ProgressBar } from '../components/ui';
 import ExerciseView from '../components/ExerciseView';
 import { useStore } from '../store';
@@ -42,7 +42,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
   if (profile.shields.count === 0 && phase !== 'done') {
     return (
       <View style={s.center}>
-        <Text style={{ fontSize: 48 }}>🛡️</Text>
+        <Text style={{ fontSize: fs(48) }}>🛡️</Text>
         <H1>Sem escudos de atenção</H1>
         <P style={{ textAlign: 'center' }}>Os escudos se recuperam com o tempo (1 a cada 30 min). Faça o Treino de Virtude para revisar o que já aprendeu.</P>
         <Btn title="Voltar" onPress={onExit} />
@@ -98,7 +98,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
           const right = i % 2 === 1;
           return (
             <Pressable key={i} onPress={() => say(d.en, who?.sex ?? 'M')} style={[s.row, right && { flexDirection: 'row-reverse' }]}>
-              <View style={{ alignItems: 'center', width: 62 }}>
+              <View style={{ alignItems: 'center', width: 76 }}>
                 <Avatar emoji={who?.emoji ?? '🙂'} color={who?.color ?? colors.navy} />
                 <Text style={s.who}>{who?.name}</Text>
               </View>
@@ -124,7 +124,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
   if (phase === 'failed') {
     return (
       <View style={s.center}>
-        <Text style={{ fontSize: 48 }}>🛡️</Text>
+        <Text style={{ fontSize: fs(48) }}>🛡️</Text>
         <H1>Escudos esgotados</H1>
         <P style={{ textAlign: 'center' }}>Estude com calma e atenção. Volte quando os escudos se recuperarem, ou use o Treino de Virtude.</P>
         <Btn title="Voltar à trilha" onPress={onExit} />
@@ -137,14 +137,14 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
     const st = stars(errors);
     return (
       <ScrollView contentContainerStyle={s.pad}>
-        <Text style={{ fontSize: 52, textAlign: 'center' }}>{'⭐'.repeat(st)}</Text>
+        <Text style={{ fontSize: fs(52), textAlign: 'center' }}>{'⭐'.repeat(st)}</Text>
         <H1 style={{ textAlign: 'center' }}>Lição concluída!</H1>
         <Card style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
           <P>🪙 +{gain.talents} Talentos</P><P>🎖️ +{gain.xp} XP</P><P>❌ {errors} erros</P>
         </Card>
         <Card style={{ backgroundColor: colors.navy, gap: space.sm }}>
           <Text style={{ color: colors.gold, fontFamily: fonts.sansBold, letterSpacing: 1 }}>SABEDORIA DO DIA</Text>
-          <Text style={{ color: '#fff', fontFamily: fonts.serif, fontSize: 18, lineHeight: 28 }}>“{w.en}”</Text>
+          <Text style={{ color: '#fff', fontFamily: fonts.serif, fontSize: fs(18), lineHeight: 28 }}>“{w.en}”</Text>
           <Text style={{ color: '#D7DEEA', fontFamily: fonts.sans }}>{w.pt}</Text>
           <Text style={{ color: colors.gold, fontFamily: fonts.sansMedium }}>— {w.source}</Text>
           <Btn kind="gold" title="🔊 Ouvir" onPress={() => say(w.en)} />
@@ -158,7 +158,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
   return (
     <ScrollView contentContainerStyle={s.pad}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-        <Pressable onPress={onExit} accessibilityLabel="Sair da lição"><Text style={{ fontSize: 22, color: colors.muted }}>✕</Text></Pressable>
+        <Pressable onPress={onExit} accessibilityLabel="Sair da lição"><Text style={{ fontSize: fs(22), color: colors.muted }}>✕</Text></Pressable>
         <View style={{ flex: 1 }}><ProgressBar value={idx / queue.length} /></View>
         <Text style={{ fontFamily: fonts.sansBold, color: shieldsLeft ? colors.olive : colors.crimson }}>🛡️ {Math.max(0, shieldsLeft)}</Text>
       </View>
@@ -170,7 +170,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
 function Empty({ onExit }: { onExit: () => void }) {
   return (
     <View style={s.center}>
-      <Text style={{ fontSize: 48 }}>🌾</Text>
+      <Text style={{ fontSize: fs(48) }}>🌾</Text>
       <H1>Nada para revisar</H1>
       <Btn title="Voltar" onPress={onExit} />
     </View>
@@ -182,7 +182,7 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.lg, gap: space.md },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' },
   bubble: { flex: 1, backgroundColor: colors.card, borderRadius: radius.lg, padding: space.md, borderWidth: 1, borderColor: colors.line, gap: 4 },
-  en: { fontFamily: fonts.serif, fontSize: 15, color: colors.navy, lineHeight: 22 },
-  pt: { fontFamily: fonts.sans, fontSize: 13, color: colors.muted },
-  who: { fontFamily: fonts.sansBold, fontSize: 11, color: colors.muted, marginTop: 2, textAlign: 'center' },
+  en: { fontFamily: fonts.serif, fontSize: fs(15), color: colors.navy, lineHeight: 22 },
+  pt: { fontFamily: fonts.sans, fontSize: fs(13), color: colors.muted },
+  who: { fontFamily: fonts.sansBold, fontSize: fs(11), color: colors.muted, marginTop: 2, textAlign: 'center' },
 });

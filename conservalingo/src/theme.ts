@@ -25,3 +25,7 @@ export const fonts = {
 
 export const radius = { sm: 8, md: 12, lg: 18 } as const;
 export const space = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 } as const;
+
+// Escala tipográfica para leitura confortável em telas de ~6" (+30%, mínimo 14).
+export const FONT_SCALE = 1.3;
+export const fs = (n: number) => Math.max(14, Math.round(n * FONT_SCALE));
