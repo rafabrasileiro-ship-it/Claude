@@ -1,0 +1,51 @@
+name: Conservalingo APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ["conservalingo/**", ".github/workflows/build-conservalingo-apk.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: conservalingo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: conservalingo/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm test
+      - name: Gerar projeto Android nativo
+        run: npx expo prebuild --platform android --no-install
+      - name: Compilar APK (release)
+        working-directory: conservalingo/android
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Copiar APK
+        run: |
+          mkdir -p ../dist
+          cp android/app/build/outputs/apk/release/app-release.apk ../dist/conservalingo.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: conservalingo-apk
+          path: dist/conservalingo.apk
+      - name: Publicar APK no repositório
+        working-directory: .
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -f dist/conservalingo.apk
+          git commit -m "Atualiza APK do Conservalingo [skip ci]" || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
