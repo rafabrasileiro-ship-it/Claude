@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 // Importa só as variações usadas (o índice do pacote embute todas e infla o APK).
@@ -64,10 +65,12 @@ export default function App() {
   const [loaded] = useFonts({ Merriweather_400Regular, Merriweather_700Bold, Inter_400Regular, Inter_500Medium, Inter_700Bold });
   if (!loaded) return null;
   return (
+    <SafeAreaProvider>
     <StoreProvider>
       <StatusBar style="light" />
       <Shell />
     </StoreProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -121,6 +121,6 @@ const s = StyleSheet.create({
   bank: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   chip: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: radius.md, borderWidth: 2, borderBottomWidth: 4, borderColor: colors.line, backgroundColor: '#fff' },
   chipText: { fontFamily: fonts.sansMedium, fontSize: fs(17), color: colors.ink },
-  bar: { padding: space.md, gap: space.sm, borderTopWidth: 2, borderTopColor: colors.line },
+  bar: { padding: space.md, paddingBottom: space.lg + 16, gap: space.sm, borderTopWidth: 2, borderTopColor: colors.line },
   fbTitle: { fontFamily: fonts.serif, fontSize: fs(18) },
 });
