@@ -27,6 +27,12 @@
             "useLegacyPackaging": true
           }
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
       ]
     ]
   }

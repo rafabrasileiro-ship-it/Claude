@@ -1,6 +1,6 @@
 import type { Exercise, Lesson, Unit } from '../types';
 import { shuffle, pick } from './rng';
-import { units } from './content';
+import { units, people } from './content';
 
 const norm = (s: string) => s.toLowerCase().replace(/[.,!?;:"“”]/g, '').replace(/\s+/g, ' ').trim();
 export const normalize = norm;
@@ -37,12 +37,12 @@ export function buildLessonExercises(unit: Unit, lesson: Lesson, rnd: () => numb
     ex.push({
       id: `${lesson.id}:d:${i}`, kind: toEn ? 'bank_en' : 'bank_pt',
       prompt: toEn ? 'Traduza para o inglês' : 'Traduza para o português',
-      question: toEn ? d.pt : d.en, speak: d.en,
+      question: toEn ? d.pt : d.en, speak: d.en, voice: people[d.who]?.sex ?? 'M',
       bank: shuffle([...words, ...extra], rnd), answer: target,
     });
   });
   const last = lesson.dialogue[lesson.dialogue.length - 1];
-  ex.push({ id: `${lesson.id}:s`, kind: 'speak', prompt: 'Leia em voz alta com boa dicção', question: last.en, speak: last.en, answer: last.en });
+  ex.push({ id: `${lesson.id}:s`, kind: 'speak', prompt: 'Leia em voz alta com boa dicção', question: last.en, speak: last.en, voice: people[last.who]?.sex ?? 'M', answer: last.en });
   return ex;
 }
 

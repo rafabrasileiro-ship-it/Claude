@@ -13,7 +13,8 @@ export interface Exercise {
   kind: ExerciseKind;
   prompt: string;        // instrução curta em PT
   question: string;      // texto exibido (ou frase de áudio)
-  speak?: string;        // texto em inglês para TTS
+  speak?: string;        // texto em inglês a ser falado (clipe pré-gravado)
+  voice?: 'M' | 'F';     // voz do falante (masculina/feminina)
   options?: string[];    // 'choose' / 'listen'
   bank?: string[];       // palavras embaralhadas (inclui distratores)
   answer: string;        // resposta correta

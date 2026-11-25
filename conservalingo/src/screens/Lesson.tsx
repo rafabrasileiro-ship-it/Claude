@@ -9,7 +9,7 @@ import { buildLessonExercises, buildPracticeFromKeys, buildReviewExercises } fro
 import { mulberry32 } from '../engine/rng';
 import { dueKeys, review } from '../engine/srs';
 import { rankFor, stars, touchStreak, weekKey } from '../engine/game';
-import { say } from '../engine/audio';
+import { say, sayPt } from '../engine/audio';
 import type { LessonRef } from './Home';
 import type { Exercise } from '../types';
 
@@ -97,22 +97,22 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
           const who = people[d.who];
           const right = i % 2 === 1;
           return (
-            <Pressable key={i} onPress={() => say(d.en, who?.sex ?? 'M')} style={[s.row, right && { flexDirection: 'row-reverse' }]}>
+            <View key={i} style={[s.row, right && { flexDirection: 'row-reverse' }]}>
               <View style={{ alignItems: 'center', width: 76 }}>
                 <Avatar emoji={who?.emoji ?? '🙂'} color={who?.color ?? colors.navy} />
                 <Text style={s.who}>{who?.name}</Text>
               </View>
               <View style={[s.bubble, right && { backgroundColor: colors.navySoft }]}>
-                <Text style={s.en}>{d.en} 🔊</Text>
-                <Text style={s.pt}>{d.pt}</Text>
+                <Pressable onPress={() => say(d.en, who?.sex ?? 'M')} accessibilityLabel="Ouvir em inglês"><Text style={s.en}>{d.en} 🔊</Text></Pressable>
+                <Pressable onPress={() => sayPt(d.pt)} accessibilityLabel="Ouvir em português"><Text style={s.pt}>{d.pt} 🇧🇷</Text></Pressable>
               </View>
-            </Pressable>
+            </View>
           );
         })}
         <Card style={{ backgroundColor: colors.goldSoft }}>
           <Text style={s.who}>Vocabulário</Text>
           {meta.lesson.vocab.map((v) => (
-            <Pressable key={v.en} onPress={() => say(v.en)}><P>🔊 <Text style={{ fontFamily: fonts.sansBold }}>{v.en}</Text> — {v.pt}</P></Pressable>
+            <Pressable key={v.en} onPress={() => say(v.en, 'M')}><P>🔊 <Text style={{ fontFamily: fonts.sansBold }}>{v.en}</Text> — {v.pt}</P></Pressable>
           ))}
         </Card>
         <Btn title="Começar exercícios" onPress={() => setPhase('quiz')} />
@@ -147,7 +147,8 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
           <Text style={{ color: '#fff', fontFamily: fonts.serif, fontSize: fs(18), lineHeight: 28 }}>“{w.en}”</Text>
           <Text style={{ color: '#D7DEEA', fontFamily: fonts.sans }}>{w.pt}</Text>
           <Text style={{ color: colors.gold, fontFamily: fonts.sansMedium }}>— {w.source}</Text>
-          <Btn kind="gold" title="🔊 Ouvir" onPress={() => say(w.en)} />
+          <Btn kind="gold" title="🔊 Ouvir em inglês" onPress={() => say(w.en, 'M')} />
+          <Btn kind="ghost" title="🇧🇷 Ouvir tradução" onPress={() => sayPt(w.pt)} />
         </Card>
         <Btn title="Continuar" onPress={onExit} />
       </ScrollView>
@@ -156,14 +157,14 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
 
   const cur = queue[idx];
   return (
-    <ScrollView contentContainerStyle={s.pad}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-        <Pressable onPress={onExit} accessibilityLabel="Sair da lição"><Text style={{ fontSize: fs(22), color: colors.muted }}>✕</Text></Pressable>
+    <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md }}>
+        <Pressable onPress={onExit} accessibilityLabel="Sair da lição"><Text style={{ fontSize: fs(24), color: colors.muted }}>✕</Text></Pressable>
         <View style={{ flex: 1 }}><ProgressBar value={idx / queue.length} /></View>
-        <Text style={{ fontFamily: fonts.sansBold, color: shieldsLeft ? colors.olive : colors.crimson }}>🛡️ {Math.max(0, shieldsLeft)}</Text>
+        <Text style={{ fontFamily: fonts.sansBold, fontSize: fs(16), color: shieldsLeft ? colors.olive : colors.crimson }}>🛡️ {Math.max(0, shieldsLeft)}</Text>
       </View>
       <ExerciseView key={`${cur.id}-${idx}`} ex={cur} onDone={(ok) => onAnswer(cur, ok)} />
-    </ScrollView>
+    </View>
   );
 }
 

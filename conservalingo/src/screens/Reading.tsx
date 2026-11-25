@@ -4,12 +4,12 @@ import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, Card, H1, P } from '../components/ui';
 import { readings } from '../engine/content';
 import { useStore } from '../store';
-import { say } from '../engine/audio';
+import { say, sayPt } from '../engine/audio';
 
 export default function Reading() {
   const { profile, updateProfile } = useStore();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [gloss, setGloss] = useState<string | null>(null);
+  const [gloss, setGloss] = useState<[string, string] | null>(null);
   const [wordByWord, setWordByWord] = useState(true);
   const open = readings.find((r) => r.id === openId);
 
@@ -27,13 +27,13 @@ export default function Reading() {
         <Btn kind="ghost" title={wordByWord ? 'Ocultar tradução' : 'Mostrar tradução palavra por palavra'} onPress={() => setWordByWord(!wordByWord)} />
         <Card style={s.text}>
           {open.words.map(([en, pt], i) => (
-            <Pressable key={i} onPress={() => { setGloss(`${en} = ${pt}`); say(en); }} style={s.word}>
+            <Pressable key={i} onPress={() => { setGloss([en, pt]); say(en, 'M'); }} style={s.word}>
               <Text style={s.en}>{en}</Text>
               {wordByWord && <Text style={s.pt}>{pt}</Text>}
             </Pressable>
           ))}
         </Card>
-        {gloss && <Card style={{ backgroundColor: colors.goldSoft }}><P>{gloss}</P></Card>}
+        {gloss && <Card style={{ backgroundColor: colors.goldSoft, gap: space.sm }}><P><Text style={{ fontFamily: fonts.sansBold }}>{gloss[0]}</Text> = {gloss[1]}</P><Btn kind="ghost" title="🇧🇷 Ouvir em português" onPress={() => sayPt(gloss[1])} /></Card>}
         <P style={{ color: colors.muted, fontSize: fs(12) }}>{open.sourceNote}</P>
       </ScrollView>
     );

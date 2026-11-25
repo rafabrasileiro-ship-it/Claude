@@ -73,10 +73,10 @@ export default function App() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.ivory },
-  header: { backgroundColor: colors.navy, paddingVertical: 14, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header: { backgroundColor: colors.navy, paddingTop: 12, paddingBottom: 10, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   brand: { color: colors.gold, fontFamily: fonts.serif, fontSize: fs(18), letterSpacing: 2 },
   who: { color: '#fff', fontFamily: fonts.sansMedium },
-  tabs: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: colors.line, backgroundColor: colors.card },
+  tabs: { flexDirection: 'row', borderTopWidth: 2, borderTopColor: colors.line, backgroundColor: colors.card },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 8 },
   tabLabel: { fontFamily: fonts.sans, fontSize: fs(11), color: colors.muted },
 });
