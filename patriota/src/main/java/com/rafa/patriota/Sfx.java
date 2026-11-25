@@ -58,6 +58,26 @@ final class Sfx implements Game.Listener {
         CLIPS.put("São uns idiotas úteis!", "voz_idiotas_uteis");
         CLIPS.put("São vagabundos!", "voz_sao_vagabundos");
         CLIPS.put("Vai pra puta que o pariu, porra!", "voz_vai_pra_puta");
+        // falas extras do Jair (painel "Falas do Jair" nas opções escolhe em quais fases tocam)
+        CLIPS.put("A petralhada vai chorar a noite toda!", "voz_petralhada");
+        CLIPS.put("Decepção!", "voz_decepcao");
+        CLIPS.put("Tá ok.", "voz_ta_ok");
+        CLIPS.put("Tem que se fuder!", "voz_tem_que_se_fuder");
+        CLIPS.put("Tem que dar vida, bora pra aqueles canalhas!", "voz_tem_que_dar_vida");
+        CLIPS.put("Só você não estuprar, não sequestrar!", "voz_so_voce_nao_estuprar");
+        CLIPS.put("Pervertidos!", "voz_pervertidos");
+        CLIPS.put("A única coisa boa do Maranhão é o presídio de Pedrinhas!", "voz_pedrinhas");
+        CLIPS.put("Presídios!", "voz_presidios_1,voz_presidios_2");
+        CLIPS.put("Besteiras como seminário LGBT infantil!", "voz_seminario_lgbt");
+        CLIPS.put("Respeitar!", "voz_respeitar");
+        CLIPS.put("Kit gay!", "voz_kit_gay");
+        CLIPS.put("Tá de brincadeira?", "voz_de_brincadeira");
+        CLIPS.put("Homofobia!", "voz_homofobia");
+        CLIPS.put("Órgão excretor!", "voz_orgao_excretor");
+        CLIPS.put("Nós não podemos estimular crianças de 6 anos a serem homo...", "voz_criancas_6_anos");
+        CLIPS.put("Vagabundos e marginais que vivem nas costas do governo!", "voz_vagabundos_marginais");
+        CLIPS.put("Pode beijar à vontade!", "voz_pode_beijar");
+        CLIPS.put("MST!", "voz_mst_1");
     }
     float sfxVol = 1f, voiceVol = 1f, musicVol = 0.6f;
     private final Random rnd = new Random(7);

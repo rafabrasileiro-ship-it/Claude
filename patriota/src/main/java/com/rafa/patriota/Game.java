@@ -525,6 +525,15 @@ final class Game {
     private static final String[] AMB_FINAL = {"(Mula no alto-falante)", "O Brasil acabou!", "Cara sem dente!", "Por favor, me ajuda!"};
 
     /** Duração aproximada de cada gravação (s), para não cortar uma fala com a seguinte. */
+    /** falas extras do Jair; tocam só nas fases marcadas no painel (bit i = fase i da lista). */
+    static final String[] EXTRA = {"A petralhada vai chorar a noite toda!", "Decepção!", "Tá ok.", "Tem que se fuder!", "Tem que dar vida, bora pra aqueles canalhas!",
+            "Só você não estuprar, não sequestrar!", "Pervertidos!", "A única coisa boa do Maranhão é o presídio de Pedrinhas!", "Presídios!",
+            "Besteiras como seminário LGBT infantil!", "Respeitar!", "Kit gay!", "Tá de brincadeira?", "Homofobia!", "Órgão excretor!",
+            "Nós não podemos estimular crianças de 6 anos a serem homo...", "Vagabundos e marginais que vivem nas costas do governo!", "Pode beijar à vontade!", "MST!"};
+    static int extraMask = -1;
+    static boolean extraOn(int stageIdx) { return stageIdx >= 0 && stageIdx < 31 && ((extraMask >>> stageIdx) & 1) != 0; }
+    static float lineLen(String s) { return clipLen(s); }
+
     private static float clipLen(String s) {
         switch (s) {
             case "A maioria ali é militante.": return 7.8f;
@@ -548,6 +557,25 @@ final class Game {
             case "Se prepare!": return 1.3f;
             case "O maior presidente da história do Brasil!": return 2.5f;
             case "Lula!": return 2.3f;
+            case "A petralhada vai chorar a noite toda!": return 3.4f;
+            case "Decepção!": return 2.8f;
+            case "Tá ok.": return 1.0f;
+            case "Tem que se fuder!": return 2.4f;
+            case "Tem que dar vida, bora pra aqueles canalhas!": return 1.8f;
+            case "Só você não estuprar, não sequestrar!": return 7.6f;
+            case "Pervertidos!": return 3.0f;
+            case "A única coisa boa do Maranhão é o presídio de Pedrinhas!": return 2.9f;
+            case "Presídios!": return 6.5f;
+            case "Besteiras como seminário LGBT infantil!": return 7.7f;
+            case "Respeitar!": return 5.1f;
+            case "Kit gay!": return 1.8f;
+            case "Tá de brincadeira?": return 1.6f;
+            case "Homofobia!": return 2.7f;
+            case "Órgão excretor!": return 4.5f;
+            case "Nós não podemos estimular crianças de 6 anos a serem homo...": return 6.4f;
+            case "Vagabundos e marginais que vivem nas costas do governo!": return 2.9f;
+            case "Pode beijar à vontade!": return 3.8f;
+            case "MST!": return 6.1f;
             default: return 1.4f;
         }
     }
@@ -579,6 +607,7 @@ final class Game {
     /** Provocação do Jair no meio da briga (gravações reais, se existirem em res/raw). */
     private void brawlVoice() {
         if (hero != 0 || voiceCd > 0) return;
+        if (extraOn(stageIdx) && rnd.nextFloat() < 0.4f) { voice(EXTRA[rnd.nextInt(EXTRA.length)], false); return; }
         String[] pool = BRIGA;
         // falas específicas por fase: estúdios da Grobo (4.1 a 4.4) e universidade (fase 3)
         if (bossRef != null && bossRef.kind == Data.K_MULA && rnd.nextFloat() < 0.6f) pool = CONTRA_MULA;

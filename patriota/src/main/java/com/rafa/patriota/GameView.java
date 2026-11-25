@@ -16,10 +16,10 @@ import java.util.Random;
 /** Telas (menus, briefing, jogo, HUD), entrada por toque e laço principal. */
 final class GameView extends View {
     static final int SC_SPLASH = 0, SC_MENU = 1, SC_SELECT = 2, SC_STAGES = 3, SC_OPTIONS = 4, SC_CREDITS = 5,
-            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12, SC_HELP = 13;
+            SC_BRIEF = 6, SC_PLAY = 7, SC_PAUSE = 8, SC_OVER = 9, SC_WIN = 10, SC_COOP = 11, SC_WAIT = 12, SC_HELP = 13, SC_VOZES = 14;
 
     // ids de botões de menu
-    private static final int B_ORIENT_H = 18, B_ORIENT_V = 19, B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_HELP = 17, B_NEXT = 6,
+    private static final int B_VALL = 26, B_VTEST = 27, B_VSTG = 100, B_ORIENT_H = 18, B_ORIENT_V = 19, B_PLAY = 1, B_STAGES = 2, B_OPTIONS = 3, B_CREDITS = 4, B_BACK = 5, B_HELP = 17, B_NEXT = 6,
             B_RESUME = 7, B_RESTART = 8, B_MENU = 9, B_CONTINUE = 10, B_COOP = 11, B_HOST = 12, B_JOIN = 13, B_BTSET = 14, B_HOSTW = 15, B_JOINW = 16, B_DEV = 80, B_HERO = 20, B_STAGE = 40, B_OPT = 60;
 
     private final Sfx sfx;
@@ -43,6 +43,7 @@ final class GameView extends View {
     private float psc = 1, pox, poy, pvw = 800, pvh = 450; // jogo: escala, deslocamento e tamanho virtual
     private float safeL, safeT, safeR, safeB;         // áreas ocupadas por recortes (câmera) da tela, em pixels
     private boolean port;                             // tela em pé neste momento
+    private int voiceMask = -1;                        // fases em que as falas extras do Jair podem tocar (bit i = fase i)
     private boolean vertical = true;                         // preferência: jogar com o celular na vertical
     private int vw, vh;
     private long last;
@@ -106,17 +107,19 @@ final class GameView extends View {
             sfxLv = prefs.getInt("sfx", 3); voiceLv = prefs.getInt("voice", 3); musicLv = prefs.getInt("music", 2);
             sensLv = prefs.getInt("sens", 1); gfx = prefs.getInt("gfx", 2); vibOn = prefs.getInt("vib", 1);
             hero = prefs.getInt("hero", 0);
-            vertical = prefs.getInt("vert", 1) == 1; // o jogo abre em pé; o jogador pode trocar no menu
+            vertical = prefs.getInt("vert", 1) == 1;
+            voiceMask = prefs.getInt("vmask", -1); // o jogo abre em pé; o jogador pode trocar no menu
         } catch (Exception ignored) { }
         if (hero < 0 || hero > 5 || !heroUnlocked(hero)) hero = 0;
         Draw.q = gfx == 3 ? 2 : gfx;
+        Game.extraMask = voiceMask;
         applyAudio();
     }
 
     private void savePrefs() {
         try {
             prefs.edit().putInt("cleared", cleared).putInt("sfx", sfxLv).putInt("voice", voiceLv).putInt("music", musicLv)
-                    .putInt("sens", sensLv).putInt("gfx", gfx).putInt("vib", vibOn).putInt("hero", hero).putInt("vert", vertical ? 1 : 0).apply();
+                    .putInt("sens", sensLv).putInt("gfx", gfx).putInt("vib", vibOn).putInt("hero", hero).putInt("vert", vertical ? 1 : 0).putInt("vmask", voiceMask).apply();
         } catch (Exception ignored) { }
     }
 
@@ -172,6 +175,7 @@ final class GameView extends View {
             case SC_PLAY: screen = SC_PAUSE; resetTouch(); return true;
             case SC_PAUSE: screen = SC_PLAY; last = System.nanoTime(); return true;
             case SC_MENU: case SC_SPLASH: return false;
+            case SC_VOZES: screen = SC_OPTIONS; screenT = 0; return true;
             case SC_COOP: if (coopSub != 0) { net.close(); coopSub = 0; } else goMenu(); return true;
             case SC_WAIT: endCoop(""); return true;
             case SC_SELECT: case SC_STAGES: case SC_BRIEF: if (coop) { onButton(B_BACK); return true; } goMenu(); return true;
@@ -299,6 +303,7 @@ final class GameView extends View {
             case SC_OPTIONS: drawOptions(c); break;
             case SC_CREDITS: drawCredits(c); break;
             case SC_HELP: drawHelp(c); break;
+            case SC_VOZES: drawVozes(c); break;
             case SC_COOP: drawCoop(c); break;
             case SC_WAIT: drawWait(c); break;
             case SC_BRIEF: drawBrief(c, dt); break;
@@ -588,9 +593,10 @@ final class GameView extends View {
         titleP(c, "OPÇÕES");
         String[] t = {"Efeitos sonoros: " + LV[sfxLv], "Volume das vozes: " + LV[voiceLv], "Música: " + LV[musicLv],
                 "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv],
-                "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático"}[gfx], "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada")};
-        float step = Math.min(130f, (H - 100 - 130) / 6f), h = step * 0.82f;
-        for (int i = 0; i < 6; i++) addBtn(c, B_OPT + i, 60, T + 110 + i * step, 740, T + 110 + i * step + h, t[i], true, 0xFF1D3E9A);
+                "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático"}[gfx], "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"),
+                "Falas do Jair: escolher as fases  ▶"};
+        float step = Math.min(130f, (H - 100 - 130) / 7f), h = step * 0.82f;
+        for (int i = 0; i < 7; i++) addBtn(c, B_OPT + i, 60, T + 110 + i * step, 740, T + 110 + i * step + h, t[i], true, i == 6 ? 0xFFC62828 : 0xFF1D3E9A);
         addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "VOLTAR", true, 0xFF7B1FA2);
     }
 
@@ -692,6 +698,40 @@ final class GameView extends View {
         }
         if (netMsgT > 0) Draw.wrapText(c, netMsg, 50, ey1 - 160, 700, 17, 0xFFFFAB91);
         addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, coopSub == 0 ? "VOLTAR" : "CANCELAR", true, 0xFF7B1FA2);
+    }
+
+    private int allStagesMask() { return (1 << Data.STAGES.size()) - 1; }
+
+    /** painel: em quais fases as falas extras do Jair podem tocar. */
+    private void drawVozes(Canvas c) {
+        boolean all = (voiceMask & allStagesMask()) == allStagesMask();
+        int n = Data.STAGES.size();
+        float T = ey0, H = ey1 - ey0;
+        panelBg(c, Data.TH_QUARENT);
+        if (port) {
+            titleP(c, "FALAS DO JAIR");
+            Draw.wrapText(c, "Escolha em quais fases as " + Game.EXTRA.length + " falas extras do Jair podem tocar durante a luta.", 50, T + 120, 700, 18, 0xFFFFFFFF);
+            addBtn(c, B_VALL, 60, T + 190, 740, T + 190 + 80, (all ? "✔ " : "☐ ") + "TODAS AS FASES", true, all ? 0xFF1B8F3A : 0xFF37474F);
+            float step = Math.min(100f, (H - 190 - 80 - 110 - 130) / n), h = step * 0.86f;
+            for (int i = 0; i < n; i++) {
+                boolean on = ((voiceMask >>> i) & 1) != 0;
+                float y0 = T + 290 + i * step;
+                addBtn(c, B_VSTG + i, 60, y0, 740, y0 + h, (on ? "✔ " : "☐ ") + Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0], true, on ? 0xFF1B8F3A : 0xFF37474F);
+            }
+            addBtn(c, B_VTEST, 420, ey1 - 100, 760, ey1 - 20, "OUVIR UMA FALA", true, 0xFFC62828);
+            addBtn(c, B_BACK, 40, ey1 - 100, 380, ey1 - 20, "VOLTAR", true, 0xFF7B1FA2);
+        } else {
+            title(c, "FALAS DO JAIR", 36);
+            Draw.text(c, "Em quais fases as " + Game.EXTRA.length + " falas extras podem tocar durante a luta?", 400, 58, 14, 0xFFFFFFFF, Paint.Align.CENTER);
+            addBtn(c, B_VALL, 150, 68, 650, 112, (all ? "✔ " : "☐ ") + "TODAS AS FASES", true, all ? 0xFF1B8F3A : 0xFF37474F);
+            for (int i = 0; i < n; i++) {
+                boolean on = ((voiceMask >>> i) & 1) != 0;
+                float x0 = 30 + (i / 5) * 385, y0 = 124 + (i % 5) * 52;
+                addBtn(c, B_VSTG + i, x0, y0, x0 + 365, y0 + 46, (on ? "✔ " : "☐ ") + Data.STAGES.get(i).id + " · " + Data.STAGES.get(i).title.split(" — ")[0], true, on ? 0xFF1B8F3A : 0xFF37474F);
+            }
+            addBtn(c, B_BACK, 30, 395, 230, 440, "VOLTAR", true, 0xFF7B1FA2);
+            addBtn(c, B_VTEST, 560, 395, 770, 440, "OUVIR UMA FALA", true, 0xFFC62828);
+        }
     }
 
     // ---- telas
@@ -823,12 +863,11 @@ final class GameView extends View {
         if (port) { drawOptionsP(c); return; }
         panelBg(c, Data.TH_QUARENT);
         title(c, "OPÇÕES", 44);
-        addBtn(c, B_OPT + 0, 120, 70, 680, 118, "Efeitos sonoros: " + LV[sfxLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 1, 120, 128, 680, 176, "Volume das vozes: " + LV[voiceLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 2, 120, 186, 680, 234, "Música: " + LV[musicLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 3, 120, 244, 680, 292, "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 4, 120, 302, 680, 350, "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático (ajusta pelo desempenho)"}[gfx], true, 0xFF1D3E9A);
-        addBtn(c, B_OPT + 5, 120, 360, 680, 408, "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"), true, 0xFF1D3E9A);
+        String[] ot = {"Efeitos sonoros: " + LV[sfxLv], "Volume das vozes: " + LV[voiceLv], "Música: " + LV[musicLv],
+                "Sensibilidade do analógico: " + new String[]{"Baixa", "Normal", "Alta"}[sensLv],
+                "Gráficos 3D: " + new String[]{"Leve", "Normal", "Alta", "Automático (ajusta pelo desempenho)"}[gfx], "Vibração: " + (vibOn == 1 ? "Ligada" : "Desligada"),
+                "Falas do Jair: escolher as fases  ▶"};
+        for (int i = 0; i < 7; i++) addBtn(c, B_OPT + i, 120, 62 + i * 47, 680, 62 + i * 47 + 41, ot[i], true, i == 6 ? 0xFFC62828 : 0xFF1D3E9A);
         addBtn(c, B_BACK, 30, 395, 190, 440, "VOLTAR", true, 0xFF7B1FA2);
     }
 
@@ -1473,6 +1512,12 @@ final class GameView extends View {
 
     private void onButton(int id) {
         switch (id) {
+            case B_VALL: voiceMask = allStagesMask() == (voiceMask & allStagesMask()) ? 0 : allStagesMask(); Game.extraMask = voiceMask; savePrefs(); break;
+            case B_VTEST: {
+                String ln = Game.EXTRA[rnd.nextInt(Game.EXTRA.length)];
+                if (sfx.hasClip(ln)) sfx.voice(ln);
+                break;
+            }
             case B_ORIENT_H: case B_ORIENT_V: {
                 boolean v = id == B_ORIENT_V;
                 if (v != vertical) { vertical = v; savePrefs(); applyOrientation(); }
@@ -1494,6 +1539,7 @@ final class GameView extends View {
             case B_HELP: screen = SC_HELP; screenT = 0; break;
             case B_CREDITS: screen = SC_CREDITS; screenT = 0; sfx.music(2); break;
             case B_BACK:
+                if (screen == SC_VOZES) { screen = SC_OPTIONS; screenT = 0; break; }
                 if (coop) {
                     if (screen == SC_BRIEF) screen = SC_STAGES; else if (screen == SC_STAGES) screen = SC_SELECT; else endCoop("");
                     screenT = 0; break;
@@ -1525,7 +1571,8 @@ final class GameView extends View {
                 screen = SC_PLAY; resetTouch(); last = System.nanoTime(); playStageMusic(stageSel);
                 break;
             default:
-                if (id >= B_HERO && id < B_HERO + 6) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
+                if (id >= B_VSTG && id < B_VSTG + 31) { voiceMask ^= 1 << (id - B_VSTG); Game.extraMask = voiceMask; savePrefs(); }
+                else if (id >= B_HERO && id < B_HERO + 6) { int h = id - B_HERO; if (heroUnlocked(h)) { hero = h; savePrefs(); if (coop) net.send(Snap.msg(Snap.M_HERO, hero, 0, 0)); } }
                 else if (id >= B_DEV && id < B_DEV + 8) { int d = id - B_DEV; if (coopWifi) { if (d < wifiList.size()) { net.connectWifi(wifiList.get(d)[0], wifiList.get(d)[1]); coopSub = 3; } }
                     else if (d < devices.size()) { net.connect(devices.get(d)); coopSub = 3; } }
                 else if (id >= B_STAGE && id < B_STAGE + 20) {
@@ -1540,6 +1587,7 @@ final class GameView extends View {
                         case 3: sensLv = (sensLv + 1) % 3; break;
                         case 4: gfx = (gfx + 1) % 4; Draw.q = gfx == 3 ? 2 : gfx; break;
                         case 5: vibOn = 1 - vibOn; break;
+                        case 6: screen = SC_VOZES; screenT = 0; return;
                         default: break;
                     }
                     applyAudio(); savePrefs();

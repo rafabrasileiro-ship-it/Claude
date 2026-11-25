@@ -9,6 +9,8 @@ final class Jet {
     static final float Y_MIN = Game.Y0 + 22, Y_MAX = Game.Y1 - 6;
 
     final Random rnd = new Random();
+    private float lastVoice = -99;
+    private static int jetStageIdx() { for (int i = 0; i < Data.STAGES.size(); i++) if (Data.STAGES.get(i).jet) return i; return -1; }
 
     // ---------------------------------------------------------------- entidades
     static final class Whale {
@@ -294,6 +296,10 @@ final class Jet {
         if (w.hp <= 0 && !w.dying) {
             w.dying = true; w.sinkT = 0; w.vx = -20;
             kills++;
+            if (hero == 0 && time - lastVoice > 5f && Game.extraOn(jetStageIdx()) && rnd.nextFloat() < 0.5f) {
+                String ln = Game.EXTRA[rnd.nextInt(Game.EXTRA.length)];
+                if (L.hasClip(ln)) { lastVoice = time; L.voice(ln); pop(ln, x, y - 100, 1.8f, 0xFFFFFFFF); }
+            }
             score += w.type == 0 ? 300 : 450;
             pop(w.type == 0 ? "BALEIA DERROTADA!" : "BALEIÃO DERROTADO!", w.x, w.y - 90, 1.2f, 0xFFFFD400);
             for (int i = 0; i < 3; i++) splash(w.x + (i - 1) * 24, w.y, 22);
