@@ -8,13 +8,21 @@
     "backgroundColor": "#F9F7F2",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.conservalingo.app"
+      "bundleIdentifier": "br.com.conservalingo.app",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "package": "br.com.conservalingo.app"
+      "package": "br.com.conservalingo.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundImage": "./assets/adaptive-background.png",
+        "monochromeImage": "./assets/adaptive-monochrome.png",
+        "backgroundColor": "#2F6F6A"
+      }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-font",
@@ -40,7 +48,22 @@
           "microphonePermission": "O Conservalingo usa o microfone para ouvir você repetir as frases em inglês e corrigir a pronúncia.",
           "speechRecognitionPermission": "O Conservalingo usa o reconhecimento de fala para avaliar a sua pronúncia, palavra por palavra."
         }
+      ],
+      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#2F6F6A",
+          "dark": {
+            "backgroundColor": "#2F6F6A",
+            "image": "./assets/splash-icon.png"
+          }
+        }
       ]
-    ]
+    ],
+    "icon": "./assets/icon.png"
   }
 }
