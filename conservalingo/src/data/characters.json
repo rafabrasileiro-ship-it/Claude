@@ -1,78 +1,192 @@
 {
-  "mascot": {
-    "id": "bento",
-    "name": "Tio Bento",
-    "species": "Águia-real",
-    "description": "Águia-real de traços nobres e firmes, de colete de tweed clássico e gravata borboleta discreta. Mentor de disciplina, pontualidade e incentivo ao estudo.",
-    "color": "#1B365D",
-    "emoji": "🦅"
-  },
-  "families": [
+ "mascot": {
+  "id": "bento",
+  "name": "Tio Bento",
+  "species": "Águia-real",
+  "description": "Águia-real de traços nobres e firmes, de colete de tweed clássico e gravata borboleta discreta. Mentor de disciplina, pontualidade e incentivo ao estudo.",
+  "color": "#1B365D",
+  "emoji": "🦅"
+ },
+ "families": [
+  {
+   "id": "ayrton",
+   "name": "Ayrton",
+   "role": "protagonist",
+   "sex": "M",
+   "color": "#1B365D",
+   "archetype": "Homem sério, competente, pontual e metódico.",
+   "profession": "Engenheiro Civil",
+   "focus": "Gramática estruturada, pontualidade, etiqueta formal, vocabulário técnico e precisão na fala.",
+   "spouse": {
+    "id": "helena",
+    "name": "Helena",
+    "sex": "F",
+    "profession": "Professora de piano clássico"
+   },
+   "children": [
     {
-      "id": "ayrton", "name": "Ayrton", "role": "protagonist", "sex": "M", "color": "#1B365D",
-      "archetype": "Homem sério, competente, pontual e metódico.",
-      "profession": "Engenheiro Civil",
-      "focus": "Gramática estruturada, pontualidade, etiqueta formal, vocabulário técnico e precisão na fala.",
-      "spouse": { "id": "helena", "name": "Helena", "sex": "F", "profession": "Professora de piano clássico" },
-      "children": [
-        { "id": "miguel", "name": "Miguel", "age": 8, "sex": "M" },
-        { "id": "heloisa", "name": "Heloísa", "age": 4, "sex": "F" }
-      ]
+     "id": "miguel",
+     "name": "Miguel",
+     "age": 8,
+     "sex": "M"
     },
     {
-      "id": "beto", "name": "Beto", "role": "protagonist", "sex": "M", "color": "#8B5E1A",
-      "archetype": "Homem engraçado, inteligente, observador e bom contador de histórias.",
-      "profession": "Historiador e Professor",
-      "focus": "Expressões idiomáticas, humor saudável e familiar, provérbios e curiosidades históricas da civilização ocidental.",
-      "spouse": { "id": "clara", "name": "Clara", "sex": "F", "profession": "Médica pediatra" },
-      "children": [
-        { "id": "gael", "name": "Gael", "age": 7, "sex": "M" },
-        { "id": "laura", "name": "Laura", "age": 3, "sex": "F" }
-      ]
-    },
-    {
-      "id": "jose", "name": "José", "role": "protagonist", "sex": "M", "color": "#2E5A36",
-      "archetype": "Homem visionário, empreendedor, pragmático e líder nato.",
-      "profession": "Fundador e CEO de uma empresa familiar de logística/indústria",
-      "focus": "Inglês para negócios, empreendedorismo, livre mercado, propriedade privada, negociação e ética do trabalho.",
-      "spouse": { "id": "beatriz", "name": "Beatriz", "sex": "F", "profession": "Arquiteta" },
-      "children": [
-        { "id": "arthur", "name": "Arthur", "age": 9, "sex": "M" },
-        { "id": "cecilia", "name": "Cecília", "age": 5, "sex": "F" }
-      ]
-    },
-    {
-      "id": "alice", "name": "Alice", "role": "protagonist", "sex": "F", "color": "#6B2D5C",
-      "archetype": "Mulher séria, competente, articulada e firme em princípios.",
-      "profession": "Advogada e organizadora de ações cívicas comunitárias",
-      "focus": "Dever cívico, leis, ordem, instituições, cidadania e defesa das liberdades fundamentais.",
-      "spouse": { "id": "lucas", "name": "Lucas", "sex": "M", "profession": "Oficial militar" },
-      "children": [
-        { "id": "theo", "name": "Theo", "age": 6, "sex": "M" },
-        { "id": "maite", "name": "Maitê", "age": 2, "sex": "F" }
-      ]
-    },
-    {
-      "id": "maria", "name": "Maria Fulana", "role": "protagonist", "sex": "F", "color": "#B5542B",
-      "archetype": "Mulher engraçada, inteligente, espirituosa e anfitriã acolhedora.",
-      "profession": "Escritora e colunista de cultura/culinária",
-      "focus": "Vocabulário do lar, hospitalidade, culinária, humor doméstico saudável e conversação cotidiana fluida.",
-      "spouse": { "id": "gabriel", "name": "Gabriel", "sex": "M", "profession": "Chef de cozinha" },
-      "children": [
-        { "id": "davi", "name": "Davi", "age": 8, "sex": "M" },
-        { "id": "liz", "name": "Liz", "age": 4, "sex": "F" }
-      ]
-    },
-    {
-      "id": "flavia", "name": "Flávia", "role": "protagonist", "sex": "F", "color": "#3D6B5E",
-      "archetype": "Mulher visionária, empreendedora, dinâmica e gestora eficiente.",
-      "profession": "Gestora de agronegócio e tecnologia aplicada ao campo",
-      "focus": "Inovação, gestão de recursos, produção de riqueza, trabalho duro e planejamento de futuro.",
-      "spouse": { "id": "rafael", "name": "Rafael", "sex": "M", "profession": "Engenheiro agrônomo" },
-      "children": [
-        { "id": "noah", "name": "Noah", "age": 7, "sex": "M" },
-        { "id": "antonella", "name": "Antonella", "age": 3, "sex": "F" }
-      ]
+     "id": "heloisa",
+     "name": "Heloísa",
+     "age": 4,
+     "sex": "F"
     }
-  ]
+   ]
+  },
+  {
+   "id": "beto",
+   "name": "Beto",
+   "role": "protagonist",
+   "sex": "M",
+   "color": "#8B5E1A",
+   "archetype": "Homem engraçado, inteligente, observador e bom contador de histórias.",
+   "profession": "Historiador e Professor",
+   "focus": "Expressões idiomáticas, humor saudável e familiar, provérbios e curiosidades históricas da civilização ocidental.",
+   "spouse": {
+    "id": "clara",
+    "name": "Clara",
+    "sex": "F",
+    "profession": "Médica pediatra"
+   },
+   "children": [
+    {
+     "id": "gael",
+     "name": "Gael",
+     "age": 7,
+     "sex": "M"
+    },
+    {
+     "id": "laura",
+     "name": "Laura",
+     "age": 3,
+     "sex": "F"
+    }
+   ]
+  },
+  {
+   "id": "jose",
+   "name": "José",
+   "role": "protagonist",
+   "sex": "M",
+   "color": "#2E5A36",
+   "archetype": "Homem visionário, empreendedor, pragmático e líder nato.",
+   "profession": "Fundador e CEO de empresa familiar",
+   "focus": "Inglês para negócios, empreendedorismo, livre mercado, propriedade privada, negociação e ética do trabalho.",
+   "spouse": {
+    "id": "beatriz",
+    "name": "Beatriz",
+    "sex": "F",
+    "profession": "Arquiteta"
+   },
+   "children": [
+    {
+     "id": "arthur",
+     "name": "Arthur",
+     "age": 9,
+     "sex": "M"
+    },
+    {
+     "id": "cecilia",
+     "name": "Cecília",
+     "age": 5,
+     "sex": "F"
+    }
+   ]
+  },
+  {
+   "id": "alice",
+   "name": "Alice",
+   "role": "protagonist",
+   "sex": "F",
+   "color": "#6B2D5C",
+   "archetype": "Mulher séria, competente, articulada e firme em princípios.",
+   "profession": "Advogada e líder comunitária",
+   "focus": "Dever cívico, leis, ordem, instituições, cidadania e defesa das liberdades fundamentais.",
+   "spouse": {
+    "id": "lucas",
+    "name": "Lucas",
+    "sex": "M",
+    "profession": "Oficial militar"
+   },
+   "children": [
+    {
+     "id": "theo",
+     "name": "Theo",
+     "age": 6,
+     "sex": "M"
+    },
+    {
+     "id": "maite",
+     "name": "Maitê",
+     "age": 2,
+     "sex": "F"
+    }
+   ]
+  },
+  {
+   "id": "maria",
+   "name": "Maria Fulana",
+   "role": "protagonist",
+   "sex": "F",
+   "color": "#B5542B",
+   "archetype": "Mulher engraçada, inteligente, espirituosa e anfitriã acolhedora.",
+   "profession": "Escritora e colunista de culinária",
+   "focus": "Vocabulário do lar, hospitalidade, culinária, humor doméstico saudável e conversação cotidiana fluida.",
+   "spouse": {
+    "id": "gabriel",
+    "name": "Gabriel",
+    "sex": "M",
+    "profession": "Chef de cozinha"
+   },
+   "children": [
+    {
+     "id": "davi",
+     "name": "Davi",
+     "age": 8,
+     "sex": "M"
+    },
+    {
+     "id": "liz",
+     "name": "Liz",
+     "age": 4,
+     "sex": "F"
+    }
+   ]
+  },
+  {
+   "id": "flavia",
+   "name": "Flávia",
+   "role": "protagonist",
+   "sex": "F",
+   "color": "#3D6B5E",
+   "archetype": "Mulher visionária, empreendedora, dinâmica e gestora eficiente.",
+   "profession": "Gestora de agronegócio e tecnologia",
+   "focus": "Inovação, gestão de recursos, produção de riqueza, trabalho duro e planejamento de futuro.",
+   "spouse": {
+    "id": "rafael",
+    "name": "Rafael",
+    "sex": "M",
+    "profession": "Engenheiro agrônomo"
+   },
+   "children": [
+    {
+     "id": "noah",
+     "name": "Noah",
+     "age": 7,
+     "sex": "M"
+    },
+    {
+     "id": "antonella",
+     "name": "Antonella",
+     "age": 3,
+     "sex": "F"
+    }
+   ]
+  }
+ ]
 }

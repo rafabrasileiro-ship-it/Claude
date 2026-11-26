@@ -9,9 +9,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "validate": "node scripts/validate-content.js",
-    "seed:sql": "node scripts/build-seed-sql.js",
-    "test": "node scripts/validate-content.js && tsx scripts/test-engine.ts"
+    "validate": "tsx scripts/validate-content.ts",
+    "seed:sql": "tsx scripts/build-seed-sql.ts",
+    "test": "tsx scripts/validate-content.ts && tsx scripts/test-engine.ts",
+    "audio:jobs": "tsx scripts/audio-jobs.ts"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

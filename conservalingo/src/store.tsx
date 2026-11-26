@@ -11,6 +11,12 @@ interface Store {
 }
 const Ctx = createContext<Store | null>(null);
 
+/** Perfil "ao vivo": escudos regenerados e XP semanal da semana atual. */
+function live(p: Profile): Profile {
+  const q = regenShields(p);
+  return q.weekXp.week !== weekKey() ? { ...q, weekXp: { week: weekKey(), xp: 0 } } : q;
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setStateRaw] = useState<AppState | null>(null);
 
@@ -27,13 +33,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<Store | null>(() => {
     if (!state) return null;
     const raw = state.profiles.find((p) => p.id === state.activeProfileId) ?? state.profiles[0];
-    let profile = regenShields(raw);
-    if (profile.weekXp.week !== weekKey()) profile = { ...profile, weekXp: { week: weekKey(), xp: 0 } };
+    const profile = live(raw);
     return {
       state, profile, setState,
-      updateProfile: (fn) => setState((s) => ({
-        ...s, profiles: s.profiles.map((p) => (p.id === profile.id ? fn(profile) : p)),
-      })),
+      // Sempre aplica a alteração sobre o estado MAIS RECENTE (várias atualizações no mesmo toque não se perdem).
+      updateProfile: (fn) => setState((s) => {
+        const id = s.profiles.some((p) => p.id === s.activeProfileId) ? s.activeProfileId : s.profiles[0].id;
+        return { ...s, profiles: s.profiles.map((p) => (p.id === id ? fn(live(p)) : p)) };
+      }),
     };
   }, [state, setState]);
 

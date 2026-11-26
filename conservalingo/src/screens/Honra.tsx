@@ -3,11 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, Card, H1, P, ProgressBar } from '../components/ui';
 import { useStore } from '../store';
-import { DEMOTE_LAST, LEAGUE_SIZE, MILESTONES, PROMOTE_TOP, TIERS, activeStreak, missionById, standings, tierName, weekProgress } from '../engine/game';
+import { DEMOTE_LAST, GUARD_COST_GOLD, LEAGUE_SIZE, MAX_GUARDS, MILESTONES, PROMOTE_TOP, TIERS, VAULT_TALENTS, activeStreak, claimVault, missionById, missionsAllDone, standings, tierName, vaultAvailable, weekProgress, dayKey } from '../engine/game';
+import Bento from '../components/Bento';
 import { ANCHORS } from '../engine/pnl';
 import { fx } from '../engine/fx';
 
-export default function Honra() {
+export default function Honra({ onOpenCast }: { onOpenCast: () => void }) {
   const { profile, updateProfile } = useStore();
   const [editing, setEditing] = useState(false);
   const [custom, setCustom] = useState('');
@@ -26,6 +27,7 @@ export default function Honra() {
 
   return (
     <ScrollView contentContainerStyle={s.pad}>
+      <Btn kind="ghost" title="🦅 Elenco das famílias e Loja de Talentos" onPress={onOpenCast} />
       <Card style={{ backgroundColor: colors.navy, gap: 6 }}>
         <Text style={s.kickerGold}>MINHA FRASE-ÂNCORA</Text>
         <Text style={s.anchor}>⚓ {profile.anchor || 'Ainda não escolhida'}</Text>
@@ -56,6 +58,22 @@ export default function Honra() {
           </Card>
         );
       })}
+
+      <Card style={[{ gap: 6, alignItems: 'center' }, vaultAvailable(profile) ? { borderColor: colors.gold, borderWidth: 2, backgroundColor: colors.goldSoft } : null]}>
+        <Bento mood={vaultAvailable(profile) ? 'celebracao' : profile.vault === dayKey() ? 'orgulhoso' : 'pensativo'} size={72} />
+        <Text style={s.mTitle}>🔐 Cofre Diário do Tio Bento</Text>
+        {profile.vault === dayKey() ? <P style={{ textAlign: 'center', color: colors.olive }}>Aberto hoje ✔ Volte amanhã para um novo cofre.</P>
+          : missionsAllDone(profile) ? <Btn kind="gold" title={`Abrir: +${VAULT_TALENTS} 🪙 e escudos restaurados`} onPress={() => { fx('level'); updateProfile((p) => claimVault(p)); }} />
+          : <P style={{ textAlign: 'center', color: colors.muted }}>Conclua as 3 missões de hoje para abrir o cofre: +{VAULT_TALENTS} 🪙 e todos os Escudos de Atenção restaurados.</P>}
+      </Card>
+
+      <H1>Talentos de Ouro</H1>
+      <Card style={{ gap: 8 }}>
+        <P>🥇 Você tem <Text style={{ fontFamily: fonts.sansBold }}>{profile.gold ?? 0}</Text> Talento{(profile.gold ?? 0) === 1 ? '' : 's'} de Ouro. Eles são conquistados nos Checkpoints de Honra (1 por nível, +1 se for sem erros).</P>
+        <P>⚜️ Escudos de Guarda: <Text style={{ fontFamily: fonts.sansBold }}>{profile.guards ?? 0}/{MAX_GUARDS}</Text>. Cada um protege a sua ofensiva em um dia sem estudo.</P>
+        <Btn kind="gold" title={`Comprar Escudo de Guarda (${GUARD_COST_GOLD} 🥇)`} disabled={(profile.gold ?? 0) < GUARD_COST_GOLD || (profile.guards ?? 0) >= MAX_GUARDS}
+          onPress={() => { fx('combo'); updateProfile((p) => ((p.gold ?? 0) >= GUARD_COST_GOLD && (p.guards ?? 0) < MAX_GUARDS ? { ...p, gold: p.gold - GUARD_COST_GOLD, guards: (p.guards ?? 0) + 1 } : p)); }} />
+      </Card>
 
       <H1>Liga Semanal · {TIERS[tier].icon} {tierName(tier, profile.sex)}</H1>
       {last && <P style={{ color: last.to > last.from ? colors.olive : last.to < last.from ? colors.crimson : colors.muted }}>

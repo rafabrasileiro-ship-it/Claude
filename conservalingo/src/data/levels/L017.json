@@ -1,0 +1,845 @@
+{
+ "id": "L017",
+ "number": 17,
+ "origin": "adaptado",
+ "title": "Tradição, Fé e Sabedoria",
+ "grammar": "Dias da semana (ênfase no domingo em família), virtudes cardeais, provérbios em inglês.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "Sunday",
+   "pt": "domingo"
+  },
+  {
+   "id": "c2",
+   "en": "Monday",
+   "pt": "segunda-feira"
+  },
+  {
+   "id": "c3",
+   "en": "Tuesday",
+   "pt": "terça-feira"
+  },
+  {
+   "id": "c4",
+   "en": "Wednesday",
+   "pt": "quarta-feira"
+  },
+  {
+   "id": "c5",
+   "en": "Thursday",
+   "pt": "quinta-feira"
+  },
+  {
+   "id": "c6",
+   "en": "Friday",
+   "pt": "sexta-feira"
+  },
+  {
+   "id": "c7",
+   "en": "Saturday",
+   "pt": "sábado"
+  },
+  {
+   "id": "c8",
+   "en": "pray",
+   "pt": "orar"
+  },
+  {
+   "id": "c9",
+   "en": "together",
+   "pt": "juntos"
+  },
+  {
+   "id": "c10",
+   "en": "Bible",
+   "pt": "Bíblia"
+  },
+  {
+   "id": "c11",
+   "en": "grandparents",
+   "pt": "avós"
+  },
+  {
+   "id": "c12",
+   "en": "tradition",
+   "pt": "tradição"
+  },
+  {
+   "id": "c13",
+   "en": "blessing",
+   "pt": "bênção"
+  },
+  {
+   "id": "c14",
+   "en": "prudence",
+   "pt": "prudência"
+  },
+  {
+   "id": "c15",
+   "en": "justice",
+   "pt": "justiça"
+  },
+  {
+   "id": "c16",
+   "en": "fortitude",
+   "pt": "fortaleza"
+  },
+  {
+   "id": "c17",
+   "en": "temperance",
+   "pt": "temperança"
+  },
+  {
+   "id": "c18",
+   "en": "faith",
+   "pt": "fé"
+  },
+  {
+   "id": "c19",
+   "en": "virtue",
+   "pt": "virtude"
+  },
+  {
+   "id": "c20",
+   "en": "wisdom",
+   "pt": "sabedoria"
+  },
+  {
+   "id": "c21",
+   "en": "proverb",
+   "pt": "provérbio"
+  },
+  {
+   "id": "c22",
+   "en": "honor",
+   "pt": "honrar"
+  },
+  {
+   "id": "c23",
+   "en": "humble",
+   "pt": "humilde"
+  },
+  {
+   "id": "c24",
+   "en": "diligent",
+   "pt": "diligente"
+  },
+  {
+   "id": "c25",
+   "en": "patient",
+   "pt": "paciente"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Days of the week",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6",
+    "c7"
+   ],
+   "lines": [
+    {
+     "who": "beto",
+     "en": "Children, what day is today?",
+     "pt": "Crianças, que dia é hoje?"
+    },
+    {
+     "who": "gael",
+     "en": "Today is Sunday, Dad!",
+     "pt": "Hoje é domingo, papai!"
+    },
+    {
+     "who": "beto",
+     "en": "Correct. Monday comes after Sunday, and Friday comes before Saturday.",
+     "pt": "Correto. A segunda vem depois do domingo, e a sexta vem antes do sábado."
+    },
+    {
+     "who": "laura",
+     "en": "I like Sunday the most.",
+     "pt": "Eu gosto mais do domingo."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Sunday with the family",
+   "vocab": [
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12",
+    "c13"
+   ],
+   "lines": [
+    {
+     "who": "clara",
+     "en": "On Sunday, we go to church together.",
+     "pt": "No domingo, vamos juntos à igreja."
+    },
+    {
+     "who": "gael",
+     "en": "We pray, and we read the Bible.",
+     "pt": "Nós oramos e lemos a Bíblia."
+    },
+    {
+     "who": "beto",
+     "en": "Then we visit the grandparents. It is a family tradition.",
+     "pt": "Depois visitamos os avós. É uma tradição de família."
+    },
+    {
+     "who": "laura",
+     "en": "Family is a blessing.",
+     "pt": "A família é uma bênção."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "The cardinal virtues",
+   "vocab": [
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18",
+    "c19"
+   ],
+   "lines": [
+    {
+     "who": "beto",
+     "en": "A virtue is a good habit. There are four cardinal virtues.",
+     "pt": "Uma virtude é um bom hábito. Há quatro virtudes cardeais."
+    },
+    {
+     "who": "clara",
+     "en": "They are prudence, justice, fortitude and temperance.",
+     "pt": "São prudência, justiça, fortaleza e temperança."
+    },
+    {
+     "who": "gael",
+     "en": "Prudence means thinking before acting.",
+     "pt": "Prudência significa pensar antes de agir."
+    },
+    {
+     "who": "beto",
+     "en": "And faith gives us strength.",
+     "pt": "E a fé nos dá força."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Proverbs and wisdom",
+   "vocab": [
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24",
+    "c25"
+   ],
+   "lines": [
+    {
+     "who": "beto",
+     "en": "A proverb is a short sentence full of wisdom.",
+     "pt": "Um provérbio é uma frase curta cheia de sabedoria."
+    },
+    {
+     "who": "clara",
+     "en": "Honor your father and your mother.",
+     "pt": "Honra teu pai e tua mãe."
+    },
+    {
+     "who": "gael",
+     "en": "A soft answer turns away anger.",
+     "pt": "A resposta branda desvia o furor."
+    },
+    {
+     "who": "beto",
+     "en": "Be humble, be diligent and be patient.",
+     "pt": "Seja humilde, diligente e paciente."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "O Domingo",
+  "lines": [
+   {
+    "who": "beto",
+    "en": "Today is Sunday. We go to church as a family.",
+    "pt": "Hoje é domingo. Vamos à igreja em família."
+   },
+   {
+    "who": "clara",
+    "en": "Gael, put on your good shoes.",
+    "pt": "Gael, calce os seus sapatos bons."
+   },
+   {
+    "who": "gael",
+    "en": "Yes, Mom. Dad, will you tell a story after lunch?",
+    "pt": "Sim, mãe. Pai, você vai contar uma história depois do almoço?"
+   },
+   {
+    "who": "beto",
+    "en": "Yes. A story about an honest king.",
+    "pt": "Sim. Uma história sobre um rei honesto."
+   },
+   {
+    "who": "laura",
+    "en": "I like stories, Daddy.",
+    "pt": "Eu gosto de histórias, papai."
+   },
+   {
+    "who": "clara",
+    "en": "After the story, we will thank God for our family.",
+    "pt": "Depois da história, agradeceremos a Deus pela nossa família."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Que dia é hoje?",
+    "options": [
+     "Sunday",
+     "Monday",
+     "Friday"
+    ],
+    "answer": "Sunday",
+    "lang": "en"
+   },
+   {
+    "q": "Sobre o que será a história?",
+    "options": [
+     "An honest king",
+     "A funny dog",
+     "A long trip"
+    ],
+    "answer": "An honest king",
+    "lang": "en"
+   },
+   {
+    "q": "O que farão depois da história?",
+    "options": [
+     "Thank God",
+     "Play soccer",
+     "Go shopping"
+    ],
+    "answer": "Thank God",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Tradição, Fé e Sabedoria",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "beto",
+   "gael",
+   "laura",
+   "clara"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "Children, what day is today?",
+      "pt": "Crianças, que dia é hoje?"
+     },
+     {
+      "who": "gael",
+      "en": "Today is Sunday, Dad!",
+      "pt": "Hoje é domingo, papai!"
+     },
+     {
+      "who": "beto",
+      "en": "Correct. Monday comes after Sunday, and Friday comes before Saturday.",
+      "pt": "Correto. A segunda vem depois do domingo, e a sexta vem antes do sábado."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Laura?",
+     "options": [
+      "I like Sunday the most.",
+      "Family is a blessing.",
+      "And faith gives us strength."
+     ],
+     "answer": "I like Sunday the most.",
+     "lang": "en",
+     "why": "Laura diz: “I like Sunday the most.” — Eu gosto mais do domingo."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "clara",
+      "en": "On Sunday, we go to church together.",
+      "pt": "No domingo, vamos juntos à igreja."
+     },
+     {
+      "who": "gael",
+      "en": "We pray, and we read the Bible.",
+      "pt": "Nós oramos e lemos a Bíblia."
+     },
+     {
+      "who": "beto",
+      "en": "Then we visit the grandparents. It is a family tradition.",
+      "pt": "Depois visitamos os avós. É uma tradição de família."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Laura?",
+     "options": [
+      "I like Sunday the most.",
+      "And faith gives us strength.",
+      "Family is a blessing."
+     ],
+     "answer": "Family is a blessing.",
+     "lang": "en",
+     "why": "Laura diz: “Family is a blessing.” — A família é uma bênção."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "A virtue is a good habit. There are four cardinal virtues.",
+      "pt": "Uma virtude é um bom hábito. Há quatro virtudes cardeais."
+     },
+     {
+      "who": "clara",
+      "en": "They are prudence, justice, fortitude and temperance.",
+      "pt": "São prudência, justiça, fortaleza e temperança."
+     },
+     {
+      "who": "gael",
+      "en": "Prudence means thinking before acting.",
+      "pt": "Prudência significa pensar antes de agir."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beto?",
+     "options": [
+      "Family is a blessing.",
+      "And faith gives us strength.",
+      "I like Sunday the most."
+     ],
+     "answer": "And faith gives us strength.",
+     "lang": "en",
+     "why": "Beto diz: “And faith gives us strength.” — E a fé nos dá força."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "A proverb is a short sentence full of wisdom.",
+      "pt": "Um provérbio é uma frase curta cheia de sabedoria."
+     },
+     {
+      "who": "clara",
+      "en": "Honor your father and your mother.",
+      "pt": "Honra teu pai e tua mãe."
+     },
+     {
+      "who": "gael",
+      "en": "A soft answer turns away anger.",
+      "pt": "A resposta branda desvia o furor."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beto?",
+     "options": [
+      "Be humble, be diligent and be patient.",
+      "I like Sunday the most.",
+      "Family is a blessing."
+     ],
+     "answer": "Be humble, be diligent and be patient.",
+     "lang": "en",
+     "why": "Beto diz: “Be humble, be diligent and be patient.” — Seja humilde, diligente e paciente."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "beto",
+  "ask": "What do you do on Sunday?",
+  "askPt": "O que você faz no domingo?",
+  "model": "On Sunday, we go to church with our family.",
+  "modelPt": "No domingo, vamos à igreja com a nossa família.",
+  "accept": [
+   "On Sunday, we go to church with our family.",
+   "On Sunday I go to church with my family."
+  ]
+ },
+ "wisdom": "w07",
+ "tips": [
+  "r_sound",
+  "th_voiced",
+  "final_consonant"
+ ],
+ "pnl": {
+  "identity": "Você é alguém que termina o que começa. É assim que se forma o caráter.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Tradição, Fé e Sabedoria” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Tradição, Fé e Sabedoria” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Days of the week",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Dias da semana (ênfase no domingo em família), virtudes cardeais, provérbios em inglês.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "learn",
+     "ref": "c13"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: O Domingo",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.4"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: The cardinal virtues",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c15",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: O R americano",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "r_sound"
+    },
+    {
+     "kind": "speak",
+     "ref": "c18"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.1"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "learn",
+     "ref": "c25"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.2",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.1",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.3",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Tradição, Fé e Sabedoria",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c22"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.2",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.1"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c12",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

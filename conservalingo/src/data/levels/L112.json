@@ -1,0 +1,673 @@
+{
+ "id": "L112",
+ "number": 112,
+ "origin": "adaptado",
+ "title": "Oratória: Inversões e Subjuntivo",
+ "grammar": "Inversões enfáticas, subjuntivo formal, expressões idiomáticas cultas e retórica persuasiva.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "rarely does",
+   "pt": "raramente"
+  },
+  {
+   "id": "c2",
+   "en": "not only … but also",
+   "pt": "não apenas … mas também"
+  },
+  {
+   "id": "c3",
+   "en": "never have I",
+   "pt": "nunca eu"
+  },
+  {
+   "id": "c4",
+   "en": "seldom",
+   "pt": "raramente (formal)"
+  },
+  {
+   "id": "c5",
+   "en": "moving",
+   "pt": "comovente"
+  },
+  {
+   "id": "c6",
+   "en": "worth defending",
+   "pt": "digno de ser defendido"
+  },
+  {
+   "id": "c7",
+   "en": "I propose that",
+   "pt": "eu proponho que"
+  },
+  {
+   "id": "c8",
+   "en": "be held",
+   "pt": "seja realizada"
+  },
+  {
+   "id": "c9",
+   "en": "essential",
+   "pt": "essencial"
+  },
+  {
+   "id": "c10",
+   "en": "be heard",
+   "pt": "seja ouvida"
+  },
+  {
+   "id": "c11",
+   "en": "put the cart before the horse",
+   "pt": "colocar a carroça na frente dos bois"
+  },
+  {
+   "id": "c12",
+   "en": "proceed",
+   "pt": "prosseguir"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Rarely does a nation",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "ayrton",
+     "en": "Rarely does a nation produce such courage.",
+     "pt": "Raramente uma nação produz tanta coragem."
+    },
+    {
+     "who": "alice",
+     "en": "Not only did they fight bravely, but they also governed wisely.",
+     "pt": "Eles não apenas lutaram com bravura, mas também governaram com sabedoria."
+    },
+    {
+     "who": "ayrton",
+     "en": "Never have I read a speech so moving.",
+     "pt": "Nunca li um discurso tão comovente."
+    },
+    {
+     "who": "alice",
+     "en": "Seldom is truth easy, yet it is always worth defending.",
+     "pt": "Raramente a verdade é fácil, mas ela sempre vale ser defendida."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Let us not rush",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "jose",
+     "en": "I propose that the meeting be held on Monday.",
+     "pt": "Proponho que a reunião seja realizada na segunda-feira."
+    },
+    {
+     "who": "ayrton",
+     "en": "It is essential that every party be heard.",
+     "pt": "É essencial que cada parte seja ouvida."
+    },
+    {
+     "who": "jose",
+     "en": "Let us not put the cart before the horse. First, the facts.",
+     "pt": "Não coloquemos a carroça na frente dos bois. Primeiro, os fatos."
+    },
+    {
+     "who": "ayrton",
+     "en": "Wisely said. We will proceed with prudence.",
+     "pt": "Bem dito. Prosseguiremos com prudência."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "Oratória",
+  "lines": [
+   {
+    "who": "ayrton",
+    "en": "Rarely does a nation produce such courage.",
+    "pt": "Raramente uma nação produz tanta coragem."
+   },
+   {
+    "who": "alice",
+    "en": "Not only did they fight bravely, but they also governed wisely.",
+    "pt": "Eles não apenas lutaram com bravura, mas também governaram com sabedoria."
+   },
+   {
+    "who": "jose",
+    "en": "I propose that the next meeting be held on Monday.",
+    "pt": "Proponho que a próxima reunião seja realizada na segunda-feira."
+   },
+   {
+    "who": "ayrton",
+    "en": "It is essential that every party be heard.",
+    "pt": "É essencial que cada parte seja ouvida."
+   },
+   {
+    "who": "jose",
+    "en": "Let us not put the cart before the horse.",
+    "pt": "Não coloquemos a carroça na frente dos bois."
+   },
+   {
+    "who": "alice",
+    "en": "Wisely said. First the facts, then the decision.",
+    "pt": "Bem dito. Primeiro os fatos, depois a decisão."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Quando será a próxima reunião?",
+    "options": [
+     "On Monday",
+     "On Friday",
+     "On Sunday"
+    ],
+    "answer": "On Monday",
+    "lang": "en"
+   },
+   {
+    "q": "O que é essencial, segundo Ayrton?",
+    "options": [
+     "Every party be heard",
+     "Everyone agree",
+     "Nobody speak"
+    ],
+    "answer": "Every party be heard",
+    "lang": "en"
+   },
+   {
+    "q": "Qual expressão José usa?",
+    "options": [
+     "Put the cart before the horse",
+     "Break the ice",
+     "Hit the road"
+    ],
+    "answer": "Put the cart before the horse",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Oratória: Inversões e Subjuntivo",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "ayrton",
+   "alice",
+   "jose"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "Rarely does a nation produce such courage.",
+      "pt": "Raramente uma nação produz tanta coragem."
+     },
+     {
+      "who": "alice",
+      "en": "Not only did they fight bravely, but they also governed wisely.",
+      "pt": "Eles não apenas lutaram com bravura, mas também governaram com sabedoria."
+     },
+     {
+      "who": "ayrton",
+      "en": "Never have I read a speech so moving.",
+      "pt": "Nunca li um discurso tão comovente."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Alice?",
+     "options": [
+      "Seldom is truth easy, yet it is always worth defending.",
+      "Wisely said. We will proceed with prudence.",
+      "I propose that the next meeting be held on Monday."
+     ],
+     "answer": "Seldom is truth easy, yet it is always worth defending.",
+     "lang": "en",
+     "why": "Alice diz: “Seldom is truth easy, yet it is always worth defending.” — Raramente a verdade é fácil, mas ela sempre vale ser defendida."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "jose",
+      "en": "I propose that the meeting be held on Monday.",
+      "pt": "Proponho que a reunião seja realizada na segunda-feira."
+     },
+     {
+      "who": "ayrton",
+      "en": "It is essential that every party be heard.",
+      "pt": "É essencial que cada parte seja ouvida."
+     },
+     {
+      "who": "jose",
+      "en": "Let us not put the cart before the horse. First, the facts.",
+      "pt": "Não coloquemos a carroça na frente dos bois. Primeiro, os fatos."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Ayrton?",
+     "options": [
+      "Seldom is truth easy, yet it is always worth defending.",
+      "I propose that the next meeting be held on Monday.",
+      "Wisely said. We will proceed with prudence."
+     ],
+     "answer": "Wisely said. We will proceed with prudence.",
+     "lang": "en",
+     "why": "Ayrton diz: “Wisely said. We will proceed with prudence.” — Bem dito. Prosseguiremos com prudência."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "Rarely does a nation produce such courage.",
+      "pt": "Raramente uma nação produz tanta coragem."
+     },
+     {
+      "who": "alice",
+      "en": "Not only did they fight bravely, but they also governed wisely.",
+      "pt": "Eles não apenas lutaram com bravura, mas também governaram com sabedoria."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de José?",
+     "options": [
+      "Wisely said. We will proceed with prudence.",
+      "I propose that the next meeting be held on Monday.",
+      "Seldom is truth easy, yet it is always worth defending."
+     ],
+     "answer": "I propose that the next meeting be held on Monday.",
+     "lang": "en",
+     "why": "José diz: “I propose that the next meeting be held on Monday.” — Proponho que a próxima reunião seja realizada na segunda-feira."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "It is essential that every party be heard.",
+      "pt": "É essencial que cada parte seja ouvida."
+     },
+     {
+      "who": "jose",
+      "en": "Let us not put the cart before the horse.",
+      "pt": "Não coloquemos a carroça na frente dos bois."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Alice?",
+     "options": [
+      "Wisely said. First the facts, then the decision.",
+      "Seldom is truth easy, yet it is always worth defending.",
+      "Wisely said. We will proceed with prudence."
+     ],
+     "answer": "Wisely said. First the facts, then the decision.",
+     "lang": "en",
+     "why": "Alice diz: “Wisely said. First the facts, then the decision.” — Bem dito. Primeiro os fatos, depois a decisão."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "jose",
+  "ask": "When shall we hold the meeting?",
+  "askPt": "Quando devemos realizar a reunião?",
+  "model": "I suggest that we hold it on Monday.",
+  "modelPt": "Sugiro que a realizemos na segunda-feira.",
+  "accept": [
+   "I suggest that we hold it on Monday.",
+   "I propose that we hold it on Monday."
+  ]
+ },
+ "wisdom": "w14",
+ "tips": [
+  "final_consonant",
+  "w_sound",
+  "th_voiced"
+ ],
+ "pnl": {
+  "identity": "Você é alguém que termina o que começa. É assim que se forma o caráter.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Oratória: Inversões e Subjuntivo” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Oratória: Inversões e Subjuntivo” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Rarely does a nation",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Inversões enfáticas, subjuntivo formal, expressões idiomáticas cultas e retórica persuasiva.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: Oratória",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.0"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.3"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Let us not rush",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c7",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c8",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d2"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c4"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "l.5"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "write",
+     "ref": "l.4",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.2",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Oratória: Inversões e Subjuntivo",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c3"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.0",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.0"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

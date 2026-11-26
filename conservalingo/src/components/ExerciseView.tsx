@@ -7,15 +7,20 @@ import WordFeedback from './WordFeedback';
 import { say, stopSpeaking } from '../engine/audio';
 import { checkAnswer } from '../engine/exercises';
 import { asrAvailable, listen } from '../engine/speech';
-import { bestMatch, cleanWord, scoreWords, type ScoredWord } from '../engine/pron';
+import { bestMatch, cleanWord, scoreWords, tipById, type ScoredWord } from '../engine/pron';
 import { fx } from '../engine/fx';
 import { REFRAME } from '../engine/pnl';
+import Bento from './Bento';
 
-interface Props { ex: Exercise; onDone: (correct: boolean) => void; onSpeakScore?: (accuracy: number) => void }
+interface Props {
+  ex: Exercise; onDone: (correct: boolean) => void;
+  onSpeakScore?: (accuracy: number, words: ScoredWord[]) => void;
+  asrAllowed?: boolean; // os pais podem desligar o microfone no Painel Familiar
+}
 
 type SpeakState = { status: 'idle' | 'listening' | 'done' | 'error'; text: string; conf: number; uri: string | null; err?: string };
 
-export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
+export default function ExerciseView({ ex, onDone, onSpeakScore, asrAllowed = true }: Props) {
   const [chosen, setChosen] = useState<string | null>(null);
   const [built, setBuilt] = useState<number[]>([]);
   const [typed, setTyped] = useState('');
@@ -23,16 +28,16 @@ export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
   const [sp, setSp] = useState<SpeakState>({ status: 'idle', text: '', conf: -1, uri: null });
   const stopRef = useRef<() => void>(() => {});
   const voice = ex.voice ?? 'M';
-  const asr = useMemo(() => asrAvailable(), []);
+  const asr = useMemo(() => asrAllowed && asrAvailable(), [asrAllowed]);
 
   useEffect(() => {
     setChosen(null); setBuilt([]); setTyped(''); setChecked(null); setSp({ status: 'idle', text: '', conf: -1, uri: null });
-    if (ex.kind === 'listen' || ex.kind === 'dictation' || ex.kind === 'roleplay') say(ex.speak ?? ex.question, voice);
+    if (ex.kind === 'listen' || ex.kind === 'dictation' || ex.kind === 'roleplay' || ex.kind === 'learn') say(ex.speak ?? ex.question, voice);
     return () => { stopRef.current(); stopSpeaking(); };
   }, [ex.id]);
 
   const isBank = ex.kind === 'bank_en' || ex.kind === 'bank_pt';
-  const answerText = isBank ? built.map((i) => ex.bank![i]).join(' ') : ex.kind === 'dictation' ? typed : chosen ?? '';
+  const answerText = isBank ? built.map((i) => ex.bank![i]).join(' ') : ex.kind === 'dictation' || ex.kind === 'write' ? typed : chosen ?? '';
   const check = () => {
     const ok = checkAnswer(ex, answerText);
     setChecked(ok);
@@ -73,9 +78,60 @@ export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
 
   const reported = useRef<string>('');
   useEffect(() => {
-    if (result && ex.kind === 'speak' && reported.current !== ex.id + sp.text) { reported.current = ex.id + sp.text; onSpeakScore?.(result.accuracy); fx(result.ok ? 'ok' : 'bad'); }
+    if (result && ex.kind === 'speak' && reported.current !== ex.id + sp.text) { reported.current = ex.id + sp.text; onSpeakScore?.(result.accuracy, result.words); fx(result.ok ? 'ok' : 'bad'); }
     if (result && ex.kind === 'roleplay' && sp.status === 'done' && reported.current !== ex.id + sp.text) { reported.current = ex.id + sp.text; fx(result.ok ? 'ok' : 'bad'); }
   }, [result]);
+
+  if (ex.kind === 'learn') {
+    return (
+      <View style={s.root}>
+        <ScrollView contentContainerStyle={s.body}>
+          <Text style={s.prompt}>{ex.prompt}</Text>
+          <View style={s.learnCard}>
+            <Text style={s.hero}>{ex.question}</Text>
+            <Text style={s.learnPt}>{ex.answer}</Text>
+            {ex.hint ? <Text style={s.learnNote}>{ex.hint}</Text> : null}
+          </View>
+          <View style={{ flexDirection: 'row', gap: space.sm }}>
+            <View style={{ flex: 1 }}><Btn kind="ghost" style={{ paddingHorizontal: 6 }} title="🔊 Ouvir" onPress={() => say(ex.speak!, voice)} /></View>
+            <View style={{ flex: 1 }}><Btn kind="ghost" style={{ paddingHorizontal: 6 }} title="🐢 Devagar" onPress={() => say(ex.speak!, voice, true)} /></View>
+          </View>
+        </ScrollView>
+        <View style={s.bar}><Btn title="Continuar" onPress={() => onDone(true)} /></View>
+      </View>
+    );
+  }
+
+  if (ex.kind === 'note' && ex.note) {
+    const tip = ex.note.tip ? tipById(ex.note.tip) : undefined;
+    return (
+      <View style={s.root}>
+        <ScrollView contentContainerStyle={s.body}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <Bento mood="pensativo" size={64} />
+            <Text style={[s.prompt, { flex: 1 }]}>{ex.note.title}</Text>
+          </View>
+          <View style={s.noteCard}>{ex.note.body.split('\n').map((ln, i) => <Text key={i} style={s.noteLine}>{ln}</Text>)}</View>
+          {ex.note.examples.map((e, i) => (
+            <Pressable key={i} onPress={() => say(e.en, e.voice)} style={s.example} accessibilityRole="button" accessibilityLabel={`Ouvir: ${e.en}`}>
+              <Text style={s.exampleEn}>🔊 {e.en}</Text>
+              <Text style={s.examplePt}>{e.pt}</Text>
+            </Pressable>
+          ))}
+          {tip && (
+            <View style={[s.noteCard, { backgroundColor: colors.goldSoft, borderColor: colors.gold }]}>
+              <Text style={[s.noteLine, { fontFamily: fonts.sansBold }]}>🗣️ {tip.title}</Text>
+              <Text style={s.noteLine}>{tip.tip}</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                {tip.words.slice(0, 4).map((w) => <Pressable key={w} onPress={() => say(w, 'M')} style={s.chip}><Text style={s.chipText}>🔊 {w}</Text></Pressable>)}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+        <View style={s.bar}><Btn title="Entendi" onPress={() => onDone(true)} /></View>
+      </View>
+    );
+  }
 
   if (speakable) {
     const spoken = sp.status === 'done';
@@ -91,11 +147,16 @@ export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
               <P style={{ textAlign: 'center', color: colors.muted }}>{ex.question}</P>
             </>
           ) : (
-            result ? <WordFeedback words={result.words} uri={sp.uri} voice={voice} /> : <Text style={s.big}>{ex.question}</Text>
+            result ? <WordFeedback words={result.words} uri={sp.uri} voice={voice} /> : (
+              <View style={{ gap: 6 }}>
+                <Text style={s.big}>{ex.question}</Text>
+                {ex.hint ? <Text style={s.hintLine}>{ex.word ? `Dica: ${ex.hint}` : ex.hint}</Text> : null}
+              </View>
+            )
           )}
           <View style={{ flexDirection: 'row', gap: space.sm }}>
-            <View style={{ flex: 1 }}><Btn kind="ghost" title="🔊 Ouvir" onPress={() => say(ex.speak!, voice)} /></View>
-            <View style={{ flex: 1 }}><Btn kind="ghost" title="🐢 Devagar" onPress={() => say(ex.speak!, voice, true)} /></View>
+            <View style={{ flex: 1 }}><Btn kind="ghost" style={{ paddingHorizontal: 6 }} title="🔊 Ouvir" onPress={() => say(ex.speak!, voice)} /></View>
+            <View style={{ flex: 1 }}><Btn kind="ghost" style={{ paddingHorizontal: 6 }} title="🐢 Devagar" onPress={() => say(ex.speak!, voice, true)} /></View>
           </View>
           {listening && <P style={{ textAlign: 'center', color: colors.cobalt }}>🎙️ Ouvindo… {sp.text ? `“${sp.text}”` : 'fale agora'}</P>}
           {sp.status === 'error' && asr && <P style={{ textAlign: 'center', color: colors.crimson }}>{sp.err === 'not-allowed' ? 'Permita o microfone para treinar a pronúncia.' : 'Não consegui ouvir. Fale mais perto do microfone e tente de novo.'}</P>}
@@ -133,25 +194,32 @@ export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
     <View style={s.root}>
       <ScrollView contentContainerStyle={s.body} keyboardShouldPersistTaps="handled">
         <Text style={s.prompt}>{ex.prompt}</Text>
-        {ex.kind === 'listen' || ex.kind === 'dictation' ? (
+        {ex.kind === 'write' ? (
+          <View style={{ gap: space.sm }}>
+            <Text style={s.big}>{ex.question}</Text>
+            {ex.hint ? <Text style={s.hintLine} accessibilityLabel="Dica com as primeiras letras">{ex.hint}</Text> : null}
+          </View>
+        ) : ex.kind === 'listen' || ex.kind === 'dictation' ? (
           <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'center' }}>
             <Pressable onPress={() => say(ex.speak!, voice)} style={s.speaker} accessibilityLabel="Ouvir"><Text style={{ fontSize: fs(34) }}>🔊</Text></Pressable>
             <Pressable onPress={() => say(ex.speak!, voice, true)} style={[s.speaker, { backgroundColor: colors.goldSoft, borderColor: colors.gold }]} accessibilityLabel="Ouvir devagar"><Text style={{ fontSize: fs(34) }}>🐢</Text></Pressable>
           </View>
         ) : (
-          <Pressable onPress={() => ex.speak && say(ex.speak, voice)} accessibilityRole="button" accessibilityLabel="Ouvir frase">
-            <Text style={s.big}>{ex.question}{ex.speak ? '  🔊' : ''}</Text>
+          <Pressable onPress={() => ex.speak && (checked !== null || ex.question === ex.speak) && say(ex.speak, voice)} accessibilityRole="button" accessibilityLabel="Enunciado">
+            <Text style={s.big}>{ex.question}{ex.speak && ex.question === ex.speak ? '  🔊' : ''}</Text>
+            {ex.hint && ex.kind === 'choose' ? <Text style={s.hintLine}>{ex.hint}</Text> : null}
           </Pressable>
         )}
 
-        {ex.kind === 'dictation' ? (
-          <TextInput value={typed} onChangeText={setTyped} editable={checked === null} placeholder="Escreva o que você ouviu" autoCapitalize="none" autoCorrect={false}
+        {ex.kind === 'dictation' || ex.kind === 'write' ? (
+          <TextInput value={typed} onChangeText={setTyped} editable={checked === null} placeholder={ex.kind === 'write' ? 'Escreva em inglês' : 'Escreva o que você ouviu'} autoCapitalize="none" autoCorrect={false}
             multiline style={[s.input, checked !== null && { borderColor: checked ? colors.olive : colors.crimson }]} />
         ) : isBank ? (
           <>
             <View style={s.answerBox}>
               {built.map((bi, i) => (
-                <Pressable key={i} disabled={checked !== null} onPress={() => setBuilt(built.filter((_, k) => k !== i))} style={s.chip}>
+                <Pressable key={i} disabled={checked !== null} onPress={() => setBuilt(built.filter((_, k) => k !== i))} style={s.chip}
+                  accessibilityRole="button" accessibilityLabel={`Remover ${ex.bank![bi]}`}>
                   <Text style={s.chipText}>{ex.bank![bi]}</Text>
                 </Pressable>
               ))}
@@ -159,6 +227,7 @@ export default function ExerciseView({ ex, onDone, onSpeakScore }: Props) {
             <View style={s.bank}>
               {ex.bank!.map((w, i) => (
                 <Pressable key={i} disabled={built.includes(i) || checked !== null} onPress={() => setBuilt([...built, i])}
+                  accessibilityRole="button" accessibilityState={{ disabled: built.includes(i) || checked !== null }}
                   style={[s.chip, built.includes(i) && { opacity: 0.2 }]}>
                   <Text style={s.chipText}>{w}</Text>
                 </Pressable>
@@ -206,7 +275,17 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   body: { padding: space.md, gap: space.lg, paddingBottom: space.xl },
   prompt: { fontFamily: fonts.sansBold, fontSize: fs(17), color: colors.navy },
-  big: { fontFamily: fonts.serif, fontSize: fs(24), color: colors.navy, textAlign: 'center', lineHeight: fs(24) * 1.35 },
+  big: { fontFamily: fonts.sansBold, fontSize: fs(22), color: colors.navy, textAlign: 'center', lineHeight: fs(22) * 1.35 },
+  hero: { fontFamily: fonts.sansBold, fontSize: fs(26), color: colors.navy, textAlign: 'center' },
+  hintLine: { fontFamily: fonts.sansMedium, fontSize: fs(16), color: colors.muted, textAlign: 'center', letterSpacing: 1 },
+  learnCard: { backgroundColor: '#fff', borderRadius: radius.lg, borderWidth: 2, borderColor: colors.line, borderBottomWidth: 5, padding: space.lg, gap: space.sm, alignItems: 'center' },
+  learnPt: { fontFamily: fonts.sansMedium, fontSize: fs(18), color: colors.olive, textAlign: 'center' },
+  learnNote: { fontFamily: fonts.sans, fontSize: fs(14), color: colors.muted, textAlign: 'center' },
+  noteCard: { backgroundColor: colors.navySoft, borderRadius: radius.lg, padding: space.md, gap: 6, borderWidth: 1, borderColor: colors.line },
+  noteLine: { fontFamily: fonts.sansMedium, fontSize: fs(15), color: colors.ink, lineHeight: fs(15) * 1.45 },
+  example: { backgroundColor: '#fff', borderRadius: radius.md, borderWidth: 2, borderColor: colors.line, borderBottomWidth: 4, padding: space.md, gap: 2 },
+  exampleEn: { fontFamily: fonts.sansBold, fontSize: fs(17), color: colors.navy },
+  examplePt: { fontFamily: fonts.sans, fontSize: fs(14), color: colors.muted },
   input: { borderWidth: 2, borderColor: colors.line, borderRadius: radius.lg, padding: space.md, minHeight: 90, fontFamily: fonts.sansMedium, fontSize: fs(18), color: colors.ink, backgroundColor: '#fff', textAlignVertical: 'top' },
   speaker: { width: 96, height: 84, borderRadius: radius.lg, backgroundColor: colors.navySoft, borderWidth: 2, borderColor: colors.navy, borderBottomWidth: 5, alignItems: 'center', justifyContent: 'center' },
   opt: { padding: space.md, borderRadius: radius.lg, borderWidth: 2, borderBottomWidth: 5, borderColor: colors.line, backgroundColor: '#fff' },

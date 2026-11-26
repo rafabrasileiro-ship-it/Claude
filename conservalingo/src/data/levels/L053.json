@@ -1,0 +1,673 @@
+{
+ "id": "L053",
+ "number": 53,
+ "origin": "adaptado",
+ "title": "Livre Iniciativa e Contratos",
+ "grammar": "Present Perfect, condicionais (1º e 2º), modais de dever e conselho (must, should, ought to).",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "have built",
+   "pt": "construímos"
+  },
+  {
+   "id": "c2",
+   "en": "never",
+   "pt": "nunca"
+  },
+  {
+   "id": "c3",
+   "en": "contract",
+   "pt": "contrato"
+  },
+  {
+   "id": "c4",
+   "en": "customer",
+   "pt": "cliente"
+  },
+  {
+   "id": "c5",
+   "en": "trust",
+   "pt": "confiar"
+  },
+  {
+   "id": "c6",
+   "en": "must",
+   "pt": "dever (obrigação)"
+  },
+  {
+   "id": "c7",
+   "en": "Have you read",
+   "pt": "Você já leu"
+  },
+  {
+   "id": "c8",
+   "en": "every line",
+   "pt": "cada linha"
+  },
+  {
+   "id": "c9",
+   "en": "We should sign",
+   "pt": "Deveríamos assinar"
+  },
+  {
+   "id": "c10",
+   "en": "fair price",
+   "pt": "preço justo"
+  },
+  {
+   "id": "c11",
+   "en": "both sides",
+   "pt": "os dois lados"
+  },
+  {
+   "id": "c12",
+   "en": "deal",
+   "pt": "acordo / negócio"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "We have built this company",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "flavia",
+     "en": "We have built this company with honest work.",
+     "pt": "Nós construímos esta empresa com trabalho honesto."
+    },
+    {
+     "who": "jose",
+     "en": "Yes. We have never broken a contract.",
+     "pt": "Sim. Nunca quebramos um contrato."
+    },
+    {
+     "who": "flavia",
+     "en": "If we keep our word, customers will trust us.",
+     "pt": "Se cumprirmos a palavra, os clientes confiarão em nós."
+    },
+    {
+     "who": "jose",
+     "en": "We must serve them well. That is true leadership.",
+     "pt": "Devemos servi-los bem. Isso é liderança de verdade."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Have you read the contract?",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "beatriz",
+     "en": "José, have you read the new contract?",
+     "pt": "José, você já leu o novo contrato?"
+    },
+    {
+     "who": "jose",
+     "en": "Yes. I have read every line. We should sign it.",
+     "pt": "Sim. Li cada linha. Deveríamos assiná-lo."
+    },
+    {
+     "who": "beatriz",
+     "en": "If the price is fair, both sides will win.",
+     "pt": "Se o preço for justo, os dois lados ganharão."
+    },
+    {
+     "who": "jose",
+     "en": "Exactly. A good deal serves everyone.",
+     "pt": "Exatamente. Um bom negócio serve a todos."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "Contrato e Liderança",
+  "lines": [
+   {
+    "who": "flavia",
+    "en": "We have signed the contract with our new customer.",
+    "pt": "Assinamos o contrato com o nosso novo cliente."
+   },
+   {
+    "who": "jose",
+    "en": "Excellent. If we deliver on time, they will order again.",
+    "pt": "Excelente. Se entregarmos no prazo, eles pedirão de novo."
+   },
+   {
+    "who": "beatriz",
+    "en": "Have you checked the delivery schedule?",
+    "pt": "Você conferiu o cronograma de entrega?"
+   },
+   {
+    "who": "flavia",
+    "en": "Yes. I have checked it twice.",
+    "pt": "Sim. Conferi duas vezes."
+   },
+   {
+    "who": "jose",
+    "en": "Good. A leader should serve the team first.",
+    "pt": "Bom. Um líder deve servir à equipe primeiro."
+   },
+   {
+    "who": "beatriz",
+    "en": "And honest profit rewards honest work.",
+    "pt": "E o lucro honesto recompensa o trabalho honesto."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Com quem assinaram o contrato?",
+    "options": [
+     "A new customer",
+     "A bank",
+     "A school"
+    ],
+    "answer": "A new customer",
+    "lang": "en"
+   },
+   {
+    "q": "Quantas vezes Flávia conferiu o cronograma?",
+    "options": [
+     "Twice",
+     "Once",
+     "Never"
+    ],
+    "answer": "Twice",
+    "lang": "en"
+   },
+   {
+    "q": "Segundo José, o que um líder deve fazer primeiro?",
+    "options": [
+     "Serve the team",
+     "Count the money",
+     "Go home"
+    ],
+    "answer": "Serve the team",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Livre Iniciativa e Contratos",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "flavia",
+   "jose",
+   "beatriz"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "flavia",
+      "en": "We have built this company with honest work.",
+      "pt": "Nós construímos esta empresa com trabalho honesto."
+     },
+     {
+      "who": "jose",
+      "en": "Yes. We have never broken a contract.",
+      "pt": "Sim. Nunca quebramos um contrato."
+     },
+     {
+      "who": "flavia",
+      "en": "If we keep our word, customers will trust us.",
+      "pt": "Se cumprirmos a palavra, os clientes confiarão em nós."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de José?",
+     "options": [
+      "We must serve them well. That is true leadership.",
+      "Exactly. A good deal serves everyone.",
+      "Have you checked the delivery schedule?"
+     ],
+     "answer": "We must serve them well. That is true leadership.",
+     "lang": "en",
+     "why": "José diz: “We must serve them well. That is true leadership.” — Devemos servi-los bem. Isso é liderança de verdade."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "beatriz",
+      "en": "José, have you read the new contract?",
+      "pt": "José, você já leu o novo contrato?"
+     },
+     {
+      "who": "jose",
+      "en": "Yes. I have read every line. We should sign it.",
+      "pt": "Sim. Li cada linha. Deveríamos assiná-lo."
+     },
+     {
+      "who": "beatriz",
+      "en": "If the price is fair, both sides will win.",
+      "pt": "Se o preço for justo, os dois lados ganharão."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de José?",
+     "options": [
+      "We must serve them well. That is true leadership.",
+      "Have you checked the delivery schedule?",
+      "Exactly. A good deal serves everyone."
+     ],
+     "answer": "Exactly. A good deal serves everyone.",
+     "lang": "en",
+     "why": "José diz: “Exactly. A good deal serves everyone.” — Exatamente. Um bom negócio serve a todos."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "flavia",
+      "en": "We have signed the contract with our new customer.",
+      "pt": "Assinamos o contrato com o nosso novo cliente."
+     },
+     {
+      "who": "jose",
+      "en": "Excellent. If we deliver on time, they will order again.",
+      "pt": "Excelente. Se entregarmos no prazo, eles pedirão de novo."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beatriz?",
+     "options": [
+      "Exactly. A good deal serves everyone.",
+      "Have you checked the delivery schedule?",
+      "We must serve them well. That is true leadership."
+     ],
+     "answer": "Have you checked the delivery schedule?",
+     "lang": "en",
+     "why": "Beatriz diz: “Have you checked the delivery schedule?” — Você conferiu o cronograma de entrega?"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "flavia",
+      "en": "Yes. I have checked it twice.",
+      "pt": "Sim. Conferi duas vezes."
+     },
+     {
+      "who": "jose",
+      "en": "Good. A leader should serve the team first.",
+      "pt": "Bom. Um líder deve servir à equipe primeiro."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beatriz?",
+     "options": [
+      "And honest profit rewards honest work.",
+      "We must serve them well. That is true leadership.",
+      "Exactly. A good deal serves everyone."
+     ],
+     "answer": "And honest profit rewards honest work.",
+     "lang": "en",
+     "why": "Beatriz diz: “And honest profit rewards honest work.” — E o lucro honesto recompensa o trabalho honesto."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "jose",
+  "ask": "Have you read the contract?",
+  "askPt": "Você leu o contrato?",
+  "model": "Yes, I have read the contract.",
+  "modelPt": "Sim, li o contrato.",
+  "accept": [
+   "Yes, I have read the contract.",
+   "Yes, I have read it."
+  ]
+ },
+ "wisdom": "w13",
+ "tips": [
+  "final_consonant",
+  "r_sound",
+  "final_l"
+ ],
+ "pnl": {
+  "identity": "Pessoas firmes como você transformam pequenos passos em grandes conquistas.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Livre Iniciativa e Contratos” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Livre Iniciativa e Contratos” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: We have built this company",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Present Perfect, condicionais (1º e 2º), modais de dever e conselho (must, should, ought to).\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: Contrato e Liderança",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.2"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.3"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Have you read the contract?",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c7",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c8",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d2"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c12"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "l.5"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "write",
+     "ref": "l.4",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.0",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Livre Iniciativa e Contratos",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c3"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.3",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

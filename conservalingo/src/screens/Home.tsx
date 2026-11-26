@@ -1,73 +1,114 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { colors, fonts, radius, space, fs } from '../theme';
-import { Btn, ProgressBar } from '../components/ui';
 import { useStore } from '../store';
-import { units, dailyWisdom, people, levels, chronicles, stationOf } from '../engine/content';
-import { TIERS, activeStreak, dayKey, hash, standings, tierName, weekProgress } from '../engine/game';
-import { fx } from '../engine/fx';
+import { curriculum, dailyWisdom, people } from '../engine/content';
+import { LEVELS, blockOf, currentLevel, eraOf, lessonsDone, levelDone, levelUnlocked } from '../engine/levels';
+import { activeStreak, dayKey, lessonsToday, vaultAvailable } from '../engine/game';
 import { dueKeys } from '../engine/srs';
+import { weakWords } from '../engine/pron';
+import { Connector, NODE, OFFSETS, TrailNode, type NodeState } from '../components/Trail';
+import type { BlockDef, EraDef, LevelDef } from '../types';
+import type { LessonRef } from '../nav';
 
-export type LessonRef = { kind: 'lesson'; id: string } | { kind: 'review'; unitId: string } | { kind: 'practice' } | { kind: 'listening'; unitId: string } | { kind: 'chronicle'; id: string };
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+const H = { tip: 104, era: 118, block: 96, level: 132 };
+const NODE_TOP = 48; // espaço para o balão "COMEÇAR" acima do nó
+type Row =
+  | { type: 'tip' }
+  | { type: 'era'; era: EraDef }
+  | { type: 'block'; block: BlockDef }
+  | { type: 'level'; level: LevelDef; x: number; prevX: number | null };
 
-const OFFSETS = [0, 46, 70, 46, 0, -46, -70, -46];
-
-function Bounce({ children }: { children: React.ReactNode }) {
-  const v = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const a = Animated.loop(Animated.sequence([
-      Animated.timing(v, { toValue: -6, duration: 600, useNativeDriver: true }),
-      Animated.timing(v, { toValue: 0, duration: 600, useNativeDriver: true }),
-    ]));
-    a.start();
-    return () => a.stop();
-  }, [v]);
-  return <Animated.View style={{ transform: [{ translateY: v }] }}>{children}</Animated.View>;
+function buildRows(): Row[] {
+  const rows: Row[] = [{ type: 'tip' }];
+  let prevBlock = -1; let prevEra = 0; let prevX: number | null = null;
+  for (const l of LEVELS) {
+    if (l.era !== prevEra) { rows.push({ type: 'era', era: curriculum.eras[l.era - 1] }); prevEra = l.era; }
+    if (l.block !== prevBlock) { rows.push({ type: 'block', block: curriculum.blocks[l.block] }); prevBlock = l.block; prevX = null; }
+    const x = OFFSETS[(l.n - 1) % OFFSETS.length];
+    rows.push({ type: 'level', level: l, x, prevX });
+    prevX = x;
+  }
+  return rows;
 }
+const ROWS = buildRows();
+const OFFS = ROWS.reduce<number[]>((acc, r, i) => { acc.push(i === 0 ? 0 : acc[i - 1] + H[ROWS[i - 1].type]); return acc; }, []);
+const names = (ids: string[]) => ids.slice(0, 4).map((c) => people[c]?.name).join(', ').replace(/, ([^,]*)$/, ' e $1') + (ids.length > 4 ? ' e todos os núcleos' : '');
 
-function Node({ label, icon, state, stars, offset, onPress, gold, hideStart }: {
-  label: string; icon: string; state: 'locked' | 'current' | 'done'; stars: number; offset: number; onPress: () => void; gold?: boolean; hideStart?: boolean;
-}) {
-  const bg = state === 'locked' ? '#D8D4C6' : gold ? colors.gold : state === 'done' ? colors.olive : colors.cobalt;
-  const edge = state === 'locked' ? '#BDB8A6' : gold ? '#8A6508' : state === 'done' ? '#134226' : '#142C52';
-  return (
-    <View style={{ alignItems: 'center', transform: [{ translateX: offset }], marginVertical: 8 }}>
-      {state === 'current' && !hideStart && (
-        <Bounce>
-          <View style={s.start}><Text style={s.startText}>COMEÇAR</Text></View>
-          <View style={s.startArrow} />
-        </Bounce>
-      )}
-      <Pressable disabled={state === 'locked'} onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-        {({ pressed }) => (
-          <View style={[s.node, { backgroundColor: bg, borderBottomColor: edge }, pressed && { borderBottomWidth: 3, marginTop: 4 }]}>
-            <Text style={{ fontSize: fs(30) }}>{state === 'locked' ? '🔒' : icon}</Text>
-          </View>
-        )}
-      </Pressable>
-      <Text style={[s.nodeLabel, state === 'locked' && { color: colors.muted }]}>{label}</Text>
-      {state === 'done' && <Text style={{ fontSize: fs(14) }}>{'⭐'.repeat(stars)}</Text>}
-    </View>
-  );
-}
-
-export default function Home({ onStart }: { onStart: (r: LessonRef) => void }) {
-  const { profile, updateProfile } = useStore();
-  const [toast, setToast] = useState('');
-  const due = dueKeys(profile.srs).length;
+/** Mapa Vertical Interativo (Caminho da Virtude): 5 Eras, 130 níveis. */
+export default function Home({ onOpenLevel, onStart }: { onOpenLevel: (levelId: string) => void; onStart: (r: LessonRef) => void }) {
+  const { profile } = useStore();
+  const list = useRef<FlatList<Row>>(null);
+  const cur = currentLevel(profile);
+  const curIndex = ROWS.findIndex((r) => r.type === 'level' && r.level.id === cur.id);
+  const due = dueKeys(profile.srs).length + weakWords(profile, 3).length;
   const tip = dailyWisdom(Number(dayKey().replace(/-/g, '')));
-  const me = standings(profile, weekProgress()).find((r) => r.me)!;
-  const tier = profile.league.tier;
-  let prevDone = true;
-  let n = 0;
-  const done = (id: string) => (profile.completed[id] ?? 0) > 0;
+  const today = lessonsToday(profile);
+  const goal = profile.goal ?? 2;
+  const vault = vaultAvailable(profile);
+  const initial = useMemo(() => Math.max(0, curIndex - 2), []);
+  const { width } = useWindowDimensions();
+  const half = (width - space.md * 2) / 2; // centro da trilha
+  const [scrollY, setScrollY] = useState(0);
+  const farFromCurrent = Math.abs(scrollY - (OFFS[curIndex] ?? 0)) > 500;
 
-  const openChest = (uid: string) => {
-    const reward = 20 + (hash(uid) % 41);
-    fx('combo');
-    updateProfile((p) => ({ ...p, talents: p.talents + reward, chests: [...p.chests, uid] }));
-    setToast(`🎁 Arca aberta! Você encontrou ${reward} Talentos.`);
-    setTimeout(() => setToast(''), 4000);
+  const stateOf = (l: LevelDef): NodeState => {
+    if (l.status === 'planned') return 'planned';
+    if (levelDone(profile, l.id)) return 'done';
+    return levelUnlocked(profile, l.id) ? 'current' : 'locked';
+  };
+
+  const render = ({ item }: { item: Row }) => {
+    if (item.type === 'tip') {
+      return (
+        <View style={[s.tip, { height: H.tip - 14 }]}>
+          <Text style={{ fontSize: fs(24) }}>🦅</Text>
+          <Text style={s.tipText} numberOfLines={3}>“{tip.en}”{'\n'}<Text style={s.tipSrc}>{tip.source}</Text></Text>
+        </View>
+      );
+    }
+    if (item.type === 'era') {
+      const e = item.era;
+      const avail = LEVELS.filter((l) => l.era === e.era && l.status === 'available').length;
+      return (
+        <View style={[s.era, { height: H.era - 16 }]}>
+          <Text style={s.eraK}>ERA {ROMAN[e.era - 1]} · CEFR {e.cefr} · NÍVEIS {e.from}–{e.to}</Text>
+          <Text style={s.eraT} numberOfLines={2}>{e.title}</Text>
+          <Text style={s.eraS}>{e.to - e.from + 1} níveis · {(e.to - e.from + 1) * 10} lições · {avail} disponíve{avail === 1 ? 'l' : 'is'} agora</Text>
+        </View>
+      );
+    }
+    if (item.type === 'block') {
+      const b = item.block;
+      return (
+        <View style={[s.block, { height: H.block - 12 }]}>
+          <Text style={s.blockK}>NÍVEIS {b.label}</Text>
+          <Text style={s.blockT} numberOfLines={2}>{b.theme}</Text>
+          <Text style={s.blockC} numberOfLines={1}>Com {names(b.cast)}</Text>
+        </View>
+      );
+    }
+    const l = item.level; const st = stateOf(l); const done = lessonsDone(profile, l.id);
+    const leftLabel = item.x > 0 || (item.x === 0 && l.n % 2 === 0);
+    const labelW = Math.min(170, half + (leftLabel ? item.x : -item.x) - NODE / 2 - 14);
+    return (
+      <View style={{ height: H.level }}>
+        {item.prevX !== null && <Connector fromX={item.prevX} toX={item.x} gap={H.level} centerY={NODE_TOP + NODE / 2} faded={l.status === 'planned'} />}
+        <View style={{ position: 'absolute', top: NODE_TOP, left: '50%', marginLeft: item.x - NODE / 2, width: NODE }}>
+          <TrailNode icon={st === 'done' ? '✓' : String(l.n)} state={st} gold={l.n % 26 === 0} label={`Nível ${l.n}: ${l.title}`}
+            startText={done > 0 ? 'CONTINUAR' : 'COMEÇAR'} onPress={() => onOpenLevel(l.id)} />
+        </View>
+        <Pressable onPress={() => (st === 'done' || st === 'current') && onOpenLevel(l.id)} accessibilityElementsHidden
+          style={[s.label, { top: NODE_TOP - 6, width: labelW }, leftLabel ? { right: '50%', marginRight: -item.x + NODE / 2 + 10, alignItems: 'flex-end' } : { left: '50%', marginLeft: item.x + NODE / 2 + 10 }]}>
+          <Text style={[s.lvN, st === 'planned' && { color: colors.muted }]}>NÍVEL {l.n}</Text>
+          <Text style={[s.lvT, st === 'planned' && { color: colors.muted }, leftLabel && { textAlign: 'right' }]} numberOfLines={2}>{l.title}</Text>
+          <Text style={[s.lvS, st === 'done' && { color: colors.olive }]}>
+            {st === 'planned' ? 'Em preparação' : st === 'done' ? '✔ Concluído' : st === 'locked' ? '🔒 Bloqueado' : `${done}/10 lições`}
+          </Text>
+        </Pressable>
+      </View>
+    );
   };
 
   return (
@@ -75,102 +116,68 @@ export default function Home({ onStart }: { onStart: (r: LessonRef) => void }) {
       <View style={s.top}>
         <View style={s.chip}><Text style={s.chipT}>🧭 {activeStreak(profile)}</Text></View>
         <View style={s.chip}><Text style={[s.chipT, { color: colors.gold }]}>🪙 {profile.talents}</Text></View>
+        <View style={s.chip}><Text style={s.chipT}>🥇 {profile.gold ?? 0}</Text></View>
         <View style={s.chip}><Text style={[s.chipT, profile.shields.count === 0 && { color: '#F2A3AF' }]}>🛡️ {profile.shields.count}</Text></View>
       </View>
-      <ScrollView contentContainerStyle={s.wrap}>
-        {toast ? <View style={s.toast}><Text style={s.toastT}>{toast}</Text></View> : null}
-        <View style={s.tip}>
-          <Text style={{ fontSize: fs(26) }}>🦅</Text>
-          <Text style={s.tipText} numberOfLines={3}>“{tip.en}”{'\n'}<Text style={{ fontFamily: fonts.sans, color: colors.muted, fontSize: fs(12) }}>{tip.source}</Text></Text>
+      <View style={s.today}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={s.todayT}>Meta de hoje: {Math.min(today, goal)}/{goal} {goal === 1 ? 'lição' : 'lições'}{today >= goal ? ' ✔' : ''}</Text>
+          <View style={s.goalBar}><View style={[s.goalFill, { width: `${Math.min(1, today / goal) * 100}%` }]} /></View>
         </View>
-
-        <View style={{ gap: 4 }}>
-          <ProgressBar value={Math.min(1, me.xp / 400)} color={colors.gold} height={14} />
-          <Text style={s.small}>{TIERS[tier].icon} Liga {tierName(tier, profile.sex)} · {me.pos}º lugar · {me.xp} XP na semana</Text>
-        </View>
-
-        {due > 0 && <Btn kind="gold" title={`Treino de Virtude · ${due} para revisar`} onPress={() => onStart({ kind: 'practice' })} />}
-
-        {units.map((u, ui) => {
-          const lv = levels.find((l) => l.level === (u.level ?? 1))!;
-          const firstOfLevel = ui === 0 || (units[ui - 1].level ?? 1) !== (u.level ?? 1);
-          const chron = chronicles.find((c) => c.unlockAfterUnit === u.id);
-          const lessonsDone = u.lessons.every((l) => done(l.id));
-          return (
-            <View key={u.id}>
-              {firstOfLevel && (
-                <View style={s.level}>
-                  <Text style={s.levelK}>NÍVEL {lv.level} · CEFR {lv.cefr}</Text>
-                  <Text style={s.levelT}>{lv.title}</Text>
-                </View>
-              )}
-              <View style={s.banner}>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.bannerKicker}>UNIDADE {ui + 1}</Text>
-                  <Text style={s.bannerTitle}>{u.title}</Text>
-                  <Text style={s.bannerCast}>Com {u.cast.slice(0, 4).map((c) => people[c]?.name).join(', ')}{u.cast.length > 4 ? ' e mais' : ''}</Text>
-                </View>
-                <Text style={{ fontSize: fs(38) }}>{u.icon}</Text>
-              </View>
-              <View style={{ paddingVertical: space.md }}>
-                {u.lessons.map((l) => {
-                  const unlocked = prevDone;
-                  const st = profile.completed[l.id] ?? 0;
-                  prevDone = st > 0;
-                  const state = st > 0 ? 'done' : unlocked ? 'current' : 'locked';
-                  return <Node key={l.id} label={l.title} icon={st > 0 ? '✔' : '📖'} state={state} stars={st} offset={OFFSETS[n++ % OFFSETS.length]} onPress={() => onStart({ kind: 'lesson', id: l.id })} />;
-                })}
-                {stationOf(u.id) && (
-                  <Node gold label={`Escuta: ${stationOf(u.id)!.title}`} icon="🎧" hideStart
-                    state={done(`${u.id}lis`) ? 'done' : lessonsDone ? 'current' : 'locked'} stars={profile.completed[`${u.id}lis`] ?? 0}
-                    offset={OFFSETS[n++ % OFFSETS.length]} onPress={() => onStart({ kind: 'listening', unitId: u.id })} />
-                )}
-                {(() => {
-                  const unlocked = prevDone;
-                  const st = profile.completed[`${u.id}rev`] ?? 0;
-                  prevDone = st > 0;
-                  const state = st > 0 ? 'done' : unlocked ? 'current' : 'locked';
-                  return <Node gold label="Desafio" icon="🏅" state={state} stars={st} offset={OFFSETS[n++ % OFFSETS.length]} onPress={() => onStart({ kind: 'review', unitId: u.id })} />;
-                })()}
-                {(() => {
-                  const open = done(`${u.id}rev`); const claimed = profile.chests.includes(u.id);
-                  return <Node gold label={claimed ? 'Arca aberta' : 'Arca de Talentos'} icon={claimed ? '✔' : '🎁'} hideStart
-                    state={claimed ? 'done' : open ? 'current' : 'locked'} stars={0} offset={OFFSETS[n++ % OFFSETS.length]} onPress={() => !claimed && openChest(u.id)} />;
-                })()}
-                {chron && (
-                  <Node gold label={`Crônica: ${chron.title}`} icon={chron.icon} hideStart
-                    state={done(chron.id) ? 'done' : done(`${u.id}rev`) ? 'current' : 'locked'} stars={profile.completed[chron.id] ?? 0}
-                    offset={OFFSETS[n++ % OFFSETS.length]} onPress={() => onStart({ kind: 'chronicle', id: chron.id })} />
-                )}
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
+        {due > 0 && (
+          <Pressable style={s.practice} onPress={() => onStart({ kind: 'practice' })} accessibilityRole="button" accessibilityLabel="Treino de Revisão e Pronúncia">
+            <Text style={s.practiceT}>🎯 Treino ({due})</Text>
+          </Pressable>
+        )}
+      </View>
+      {vault && <Text style={s.vault}>🔐 Cofre Diário do Tio Bento liberado! Abra na aba Honra.</Text>}
+      <FlatList
+        ref={list}
+        data={ROWS}
+        keyExtractor={(r, i) => (r.type === 'level' ? r.level.id : `${r.type}${i}`)}
+        renderItem={render}
+        getItemLayout={(_, index) => ({ length: H[ROWS[index].type], offset: OFFS[index], index })}
+        initialScrollIndex={initial}
+        initialNumToRender={14}
+        windowSize={9}
+        removeClippedSubviews={false}
+        onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={200}
+        contentContainerStyle={{ paddingHorizontal: space.md, paddingBottom: 90 }}
+      />
+      {farFromCurrent && <Pressable style={s.fab} onPress={() => list.current?.scrollToIndex({ index: Math.max(0, curIndex - 1), animated: true })} accessibilityRole="button" accessibilityLabel="Ir para o nível atual">
+        <Text style={s.fabT}>📍 Nível {cur.n}</Text>
+      </Pressable>}
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  top: { flexDirection: 'row', gap: 8, paddingHorizontal: space.md, paddingBottom: 12, backgroundColor: colors.navy },
-  chip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#ffffff1f' },
-  chipT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(15) },
-  wrap: { padding: space.md, gap: space.md, paddingBottom: 80 },
-  tip: { flexDirection: 'row', gap: space.md, alignItems: 'center', backgroundColor: colors.goldSoft, borderRadius: radius.lg, padding: space.md },
+  top: { flexDirection: 'row', gap: 8, paddingHorizontal: space.md, paddingBottom: 10, backgroundColor: colors.navy, flexWrap: 'wrap' },
+  chip: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: 20, backgroundColor: '#ffffff1f' },
+  chipT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(14) },
+  today: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.sm, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.line },
+  todayT: { fontFamily: fonts.sansBold, fontSize: fs(13), color: colors.navy },
+  goalBar: { height: 10, borderRadius: 5, backgroundColor: colors.line, overflow: 'hidden' },
+  goalFill: { height: 10, borderRadius: 5, backgroundColor: colors.gold },
+  practice: { backgroundColor: colors.gold, borderRadius: radius.md, paddingVertical: 8, paddingHorizontal: 12, borderBottomWidth: 3, borderBottomColor: '#8A6508' },
+  practiceT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(13) },
+  vault: { backgroundColor: colors.olive, color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(13), paddingVertical: 8, paddingHorizontal: space.md, textAlign: 'center' },
+  tip: { marginTop: 14, flexDirection: 'row', gap: space.md, alignItems: 'center', backgroundColor: colors.goldSoft, borderRadius: radius.lg, padding: space.md, overflow: 'hidden' },
   tipText: { flex: 1, fontFamily: fonts.serif, fontSize: fs(13), color: colors.navy },
-  small: { fontFamily: fonts.sans, fontSize: fs(11), color: colors.muted },
-  banner: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.navy, borderRadius: radius.lg, padding: space.md, borderBottomWidth: 5, borderBottomColor: '#0F2142', marginTop: space.md },
-  toast: { backgroundColor: colors.olive, borderRadius: radius.md, padding: space.md },
-  toastT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(15) },
-  level: { backgroundColor: colors.gold, borderRadius: radius.lg, padding: space.md, marginTop: space.lg },
-  levelK: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(12), letterSpacing: 1.5 },
-  levelT: { color: '#fff', fontFamily: fonts.serif, fontSize: fs(18) },
-  bannerKicker: { color: colors.gold, fontFamily: fonts.sansBold, fontSize: fs(12), letterSpacing: 1.5 },
-  bannerTitle: { color: '#fff', fontFamily: fonts.serif, fontSize: fs(17), marginVertical: 2 },
-  bannerCast: { color: '#B8C4D8', fontFamily: fonts.sans, fontSize: fs(12) },
-  node: { width: 82, height: 76, borderRadius: 41, alignItems: 'center', justifyContent: 'center', borderBottomWidth: 7 },
-  nodeLabel: { fontFamily: fonts.sansBold, fontSize: fs(13), color: colors.navy, marginTop: 6, textAlign: 'center', maxWidth: 170 },
-  start: { backgroundColor: '#fff', borderWidth: 2, borderColor: colors.line, borderBottomWidth: 4, borderRadius: 12, paddingVertical: 6, paddingHorizontal: 14 },
-  startText: { color: colors.navy, fontFamily: fonts.sansBold, fontSize: fs(13), letterSpacing: 1 },
-  startArrow: { alignSelf: 'center', width: 0, height: 0, borderLeftWidth: 8, borderRightWidth: 8, borderTopWidth: 9, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: colors.line, marginBottom: 4 },
+  tipSrc: { fontFamily: fonts.sans, color: colors.muted, fontSize: fs(11) },
+  era: { marginTop: 16, backgroundColor: colors.gold, borderRadius: radius.lg, padding: space.md, borderBottomWidth: 5, borderBottomColor: '#8A6508', overflow: 'hidden', justifyContent: 'center' },
+  eraK: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(11), letterSpacing: 1.2 },
+  eraT: { color: '#fff', fontFamily: fonts.serif, fontSize: fs(17) },
+  eraS: { color: '#FFF6DA', fontFamily: fonts.sansMedium, fontSize: fs(11) },
+  block: { marginTop: 12, backgroundColor: colors.navy, borderRadius: radius.lg, paddingHorizontal: space.md, paddingVertical: 10, borderBottomWidth: 4, borderBottomColor: '#0F2142', overflow: 'hidden', justifyContent: 'center' },
+  blockK: { color: colors.gold, fontFamily: fonts.sansBold, fontSize: fs(11), letterSpacing: 1.2 },
+  blockT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(13) },
+  blockC: { color: '#B8C4D8', fontFamily: fonts.sans, fontSize: fs(11) },
+  label: { position: 'absolute' },
+  lvN: { fontFamily: fonts.sansBold, fontSize: fs(11), color: colors.gold, letterSpacing: 1 },
+  lvT: { fontFamily: fonts.sansBold, fontSize: fs(12), color: colors.navy },
+  lvS: { fontFamily: fonts.sans, fontSize: fs(11), color: colors.muted },
+  fab: { position: 'absolute', right: space.md, bottom: space.md, backgroundColor: colors.cobalt, borderRadius: 24, paddingVertical: 10, paddingHorizontal: 16, borderBottomWidth: 4, borderBottomColor: '#142C52' },
+  fabT: { color: '#fff', fontFamily: fonts.sansBold, fontSize: fs(13) },
 });

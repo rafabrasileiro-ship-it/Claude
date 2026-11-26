@@ -1,0 +1,835 @@
+{
+ "id": "L006",
+ "number": 6,
+ "origin": "adaptado",
+ "title": "O Lar e a Família",
+ "grammar": "Grau de parentesco, cômodos da casa, refeições em família, agradecimento à mesa.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "husband",
+   "pt": "marido"
+  },
+  {
+   "id": "c2",
+   "en": "wife",
+   "pt": "esposa"
+  },
+  {
+   "id": "c3",
+   "en": "father",
+   "pt": "pai"
+  },
+  {
+   "id": "c4",
+   "en": "mother",
+   "pt": "mãe"
+  },
+  {
+   "id": "c5",
+   "en": "son",
+   "pt": "filho"
+  },
+  {
+   "id": "c6",
+   "en": "daughter",
+   "pt": "filha"
+  },
+  {
+   "id": "c7",
+   "en": "kitchen",
+   "pt": "cozinha"
+  },
+  {
+   "id": "c8",
+   "en": "living room",
+   "pt": "sala de estar"
+  },
+  {
+   "id": "c9",
+   "en": "bedroom",
+   "pt": "quarto"
+  },
+  {
+   "id": "c10",
+   "en": "bathroom",
+   "pt": "banheiro"
+  },
+  {
+   "id": "c11",
+   "en": "dining room",
+   "pt": "sala de jantar"
+  },
+  {
+   "id": "c12",
+   "en": "garden",
+   "pt": "jardim"
+  },
+  {
+   "id": "c13",
+   "en": "breakfast",
+   "pt": "café da manhã"
+  },
+  {
+   "id": "c14",
+   "en": "lunch",
+   "pt": "almoço"
+  },
+  {
+   "id": "c15",
+   "en": "dinner",
+   "pt": "jantar"
+  },
+  {
+   "id": "c16",
+   "en": "bread",
+   "pt": "pão"
+  },
+  {
+   "id": "c17",
+   "en": "soup",
+   "pt": "sopa"
+  },
+  {
+   "id": "c18",
+   "en": "water",
+   "pt": "água"
+  },
+  {
+   "id": "c19",
+   "en": "Let us give thanks",
+   "pt": "Vamos dar graças"
+  },
+  {
+   "id": "c20",
+   "en": "bless this food",
+   "pt": "abençoe este alimento"
+  },
+  {
+   "id": "c21",
+   "en": "delicious",
+   "pt": "delicioso"
+  },
+  {
+   "id": "c22",
+   "en": "more",
+   "pt": "mais"
+  },
+  {
+   "id": "c23",
+   "en": "Pass the bread, please",
+   "pt": "Passe o pão, por favor"
+  },
+  {
+   "id": "c24",
+   "en": "Amen",
+   "pt": "Amém"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "My family",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "maria",
+     "en": "This is my husband, Gabriel.",
+     "pt": "Este é meu marido, Gabriel."
+    },
+    {
+     "who": "gabriel",
+     "en": "And this is my wife, Maria.",
+     "pt": "E esta é minha esposa, Maria."
+    },
+    {
+     "who": "davi",
+     "en": "I am your son, Davi. I love my mother and my father.",
+     "pt": "Sou seu filho, Davi. Amo minha mãe e meu pai."
+    },
+    {
+     "who": "liz",
+     "en": "I am your daughter, Liz.",
+     "pt": "Sou sua filha, Liz."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Rooms of the house",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "maria",
+     "en": "Welcome to our home. This is the living room.",
+     "pt": "Bem-vindos ao nosso lar. Esta é a sala de estar."
+    },
+    {
+     "who": "davi",
+     "en": "Mom, where is Dad?",
+     "pt": "Mãe, onde está o papai?"
+    },
+    {
+     "who": "maria",
+     "en": "He is in the kitchen. He is cooking.",
+     "pt": "Ele está na cozinha. Está cozinhando."
+    },
+    {
+     "who": "liz",
+     "en": "I am in the garden with the flowers.",
+     "pt": "Estou no jardim com as flores."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "Family meals",
+   "vocab": [
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18"
+   ],
+   "lines": [
+    {
+     "who": "gabriel",
+     "en": "Dinner is ready. Please come to the table.",
+     "pt": "O jantar está pronto. Venham à mesa, por favor."
+    },
+    {
+     "who": "davi",
+     "en": "I want soup and bread, please.",
+     "pt": "Quero sopa e pão, por favor."
+    },
+    {
+     "who": "liz",
+     "en": "I want water, Dad.",
+     "pt": "Quero água, papai."
+    },
+    {
+     "who": "maria",
+     "en": "We eat dinner together every night.",
+     "pt": "Jantamos juntos toda noite."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Thanks at the table",
+   "vocab": [
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ],
+   "lines": [
+    {
+     "who": "gabriel",
+     "en": "Let us give thanks. Lord, bless this food.",
+     "pt": "Vamos dar graças. Senhor, abençoe este alimento."
+    },
+    {
+     "who": "liz",
+     "en": "Amen.",
+     "pt": "Amém."
+    },
+    {
+     "who": "davi",
+     "en": "Pass the bread, please. This soup is delicious.",
+     "pt": "Passe o pão, por favor. Esta sopa está deliciosa."
+    },
+    {
+     "who": "maria",
+     "en": "Thank you, my dear. Would you like more?",
+     "pt": "Obrigada, querido. Você quer mais?"
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "O Jantar",
+  "lines": [
+   {
+    "who": "maria",
+    "en": "Welcome to our home, neighbors. Dinner is ready.",
+    "pt": "Bem-vindos à nossa casa, vizinhos. O jantar está pronto."
+   },
+   {
+    "who": "gabriel",
+    "en": "Please sit at the table. We have soup and fresh bread.",
+    "pt": "Por favor, sentem-se à mesa. Temos sopa e pão fresco."
+   },
+   {
+    "who": "davi",
+    "en": "Mom, I set the table. I put five plates.",
+    "pt": "Mãe, eu arrumei a mesa. Coloquei cinco pratos."
+   },
+   {
+    "who": "maria",
+    "en": "Thank you, Davi. Liz, please bring the water.",
+    "pt": "Obrigada, Davi. Liz, por favor, traga a água."
+   },
+   {
+    "who": "liz",
+    "en": "Yes, Mom. Here is the water.",
+    "pt": "Sim, mãe. Aqui está a água."
+   },
+   {
+    "who": "gabriel",
+    "en": "Let us give thanks before we eat.",
+    "pt": "Vamos agradecer antes de comer."
+   }
+  ],
+  "questions": [
+   {
+    "q": "O que há para o jantar?",
+    "options": [
+     "Soup and bread",
+     "Pizza and juice",
+     "Fish and rice"
+    ],
+    "answer": "Soup and bread",
+    "lang": "en"
+   },
+   {
+    "q": "Quantos pratos Davi colocou?",
+    "options": [
+     "Four",
+     "Five",
+     "Six"
+    ],
+    "answer": "Five",
+    "lang": "en"
+   },
+   {
+    "q": "O que fazem antes de comer?",
+    "options": [
+     "Give thanks",
+     "Watch TV",
+     "Wash the car"
+    ],
+    "answer": "Give thanks",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "O Jantar de Domingo na Casa de Maria Fulana",
+  "icon": "🍲",
+  "intro": "Maria Fulana e Gabriel preparam uma recepção calorosa para os vizinhos.",
+  "cast": [
+   "maria",
+   "gabriel",
+   "davi",
+   "liz"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "maria",
+      "en": "Gabriel, the neighbors will arrive at six. Is the roast ready?",
+      "pt": "Gabriel, os vizinhos chegam às seis. O assado está pronto?"
+     },
+     {
+      "who": "gabriel",
+      "en": "Almost. Davi, please set the table.",
+      "pt": "Quase. Davi, por favor, arrume a mesa."
+     },
+     {
+      "who": "davi",
+      "en": "Yes, Dad. How many plates do we need?",
+      "pt": "Sim, pai. Quantos pratos precisamos?"
+     },
+     {
+      "who": "maria",
+      "en": "Four for us and two for our guests.",
+      "pt": "Quatro para nós e dois para os nossos convidados."
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete: “We need six plates: four for us and ____ for our guests.”",
+     "options": [
+      "two",
+      "ten",
+      "one"
+     ],
+     "answer": "two",
+     "why": "Quatro da família mais dois convidados somam seis pratos.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "maria",
+      "en": "Welcome, neighbors! Please come in.",
+      "pt": "Bem-vindos, vizinhos! Entrem, por favor."
+     },
+     {
+      "who": "davi",
+      "en": "Mom, Mrs. Santos looks tired.",
+      "pt": "Mãe, a dona Santos parece cansada."
+     },
+     {
+      "who": "gabriel",
+      "en": "Make yourselves at home. Dinner is ready.",
+      "pt": "Fiquem à vontade. O jantar está pronto."
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "Qual é a melhor atitude de Maria?",
+     "options": [
+      "Offer her a chair and a glass of water",
+      "Ignore it and keep cooking",
+      "Ask her to leave early"
+     ],
+     "answer": "Offer her a chair and a glass of water",
+     "why": "Hospitalidade é perceber a necessidade do hóspede e servi-lo.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "gabriel",
+      "en": "Let us give thanks for this food and for good neighbors.",
+      "pt": "Vamos agradecer por esta comida e por bons vizinhos."
+     },
+     {
+      "who": "liz",
+      "en": "Can I say the prayer, Dad?",
+      "pt": "Posso fazer a oração, pai?"
+     },
+     {
+      "who": "gabriel",
+      "en": "Of course, Liz.",
+      "pt": "Claro, Liz."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "O que acontece a seguir?",
+     "options": [
+      "Liz says a short prayer of thanks",
+      "Everyone starts eating at once",
+      "Liz leaves the table"
+     ],
+     "answer": "Liz says a short prayer of thanks",
+     "why": "Gabriel acabou de permitir; a oração de gratidão vem antes da refeição.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "davi",
+      "en": "Mom, may I have more soup, please?",
+      "pt": "Mãe, posso tomar mais sopa, por favor?"
+     },
+     {
+      "who": "maria",
+      "en": "Yes, Davi. Good manners make a meal sweeter.",
+      "pt": "Sim, Davi. Boas maneiras tornam a refeição mais doce."
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete: “May I have more soup, ____?”",
+     "options": [
+      "please",
+      "now",
+      "fast"
+     ],
+     "answer": "please",
+     "why": "“Please” é a palavra de cortesia ao pedir algo.",
+     "lang": "en"
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "maria",
+  "ask": "Would you like some soup?",
+  "askPt": "O senhor aceita um pouco de sopa?",
+  "model": "Yes, please. Thank you very much.",
+  "modelPt": "Sim, por favor. Muito obrigado.",
+  "accept": [
+   "Yes, please. Thank you very much.",
+   "Yes, please. Thank you."
+  ]
+ },
+ "wisdom": "w04",
+ "tips": [
+  "final_consonant",
+  "r_sound",
+  "short_i"
+ ],
+ "pnl": {
+  "identity": "Quem estuda todos os dias, como você, constrói com as próprias mãos o futuro da sua família.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “O Lar e a Família” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “O Lar e a Família” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: My family",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Grau de parentesco, cômodos da casa, refeições em família, agradecimento à mesa.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: O Jantar",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.4"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.5"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Family meals",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c13",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c17"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.0"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c19"
+    },
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.2",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.2",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "O Jantar de Domingo na Casa de Maria Fulana",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c21"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.0"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.2",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.1"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

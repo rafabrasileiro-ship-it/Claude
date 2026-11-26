@@ -1,9 +1,10 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, space, fs } from '../theme';
 import { Avatar, Btn, Card, H1, P } from '../components/ui';
 import { families, mascot, people } from '../engine/content';
 import { useStore } from '../store';
+import Bento from '../components/Bento';
 
 const OUTFITS = [
   { id: 'outfit-sunday', label: 'Traje de domingo', cost: 30 },
@@ -11,13 +12,14 @@ const OUTFITS = [
   { id: 'outfit-field', label: 'Roupa de campo', cost: 40 },
 ];
 
-export default function Characters() {
+export default function Characters({ onClose }: { onClose?: () => void }) {
   const { profile, updateProfile } = useStore();
   return (
     <ScrollView contentContainerStyle={s.pad}>
+      {onClose && <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button"><Text style={s.back}>← Voltar</Text></Pressable>}
       <H1>Personagens</H1>
       <Card style={{ flexDirection: 'row', gap: space.md, alignItems: 'center', backgroundColor: colors.navySoft }}>
-        <Avatar emoji={mascot.emoji} color={mascot.color} size={56} />
+        <Bento mood="saudacao" size={64} />
         <View style={{ flex: 1 }}>
           <Text style={s.name}>{mascot.name} — {mascot.species}</Text>
           <P>{mascot.description}</P>
@@ -38,7 +40,7 @@ export default function Characters() {
         </Card>
       ))}
       <H1>Loja de Talentos</H1>
-      <P>Use seus talentos de ouro para vestir a família com trajes tradicionais. Você tem 🪙 {profile.talents}.</P>
+      <P>Use seus Talentos para vestir a família com trajes tradicionais. Você tem 🪙 {profile.talents}.</P>
       {OUTFITS.map((o) => {
         const has = profile.unlocked.includes(o.id);
         return (
@@ -57,6 +59,7 @@ export default function Characters() {
 
 const s = StyleSheet.create({
   pad: { padding: space.md, gap: space.md, paddingBottom: 60 },
+  back: { fontFamily: fonts.sansBold, fontSize: fs(15), color: colors.navy },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   name: { fontFamily: fonts.serif, fontSize: fs(15), color: colors.navy },
   prof: { fontFamily: fonts.sans, fontSize: fs(12), color: colors.muted },

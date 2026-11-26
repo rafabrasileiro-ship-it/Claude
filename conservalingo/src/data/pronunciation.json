@@ -92,6 +92,24 @@
   "tip": "O H em inglês é um sopro suave, como se você embaçasse um vidro. Não é o “rr” do português."
  },
  {
+  "id": "ae_sound",
+  "title": "O “a” aberto de Ma'am",
+  "words": [
+   "ma'am",
+   "man",
+   "that",
+   "have",
+   "happy",
+   "back",
+   "plan",
+   "stand",
+   "family",
+   "can"
+  ],
+  "rx": "ma'?am|^[^aeiou]*a[^aeiouyrw]+$",
+  "tip": "Em “Ma'am” e “man”, o A é bem aberto, entre o “é” e o “á” do português. Abra a boca como para dizer “é”, com a mandíbula mais baixa."
+ },
+ {
   "id": "r_sound",
   "title": "O R americano",
   "words": [
@@ -281,5 +299,12 @@
   ],
   "rx": "s$|^e?asy",
   "tip": "O S de “is”, “easy” e “has” soa como Z. No fim de palavras como “is” e “was”, vibre a garganta."
+ },
+ {
+  "id": "generic",
+  "title": "Ouça e imite",
+  "words": [],
+  "rx": "^$",
+  "tip": "Ouça a palavra devagar (🐢), repita em voz alta e grave de novo. Abra bem a boca nas vogais fortes e articule cada consoante até o fim."
  }
 ]

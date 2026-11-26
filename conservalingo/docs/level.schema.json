@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "conservalingo/level.schema.json",
+  "title": "CONSERVALINGO — conteúdo de um nível (molde v4)",
+  "description": "Formato de src/data/levels/LXXX.json. O Nível 01 (L001.json) é o exemplo completo. Referências: c<n> (bloco lexical), s<n> (frase), d<n>.<i> (fala de diálogo), l.<i> (fala da escuta).",
+  "type": "object",
+  "required": ["id", "number", "title", "grammar", "origin", "chunks", "sentences", "dialogues", "listening", "chronicle", "roleplay", "wisdom", "tips", "pnl", "lessons"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^L[0-9]{3}$" },
+    "number": { "type": "integer", "minimum": 1, "maximum": 130 },
+    "title": { "type": "string", "description": "Igual ao título do nível em curriculum.json" },
+    "grammar": { "type": "string" },
+    "origin": { "enum": ["autoral", "adaptado"] },
+    "chunks": { "type": "array", "items": { "type": "object", "required": ["id", "en", "pt"], "properties": {
+      "id": { "type": "string", "pattern": "^c[0-9]+$" }, "en": { "type": "string" }, "pt": { "type": "string" }, "note": { "type": "string" } } } },
+    "sentences": { "type": "array", "items": { "type": "object", "required": ["id", "who", "en", "pt"], "properties": {
+      "id": { "type": "string", "pattern": "^s[0-9]+$" }, "who": { "type": "string" }, "en": { "type": "string" }, "pt": { "type": "string" },
+      "alt": { "type": "array", "items": { "type": "string" }, "description": "Outras traduções aceitas na escrita livre" } } } },
+    "dialogues": { "type": "array", "items": { "type": "object", "required": ["id", "title", "lines"], "properties": {
+      "id": { "type": "string", "pattern": "^d[0-9]+$" }, "title": { "type": "string" },
+      "vocab": { "type": "array", "items": { "type": "string" } }, "lines": { "$ref": "#/$defs/lines" } } } },
+    "listening": { "type": "object", "required": ["title", "lines", "questions"], "properties": {
+      "title": { "type": "string" }, "lines": { "$ref": "#/$defs/lines" },
+      "questions": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/question" } } } },
+    "chronicle": { "type": "object", "required": ["title", "icon", "intro", "cast", "segments"], "properties": {
+      "title": { "type": "string" }, "icon": { "type": "string" }, "intro": { "type": "string" },
+      "cast": { "type": "array", "items": { "type": "string" } },
+      "segments": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "object", "required": ["lines", "stop"], "properties": {
+        "lines": { "$ref": "#/$defs/lines" },
+        "stop": { "allOf": [{ "$ref": "#/$defs/question" }, { "type": "object", "required": ["kind", "why"], "properties": {
+          "kind": { "enum": ["deduce", "moral", "complete"] }, "why": { "type": "string" } } }] } } } } } },
+    "roleplay": { "type": "object", "required": ["who", "ask", "askPt", "model", "modelPt", "accept"], "properties": {
+      "who": { "type": "string" }, "ask": { "type": "string" }, "askPt": { "type": "string" }, "model": { "type": "string" }, "modelPt": { "type": "string" },
+      "accept": { "type": "array", "items": { "type": "string" } } } },
+    "wisdom": { "type": "string", "description": "id em src/data/wisdom.json" },
+    "tips": { "type": "array", "items": { "type": "string" }, "description": "ids em src/data/pronunciation.json" },
+    "pnl": { "type": "object", "required": ["identity", "presupposition", "futurePacing"], "properties": {
+      "identity": { "type": "string" }, "presupposition": { "type": "string" },
+      "futurePacing": { "type": "array", "minItems": 3, "maxItems": 5, "items": { "type": "string" } } } },
+    "lessons": { "type": "array", "minItems": 10, "maxItems": 10, "items": { "type": "object", "required": ["slot", "type", "title", "objective", "intro", "steps"], "properties": {
+      "slot": { "type": "integer", "minimum": 1, "maximum": 10 },
+      "type": { "enum": ["fundamento", "construcao", "escuta", "dialogo", "fala", "escrita", "intercalacao", "cronica", "revisao", "checkpoint"] },
+      "title": { "type": "string" }, "objective": { "type": "string" },
+      "intro": { "type": "string", "description": "Microcopy de pressuposição (PNL) mostrado antes da lição" },
+      "dialogue": { "type": "string", "description": "Obrigatório na lição 4 (dialogo)" },
+      "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } } } } }
+  },
+  "$defs": {
+    "lines": { "type": "array", "items": { "type": "object", "required": ["who", "en", "pt"], "properties": {
+      "who": { "type": "string" }, "en": { "type": "string" }, "pt": { "type": "string" } } } },
+    "question": { "type": "object", "required": ["q", "options", "answer"], "properties": {
+      "q": { "type": "string" }, "options": { "type": "array", "items": { "type": "string" } }, "answer": { "type": "string" },
+      "lang": { "enum": ["en", "pt"], "description": "Idioma das opções (pt = não falar as opções em inglês)" } } },
+    "step": { "type": "object", "required": ["kind"], "properties": {
+      "kind": { "enum": ["learn", "note", "choose", "context", "listen", "fill", "bank", "next", "dictation", "speak", "write", "roleplay", "questions", "question", "interleave", "review"] },
+      "ref": { "type": "string", "pattern": "^(c[0-9]+|s[0-9]+|d[0-9]+\\.[0-9]+|l\\.[0-9]+)$" },
+      "dir": { "enum": ["en-pt", "pt-en"] },
+      "hint": { "enum": ["first", "none"] },
+      "blank": { "type": "string" }, "options": { "type": "array", "items": { "type": "string" } }, "answer": { "type": "string" },
+      "q": { "type": "string" }, "speak": { "type": "string" }, "explain": { "type": "string" },
+      "title": { "type": "string" }, "body": { "type": "string" }, "examples": { "type": "array", "items": { "type": "string" } }, "tip": { "type": "string" },
+      "index": { "type": "integer" }, "count": { "type": "integer" } } }
+  }
+}

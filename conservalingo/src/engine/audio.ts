@@ -36,6 +36,9 @@ function speakDevice(text: string, language: 'en-US' | 'pt-BR', slow: boolean, v
   Speech.speak(text, { language, voice, rate: slow ? 0.7 : 0.95 }); // sem alterar pitch: evita som robótico
 }
 
+/** Existe clipe pré-gravado para este texto em inglês? (evita ler português com voz inglesa) */
+export const hasClip = (text: string) => clips[`M|n|${text}`] !== undefined || clips[`F|n|${text}`] !== undefined;
+
 /** Fala um texto em INGLÊS (clipe pré-gravado; se faltar, usa a melhor voz en-US do aparelho). */
 export function say(text: string, voice: Voice = 'M', slow = false) {
   try {

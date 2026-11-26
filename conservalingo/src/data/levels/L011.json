@@ -1,0 +1,824 @@
+{
+ "id": "L011",
+ "number": 11,
+ "origin": "adaptado",
+ "title": "Profissões, Horas e Rotina",
+ "grammar": "Profissões, números, horas, rotina produtiva, negócios básicos.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "engineer",
+   "pt": "engenheiro"
+  },
+  {
+   "id": "c2",
+   "en": "doctor",
+   "pt": "médico"
+  },
+  {
+   "id": "c3",
+   "en": "lawyer",
+   "pt": "advogado"
+  },
+  {
+   "id": "c4",
+   "en": "teacher",
+   "pt": "professor"
+  },
+  {
+   "id": "c5",
+   "en": "farmer",
+   "pt": "agricultor"
+  },
+  {
+   "id": "c6",
+   "en": "manager",
+   "pt": "gestor"
+  },
+  {
+   "id": "c7",
+   "en": "one",
+   "pt": "um"
+  },
+  {
+   "id": "c8",
+   "en": "two",
+   "pt": "dois"
+  },
+  {
+   "id": "c9",
+   "en": "five",
+   "pt": "cinco"
+  },
+  {
+   "id": "c10",
+   "en": "ten",
+   "pt": "dez"
+  },
+  {
+   "id": "c11",
+   "en": "hour",
+   "pt": "hora"
+  },
+  {
+   "id": "c12",
+   "en": "o'clock",
+   "pt": "em ponto"
+  },
+  {
+   "id": "c13",
+   "en": "wake up",
+   "pt": "acordar"
+  },
+  {
+   "id": "c14",
+   "en": "work",
+   "pt": "trabalhar"
+  },
+  {
+   "id": "c15",
+   "en": "early",
+   "pt": "cedo"
+  },
+  {
+   "id": "c16",
+   "en": "late",
+   "pt": "tarde (atrasado)"
+  },
+  {
+   "id": "c17",
+   "en": "every day",
+   "pt": "todos os dias"
+  },
+  {
+   "id": "c18",
+   "en": "rest",
+   "pt": "descansar"
+  },
+  {
+   "id": "c19",
+   "en": "hard work",
+   "pt": "trabalho duro"
+  },
+  {
+   "id": "c20",
+   "en": "honesty",
+   "pt": "honestidade"
+  },
+  {
+   "id": "c21",
+   "en": "profit",
+   "pt": "lucro"
+  },
+  {
+   "id": "c22",
+   "en": "property",
+   "pt": "propriedade"
+  },
+  {
+   "id": "c23",
+   "en": "agreement",
+   "pt": "acordo"
+  },
+  {
+   "id": "c24",
+   "en": "contract",
+   "pt": "contrato"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Professions",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "jose",
+     "en": "I am the founder of this company.",
+     "pt": "Sou o fundador desta empresa."
+    },
+    {
+     "who": "flavia",
+     "en": "I am the manager of a farm. My husband is an engineer.",
+     "pt": "Sou a gestora de uma fazenda. Meu marido é engenheiro."
+    },
+    {
+     "who": "jose",
+     "en": "My wife is an architect. Work is a blessing.",
+     "pt": "Minha esposa é arquiteta. O trabalho é uma bênção."
+    },
+    {
+     "who": "flavia",
+     "en": "Good work builds a good country.",
+     "pt": "O bom trabalho constrói um bom país."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Numbers and time",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "jose",
+     "en": "What time is it?",
+     "pt": "Que horas são?"
+    },
+    {
+     "who": "flavia",
+     "en": "It is eight o'clock.",
+     "pt": "São oito horas em ponto."
+    },
+    {
+     "who": "jose",
+     "en": "The meeting is at nine. We have one hour.",
+     "pt": "A reunião é às nove. Temos uma hora."
+    },
+    {
+     "who": "flavia",
+     "en": "Ten people will come. We will be ready.",
+     "pt": "Dez pessoas virão. Estaremos prontos."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "A productive routine",
+   "vocab": [
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18"
+   ],
+   "lines": [
+    {
+     "who": "flavia",
+     "en": "I wake up early every day.",
+     "pt": "Eu acordo cedo todos os dias."
+    },
+    {
+     "who": "jose",
+     "en": "I work hard, and I rest on Sunday.",
+     "pt": "Eu trabalho duro e descanso no domingo."
+    },
+    {
+     "who": "flavia",
+     "en": "Never be late. Time is a gift.",
+     "pt": "Nunca se atrase. O tempo é um presente."
+    },
+    {
+     "who": "jose",
+     "en": "A good routine is the road to success.",
+     "pt": "Uma boa rotina é o caminho para o sucesso."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Business basics",
+   "vocab": [
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ],
+   "lines": [
+    {
+     "who": "jose",
+     "en": "Honesty is the base of every good business.",
+     "pt": "A honestidade é a base de todo bom negócio."
+    },
+    {
+     "who": "flavia",
+     "en": "We have an agreement. Please sign the contract.",
+     "pt": "Temos um acordo. Por favor, assine o contrato."
+    },
+    {
+     "who": "jose",
+     "en": "Profit comes from hard work.",
+     "pt": "O lucro vem do trabalho duro."
+    },
+    {
+     "who": "flavia",
+     "en": "And private property must be respected.",
+     "pt": "E a propriedade privada deve ser respeitada."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "A Fábrica",
+  "lines": [
+   {
+    "who": "jose",
+    "en": "Flavia, we open at seven o'clock every day.",
+    "pt": "Flavia, abrimos às sete horas todos os dias."
+   },
+   {
+    "who": "flavia",
+    "en": "I know. My team arrives at six thirty.",
+    "pt": "Eu sei. Minha equipe chega às seis e meia."
+   },
+   {
+    "who": "jose",
+    "en": "Good. Hard work builds a good company.",
+    "pt": "Bom. Trabalho duro constrói uma boa empresa."
+   },
+   {
+    "who": "flavia",
+    "en": "We have twelve workers and three trucks.",
+    "pt": "Temos doze funcionários e três caminhões."
+   },
+   {
+    "who": "jose",
+    "en": "Honest work deserves a fair salary.",
+    "pt": "Trabalho honesto merece um salário justo."
+   },
+   {
+    "who": "flavia",
+    "en": "I agree. Payday is on Friday.",
+    "pt": "Concordo. O pagamento é na sexta-feira."
+   }
+  ],
+  "questions": [
+   {
+    "q": "A que horas a fábrica abre?",
+    "options": [
+     "At seven",
+     "At six",
+     "At nine"
+    ],
+    "answer": "At seven",
+    "lang": "en"
+   },
+   {
+    "q": "Quantos funcionários há?",
+    "options": [
+     "Ten",
+     "Twelve",
+     "Three"
+    ],
+    "answer": "Twelve",
+    "lang": "en"
+   },
+   {
+    "q": "Qual é o dia do pagamento?",
+    "options": [
+     "Monday",
+     "Friday",
+     "Sunday"
+    ],
+    "answer": "Friday",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "O Primeiro Contrato de José",
+  "icon": "📜",
+  "intro": "José explica a Arthur e Cecília como funciona a criação de valor, o lucro honesto e o cumprimento de acordos.",
+  "cast": [
+   "jose",
+   "arthur",
+   "cecilia"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "jose",
+      "en": "Arthur, Cecília, today I will sign a contract.",
+      "pt": "Arthur, Cecília, hoje vou assinar um contrato."
+     },
+     {
+      "who": "arthur",
+      "en": "What is a contract, Dad?",
+      "pt": "O que é um contrato, pai?"
+     },
+     {
+      "who": "jose",
+      "en": "It is a promise written on paper.",
+      "pt": "É uma promessa escrita no papel."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "O que é um contrato para José?",
+     "options": [
+      "A promise written on paper",
+      "A game",
+      "A gift"
+     ],
+     "answer": "A promise written on paper",
+     "why": "Um contrato registra uma palavra dada que deve ser cumprida.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "cecilia",
+      "en": "Dad, will you earn money?",
+      "pt": "Pai, o senhor vai ganhar dinheiro?"
+     },
+     {
+      "who": "jose",
+      "en": "Yes, honest profit. We create value, and customers pay for it.",
+      "pt": "Sim, lucro honesto. Criamos valor, e os clientes pagam por ele."
+     },
+     {
+      "who": "arthur",
+      "en": "Is profit bad, Dad?",
+      "pt": "Lucro é ruim, pai?"
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "Como José responde?",
+     "options": [
+      "No. Honest profit rewards good work",
+      "Yes. Profit is always wrong",
+      "Profit is only luck"
+     ],
+     "answer": "No. Honest profit rewards good work",
+     "why": "O lucro honesto é o prêmio de quem serve bem e cria valor.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "jose",
+      "en": "The customer wants a lower price, but my cost is higher.",
+      "pt": "O cliente quer um preço menor, mas o meu custo é maior."
+     },
+     {
+      "who": "arthur",
+      "en": "Can we change the contract and cheat him?",
+      "pt": "Podemos mudar o contrato e enganá-lo?"
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "O que José diz?",
+     "options": [
+      "No. A deal is a deal, and we keep our word",
+      "Yes, if he does not notice",
+      "Yes, if we need money"
+     ],
+     "answer": "No. A deal is a deal, and we keep our word",
+     "why": "Honestidade não depende de ser descoberto: acordo é acordo.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "jose",
+      "en": "We delivered on time. The customer paid and thanked us.",
+      "pt": "Entregamos no prazo. O cliente pagou e nos agradeceu."
+     },
+     {
+      "who": "cecilia",
+      "en": "Dad, I want to build a business too!",
+      "pt": "Pai, eu também quero construir um negócio!"
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete: “Hard work ____ off.”",
+     "options": [
+      "pays",
+      "stops",
+      "falls"
+     ],
+     "answer": "pays",
+     "why": "“Hard work pays off” significa que o trabalho duro compensa.",
+     "lang": "en"
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "jose",
+  "ask": "What time do you start work?",
+  "askPt": "A que horas você começa a trabalhar?",
+  "model": "I start work at seven o'clock.",
+  "modelPt": "Eu começo a trabalhar às sete horas.",
+  "accept": [
+   "I start work at seven o'clock.",
+   "I start work at seven."
+  ]
+ },
+ "wisdom": "w03",
+ "tips": [
+  "final_consonant",
+  "r_sound",
+  "short_i"
+ ],
+ "pnl": {
+  "identity": "Quem estuda todos os dias, como você, constrói com as próprias mãos o futuro da sua família.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Profissões, Horas e Rotina” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Profissões, Horas e Rotina” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Professions",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Profissões, números, horas, rotina produtiva, negócios básicos.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: A Fábrica",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.4"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.5"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: A productive routine",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c13",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c14"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.2"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c19"
+    },
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.1",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "O Primeiro Contrato de José",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c21"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.2"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.2",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

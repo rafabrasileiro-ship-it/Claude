@@ -1,0 +1,672 @@
+{
+ "id": "L079",
+ "number": 79,
+ "origin": "adaptado",
+ "title": "Liberdades Individuais",
+ "grammar": "Voz passiva, discurso indireto, terceiro condicional, argumentação sobre liberdade e ordem.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "were protected",
+   "pt": "foram protegidas"
+  },
+  {
+   "id": "c2",
+   "en": "defended",
+   "pt": "defendida"
+  },
+  {
+   "id": "c3",
+   "en": "freedom",
+   "pt": "liberdade"
+  },
+  {
+   "id": "c4",
+   "en": "obeyed",
+   "pt": "obedecida"
+  },
+  {
+   "id": "c5",
+   "en": "justice",
+   "pt": "justiça"
+  },
+  {
+   "id": "c6",
+   "en": "generation",
+   "pt": "geração"
+  },
+  {
+   "id": "c7",
+   "en": "the judge said",
+   "pt": "a juíza disse"
+  },
+  {
+   "id": "c8",
+   "en": "would be respected",
+   "pt": "seria respeitada"
+  },
+  {
+   "id": "c9",
+   "en": "she told us",
+   "pt": "ela nos disse"
+  },
+  {
+   "id": "c10",
+   "en": "had the right",
+   "pt": "tinha o direito"
+  },
+  {
+   "id": "c11",
+   "en": "had not defended",
+   "pt": "não tivessem defendido"
+  },
+  {
+   "id": "c12",
+   "en": "would have lost",
+   "pt": "teriam perdido"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Freedoms were protected",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "alice",
+     "en": "Our freedoms were protected by brave citizens.",
+     "pt": "Nossas liberdades foram protegidas por cidadãos corajosos."
+    },
+    {
+     "who": "lucas",
+     "en": "And they must be defended by every generation.",
+     "pt": "E devem ser defendidas por cada geração."
+    },
+    {
+     "who": "alice",
+     "en": "The law is obeyed here, and justice is served.",
+     "pt": "A lei é obedecida aqui, e a justiça é feita."
+    },
+    {
+     "who": "lucas",
+     "en": "Order and liberty are not enemies. They are partners.",
+     "pt": "Ordem e liberdade não são inimigas. São parceiras."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "The judge said",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "lucas",
+     "en": "The judge said the law would be respected.",
+     "pt": "A juíza disse que a lei seria respeitada."
+    },
+    {
+     "who": "alice",
+     "en": "She told us that every citizen had the right to speak.",
+     "pt": "Ela nos disse que todo cidadão tinha o direito de falar."
+    },
+    {
+     "who": "lucas",
+     "en": "If people had not defended their rights, they would have lost them.",
+     "pt": "Se as pessoas não tivessem defendido seus direitos, os teriam perdido."
+    },
+    {
+     "who": "alice",
+     "en": "Freedom is protected by those who are willing to defend it.",
+     "pt": "A liberdade é protegida por aqueles que estão dispostos a defendê-la."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "Liberdade e Justiça",
+  "lines": [
+   {
+    "who": "alice",
+    "en": "Our liberties were won by courageous citizens.",
+    "pt": "Nossas liberdades foram conquistadas por cidadãos corajosos."
+   },
+   {
+    "who": "lucas",
+    "en": "And they must be defended by every generation.",
+    "pt": "E devem ser defendidas por cada geração."
+   },
+   {
+    "who": "alice",
+    "en": "The judge said the trial would begin on Monday.",
+    "pt": "A juíza disse que o julgamento começaria na segunda-feira."
+   },
+   {
+    "who": "lucas",
+    "en": "I told her that I would be there as a witness.",
+    "pt": "Eu disse a ela que estaria lá como testemunha."
+   },
+   {
+    "who": "alice",
+    "en": "If we had stayed silent, justice would have been delayed.",
+    "pt": "Se tivéssemos ficado em silêncio, a justiça teria sido adiada."
+   },
+   {
+    "who": "lucas",
+    "en": "Truth must be spoken, even when it costs us.",
+    "pt": "A verdade precisa ser dita, mesmo quando nos custa."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Quem conquistou as liberdades?",
+    "options": [
+     "Courageous citizens",
+     "Foreign kings",
+     "Nobody"
+    ],
+    "answer": "Courageous citizens",
+    "lang": "en"
+   },
+   {
+    "q": "Quando começa o julgamento?",
+    "options": [
+     "On Monday",
+     "On Friday",
+     "On Sunday"
+    ],
+    "answer": "On Monday",
+    "lang": "en"
+   },
+   {
+    "q": "Como Lucas estará no julgamento?",
+    "options": [
+     "As a witness",
+     "As a judge",
+     "As a lawyer"
+    ],
+    "answer": "As a witness",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Liberdades Individuais",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "alice",
+   "lucas"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "alice",
+      "en": "Our freedoms were protected by brave citizens.",
+      "pt": "Nossas liberdades foram protegidas por cidadãos corajosos."
+     },
+     {
+      "who": "lucas",
+      "en": "And they must be defended by every generation.",
+      "pt": "E devem ser defendidas por cada geração."
+     },
+     {
+      "who": "alice",
+      "en": "The law is obeyed here, and justice is served.",
+      "pt": "A lei é obedecida aqui, e a justiça é feita."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Lucas?",
+     "options": [
+      "Order and liberty are not enemies. They are partners.",
+      "Freedom is protected by those who are willing to defend it.",
+      "The judge said the trial would begin on Monday."
+     ],
+     "answer": "Order and liberty are not enemies. They are partners.",
+     "lang": "en",
+     "why": "Lucas diz: “Order and liberty are not enemies. They are partners.” — Ordem e liberdade não são inimigas. São parceiras."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "lucas",
+      "en": "The judge said the law would be respected.",
+      "pt": "A juíza disse que a lei seria respeitada."
+     },
+     {
+      "who": "alice",
+      "en": "She told us that every citizen had the right to speak.",
+      "pt": "Ela nos disse que todo cidadão tinha o direito de falar."
+     },
+     {
+      "who": "lucas",
+      "en": "If people had not defended their rights, they would have lost them.",
+      "pt": "Se as pessoas não tivessem defendido seus direitos, os teriam perdido."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Alice?",
+     "options": [
+      "Order and liberty are not enemies. They are partners.",
+      "The judge said the trial would begin on Monday.",
+      "Freedom is protected by those who are willing to defend it."
+     ],
+     "answer": "Freedom is protected by those who are willing to defend it.",
+     "lang": "en",
+     "why": "Alice diz: “Freedom is protected by those who are willing to defend it.” — A liberdade é protegida por aqueles que estão dispostos a defendê-la."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "alice",
+      "en": "Our liberties were won by courageous citizens.",
+      "pt": "Nossas liberdades foram conquistadas por cidadãos corajosos."
+     },
+     {
+      "who": "lucas",
+      "en": "And they must be defended by every generation.",
+      "pt": "E devem ser defendidas por cada geração."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Alice?",
+     "options": [
+      "Freedom is protected by those who are willing to defend it.",
+      "The judge said the trial would begin on Monday.",
+      "Order and liberty are not enemies. They are partners."
+     ],
+     "answer": "The judge said the trial would begin on Monday.",
+     "lang": "en",
+     "why": "Alice diz: “The judge said the trial would begin on Monday.” — A juíza disse que o julgamento começaria na segunda-feira."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "lucas",
+      "en": "I told her that I would be there as a witness.",
+      "pt": "Eu disse a ela que estaria lá como testemunha."
+     },
+     {
+      "who": "alice",
+      "en": "If we had stayed silent, justice would have been delayed.",
+      "pt": "Se tivéssemos ficado em silêncio, a justiça teria sido adiada."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Lucas?",
+     "options": [
+      "Truth must be spoken, even when it costs us.",
+      "Order and liberty are not enemies. They are partners.",
+      "Freedom is protected by those who are willing to defend it."
+     ],
+     "answer": "Truth must be spoken, even when it costs us.",
+     "lang": "en",
+     "why": "Lucas diz: “Truth must be spoken, even when it costs us.” — A verdade precisa ser dita, mesmo quando nos custa."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "alice",
+  "ask": "What must every generation do?",
+  "askPt": "O que cada geração deve fazer?",
+  "model": "Every generation must defend freedom.",
+  "modelPt": "Cada geração deve defender a liberdade.",
+  "accept": [
+   "Every generation must defend freedom.",
+   "Every generation must defend our freedom."
+  ]
+ },
+ "wisdom": "w17",
+ "tips": [
+  "final_consonant",
+  "th_voiced",
+  "j_dg"
+ ],
+ "pnl": {
+  "identity": "Você é o tipo de pessoa que aprende com paciência e serve aos outros com o que aprende.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Liberdades Individuais” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Liberdades Individuais” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Freedoms were protected",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Voz passiva, discurso indireto, terceiro condicional, argumentação sobre liberdade e ordem.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: Liberdade e Justiça",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.0"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: The judge said",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c7",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c8",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d2"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c4"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "speak",
+     "ref": "l.2"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.5",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.4",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Liberdades Individuais",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c3"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.0",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.0"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

@@ -2,6 +2,7 @@
 """Gera as vozes neurais em inglês (Piper) pré-gravadas do app.
 
 Uso: python scripts/generate-audio.py <pasta_com_modelos_piper>
+(roda antes `npx tsx scripts/audio-jobs.ts`, que lista cada texto em inglês que o app pode falar)
 Modelos esperados: en_US-ryan-high.onnx (voz masculina) e en_US-amy-medium.onnx (voz feminina).
 Saída: src/audio/clips/*.m4a e src/audio/manifest.ts (chave "voz|velocidade|texto" -> arquivo).
 Só o texto em INGLÊS é pré-gravado; português é falado pelo aparelho em pt-BR (ver src/engine/audio.ts).
@@ -18,43 +19,9 @@ models = Path(sys.argv[1])
 VOICES = {"M": "en_US-ryan-high.onnx", "F": "en_US-amy-medium.onnx"}
 SLOW = 1.9  # length_scale: maior = mais devagar (alonga fonemas, mantém o tom)
 
-chars = json.loads((DATA / "characters.json").read_text())
-sex = {}
-for f in chars["families"]:
-    sex[f["id"]] = f["sex"]; sex[f["spouse"]["id"]] = f["spouse"]["sex"]
-    for c in f["children"]: sex[c["id"]] = c["sex"]
-sex["bento"] = "M"
-
-jobs = {}  # (voice, speed, text)
-def add(text, voice="M"):
-    jobs[(voice, "n", text)] = 1
-    jobs[(voice, "s", text)] = 1  # toda fala tem versão lenta (botão 🐢)
-
-def add_n(text, voice="M"):
-    jobs[(voice, "n", text)] = 1  # só velocidade normal (palavras isoladas)
-
-def clean(w): return re.sub(r"[.,!?;:\"“”()]", "", w)
-
-for u in json.loads((DATA / "units.json").read_text())["units"]:
-    for l in u["lessons"]:
-        for v in l["vocab"]: add(v["en"], "M")
-        for d in l["dialogue"]: add(d["en"], sex.get(d["who"], "M"))
-        # palavras da frase de fala (cartão de dica de pronúncia: "ouça a palavra correta")
-        last = l["dialogue"][-1]
-        for tok in last["en"].split(): add_n(clean(tok), "M")
-for st in json.loads((DATA / "listening.json").read_text()):
-    for d in st["lines"]: add(d["en"], sex.get(d["who"], "M"))
-    r = st["roleplay"]
-    add(r["ask"], sex.get(r["who"], "M"))
-    for a in r["accept"]:
-        for tok in a.split(): add_n(clean(tok), "M")
-for c in json.loads((DATA / "chronicles.json").read_text()):
-    for sg in c["segments"]:
-        for d in sg["lines"]: add(d["en"], sex.get(d["who"], "M"))
-for w in json.loads((DATA / "wisdom.json").read_text()): add(w["en"], "M")
-for r in json.loads((DATA / "reading.json").read_text()):
-    add(" ".join(x[0] for x in r["words"]), "M")
-    for en, _ in r["words"]: add(en, "M")
+# A lista de trechos vem do próprio motor do app (scripts/audio-jobs.ts), para nunca faltar um clipe que o app pede.
+subprocess.run(["npx", "tsx", "scripts/audio-jobs.ts"], cwd=ROOT, check=True)
+jobs = {tuple(j): 1 for j in json.loads((ROOT / "scripts/audio-jobs.json").read_text())}  # (voz, velocidade, texto)
 
 OUT.mkdir(parents=True, exist_ok=True)
 loaded = {v: PiperVoice.load(models / f) for v, f in VOICES.items()}

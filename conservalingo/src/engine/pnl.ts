@@ -35,13 +35,13 @@ export function praise(castFirst: string, name: string) {
   return { who, emoji: people[castFirst]?.emoji ?? '🦅', text: `${who}: “${name}, ${(PRAISE[head] ?? PRAISE.ayrton).replace(/^./, (c) => c.toLowerCase())}”` };
 }
 
-/** Ensaio Mental Futuro (≈10 s): 4 passos de ~2,5 s. */
-export function futurePacing(unitTitle: string, anchor?: string) {
-  return [
+/** Ensaio Mental Futuro (≈10 s): os passos do nível + a Frase-Âncora do aluno. */
+export function futurePacing(levelLines: string[], anchor?: string) {
+  const base = levelLines.length ? levelLines : [
     'Feche os olhos por um instante e respire fundo.',
-    `Imagine-se daqui a um ano, falando inglês com segurança sobre “${unitTitle}”.`,
+    'Imagine-se daqui a um ano, falando inglês com segurança.',
     'Sinta a voz firme, o sorriso tranquilo e a confiança de quem se preparou.',
-    anchor ? `Veja o que isso muda na sua vida: “${anchor}”.` : 'Veja o que isso muda na sua vida e na da sua família.',
   ];
+  return [...base, anchor ? `E lembre-se do motivo que move você: “${anchor}”.` : 'Veja o que isso muda na sua vida e na da sua família.'];
 }
 export const seedOf = (s: string) => hash(s);

@@ -1,0 +1,804 @@
+{
+ "id": "L001",
+ "number": 1,
+ "origin": "autoral",
+ "title": "Saudações e Títulos de Respeito",
+ "grammar": "Cumprimentos por período do dia; Sir / Ma'am; verbo to be com I, you e we (I am, you are, we are).",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "Good morning",
+   "pt": "Bom dia",
+   "note": "Use até o meio-dia."
+  },
+  {
+   "id": "c2",
+   "en": "Good afternoon",
+   "pt": "Boa tarde",
+   "note": "Do meio-dia até o fim da tarde."
+  },
+  {
+   "id": "c3",
+   "en": "Good evening",
+   "pt": "Boa noite (ao chegar)",
+   "note": "Para cumprimentar quem você encontra à noite."
+  },
+  {
+   "id": "c4",
+   "en": "Good night",
+   "pt": "Boa noite (ao se despedir)",
+   "note": "Só na despedida ou antes de dormir. Nunca para cumprimentar."
+  },
+  {
+   "id": "c5",
+   "en": "Hello",
+   "pt": "Olá",
+   "note": "Serve para qualquer hora do dia."
+  },
+  {
+   "id": "c6",
+   "en": "Goodbye",
+   "pt": "Até logo / Adeus",
+   "note": "Despedida educada."
+  },
+  {
+   "id": "c7",
+   "en": "Sir",
+   "pt": "Senhor",
+   "note": "Tratamento respeitoso para um homem. Use sem o nome: “Good morning, Sir.”"
+  },
+  {
+   "id": "c8",
+   "en": "Ma'am",
+   "pt": "Senhora",
+   "note": "Tratamento respeitoso para uma mulher. Pronuncia-se “mém”."
+  },
+  {
+   "id": "c9",
+   "en": "How are you?",
+   "pt": "Como vai?",
+   "note": "Pergunta de cortesia ao cumprimentar."
+  },
+  {
+   "id": "c10",
+   "en": "I am fine",
+   "pt": "Estou bem"
+  },
+  {
+   "id": "c11",
+   "en": "Thank you",
+   "pt": "Obrigado / Obrigada",
+   "note": "Em inglês é igual para homens e mulheres."
+  },
+  {
+   "id": "c12",
+   "en": "You are on time",
+   "pt": "Você chegou na hora",
+   "note": "Elogio à pontualidade."
+  },
+  {
+   "id": "c13",
+   "en": "And you?",
+   "pt": "E você?",
+   "note": "Devolve a pergunta com educação."
+  }
+ ],
+ "sentences": [
+  {
+   "id": "s1",
+   "who": "ayrton",
+   "en": "Good morning, Ma'am.",
+   "pt": "Bom dia, senhora."
+  },
+  {
+   "id": "s2",
+   "who": "alice",
+   "en": "Good morning, Sir. How are you?",
+   "pt": "Bom dia, senhor. Como vai?"
+  },
+  {
+   "id": "s3",
+   "who": "ayrton",
+   "en": "I am fine, thank you. And you?",
+   "pt": "Estou bem, obrigado. E a senhora?",
+   "alt": [
+    "I am fine, thanks. And you?",
+    "I am well, thank you. And you?"
+   ]
+  },
+  {
+   "id": "s4",
+   "who": "alice",
+   "en": "I am fine, thank you.",
+   "pt": "Estou bem, obrigada.",
+   "alt": [
+    "I am fine, thanks.",
+    "I am well, thank you."
+   ]
+  },
+  {
+   "id": "s5",
+   "who": "helena",
+   "en": "Good afternoon, Sir. You are on time.",
+   "pt": "Boa tarde, senhor. O senhor chegou na hora."
+  },
+  {
+   "id": "s6",
+   "who": "lucas",
+   "en": "Thank you, Ma'am. Punctuality is respect.",
+   "pt": "Obrigado, senhora. Pontualidade é respeito."
+  },
+  {
+   "id": "s7",
+   "who": "lucas",
+   "en": "Good evening, Sir.",
+   "pt": "Boa noite, senhor. (chegando)"
+  },
+  {
+   "id": "s8",
+   "who": "helena",
+   "en": "Good night, and thank you.",
+   "pt": "Boa noite, e obrigada. (despedindo-se)",
+   "alt": [
+    "Good night and thank you."
+   ]
+  },
+  {
+   "id": "s9",
+   "who": "alice",
+   "en": "Hello, I am Alice.",
+   "pt": "Olá, eu sou a Alice.",
+   "alt": [
+    "Hi, I am Alice."
+   ]
+  },
+  {
+   "id": "s10",
+   "who": "lucas",
+   "en": "We are on time.",
+   "pt": "Nós chegamos na hora."
+  },
+  {
+   "id": "s11",
+   "who": "ayrton",
+   "en": "Goodbye, Sir.",
+   "pt": "Até logo, senhor.",
+   "alt": [
+    "Bye, Sir."
+   ]
+  },
+  {
+   "id": "s12",
+   "who": "helena",
+   "en": "You are on time.",
+   "pt": "Você chegou na hora."
+  }
+ ],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "O concerto de Helena",
+   "vocab": [
+    "c5",
+    "c6",
+    "c11"
+   ],
+   "lines": [
+    {
+     "who": "lucas",
+     "en": "Good evening, Sir. Good evening, Ma'am.",
+     "pt": "Boa noite, senhor. Boa noite, senhora."
+    },
+    {
+     "who": "ayrton",
+     "en": "Good evening, Lucas! Hello, Alice.",
+     "pt": "Boa noite, Lucas! Olá, Alice."
+    },
+    {
+     "who": "helena",
+     "en": "You are on time! Thank you.",
+     "pt": "Vocês chegaram na hora! Obrigada."
+    },
+    {
+     "who": "alice",
+     "en": "Punctuality is respect, Helena.",
+     "pt": "Pontualidade é respeito, Helena."
+    },
+    {
+     "who": "lucas",
+     "en": "How are you, Ayrton?",
+     "pt": "Como vai, Ayrton?"
+    },
+    {
+     "who": "ayrton",
+     "en": "I am fine, thank you. And you?",
+     "pt": "Estou bem, obrigado. E você?"
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "Encontro na praça",
+  "lines": [
+   {
+    "who": "helena",
+    "en": "Good afternoon, Alice. How are you?",
+    "pt": "Boa tarde, Alice. Como vai?"
+   },
+   {
+    "who": "alice",
+    "en": "Hello, Helena. I am fine, thank you. And you?",
+    "pt": "Olá, Helena. Estou bem, obrigada. E você?"
+   },
+   {
+    "who": "helena",
+    "en": "I am fine, thank you.",
+    "pt": "Estou bem, obrigada."
+   },
+   {
+    "who": "lucas",
+    "en": "Good afternoon, Ma'am. Good afternoon, Alice.",
+    "pt": "Boa tarde, senhora. Boa tarde, Alice."
+   },
+   {
+    "who": "helena",
+    "en": "Good afternoon, Sir. You are on time!",
+    "pt": "Boa tarde, senhor. O senhor chegou na hora!"
+   },
+   {
+    "who": "lucas",
+    "en": "Thank you, Ma'am. Punctuality is respect.",
+    "pt": "Obrigado, senhora. Pontualidade é respeito."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Em que período do dia acontece a conversa?",
+    "options": [
+     "De manhã",
+     "À tarde",
+     "À noite"
+    ],
+    "answer": "À tarde",
+    "lang": "pt"
+   },
+   {
+    "q": "Como Alice está?",
+    "options": [
+     "Bem",
+     "Cansada",
+     "Triste"
+    ],
+    "answer": "Bem",
+    "lang": "pt"
+   },
+   {
+    "q": "Quem chegou na hora certa?",
+    "options": [
+     "Lucas",
+     "Ayrton",
+     "Ninguém"
+    ],
+    "answer": "Lucas",
+    "lang": "pt"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "A Visita Pontual",
+  "icon": "🕰️",
+  "cast": [
+   "ayrton",
+   "helena",
+   "alice",
+   "lucas"
+  ],
+  "intro": "Os novos vizinhos, Alice e Lucas, visitam Ayrton e Helena. Cumprimente com respeito em cada momento da visita.",
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "helena",
+      "en": "Ayrton, the neighbors are here!",
+      "pt": "Ayrton, os vizinhos chegaram!"
+     },
+     {
+      "who": "ayrton",
+      "en": "It is six o'clock. They are on time.",
+      "pt": "São seis horas. Eles chegaram na hora."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "São seis da tarde e os vizinhos estão chegando. Qual cumprimento Ayrton deve usar?",
+     "options": [
+      "Good evening",
+      "Good morning",
+      "Good night"
+     ],
+     "answer": "Good evening",
+     "lang": "en",
+     "why": "Ao chegar, à noitinha, use “Good evening”. “Good night” é só para a despedida."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "Good evening, Ma'am. Good evening, Sir.",
+      "pt": "Boa noite, senhora. Boa noite, senhor."
+     },
+     {
+      "who": "lucas",
+      "en": "Good evening, Sir. I am Lucas, and this is Alice.",
+      "pt": "Boa noite, senhor. Eu sou Lucas, e esta é Alice."
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "Lucas apresentou a esposa. Qual é a resposta mais educada de Helena?",
+     "options": [
+      "Hello, Ma'am. Welcome!",
+      "What do you want?",
+      "Goodbye."
+     ],
+     "answer": "Hello, Ma'am. Welcome!",
+     "lang": "en",
+     "why": "Receber com cortesia e um sorriso é o primeiro passo da hospitalidade."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "helena",
+      "en": "How are you, Alice?",
+      "pt": "Como vai, Alice?"
+     },
+     {
+      "who": "alice",
+      "en": "I am fine, thank you. And you?",
+      "pt": "Estou bem, obrigada. E você?"
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete a resposta de Helena: “I ___ fine, thank you.”",
+     "options": [
+      "am",
+      "are",
+      "is"
+     ],
+     "answer": "am",
+     "lang": "en",
+     "why": "Com “I”, o verbo to be é “am”: I am."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "lucas",
+      "en": "It is late. Good night, Sir. Good night, Ma'am.",
+      "pt": "Está tarde. Boa noite, senhor. Boa noite, senhora."
+     },
+     {
+      "who": "ayrton",
+      "en": "Good night, Lucas. Thank you for your visit.",
+      "pt": "Boa noite, Lucas. Obrigado pela visita."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Por que agora Lucas diz “Good night”, e não “Good evening”?",
+     "options": [
+      "Porque está se despedindo",
+      "Porque é de manhã",
+      "Porque está chegando"
+     ],
+     "answer": "Porque está se despedindo",
+     "lang": "pt",
+     "why": "“Good night” é usado na despedida ou antes de dormir; “Good evening”, ao chegar."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "ayrton",
+  "ask": "Good morning! How are you?",
+  "askPt": "Bom dia! Como vai?",
+  "model": "I am fine, thank you. And you?",
+  "modelPt": "Estou bem, obrigado. E você?",
+  "accept": [
+   "I am fine, thank you. And you?",
+   "I am fine, thank you.",
+   "Good morning! I am fine, thank you. And you?",
+   "I am fine, thanks. And you?"
+  ]
+ },
+ "wisdom": "w19",
+ "tips": [
+  "th_voiceless",
+  "h_aspirated",
+  "final_consonant",
+  "r_sound",
+  "ae_sound"
+ ],
+ "pnl": {
+  "identity": "Você é o tipo de pessoa que trata cada um com respeito — e o respeito começa no primeiro “Good morning”.",
+  "presupposition": "Quando você cumprimentar alguém em inglês amanhã, as palavras vão sair naturais, como se sempre tivessem sido suas.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se chegando pontualmente a um encontro importante e dizendo, com voz firme: “Good evening, Sir.”",
+   "Veja o sorriso de quem se sente respeitado por você e ouça a resposta: “Thank you. You are on time.”",
+   "Sinta a segurança de quem deu o primeiro passo do seu legado em inglês."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Bom dia, boa tarde, boa noite",
+   "objective": "Cumprimentar em cada período do dia e usar Sir e Ma'am.",
+   "intro": "Quando você concluir estes 3 minutos, vai saber cumprimentar qualquer pessoa, em qualquer hora do dia.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "context",
+     "q": "São 9h da manhã. Como você cumprimenta?",
+     "options": [
+      "Good morning",
+      "Good afternoon",
+      "Good night"
+     ],
+     "answer": "Good morning",
+     "speak": "Good morning",
+     "explain": "Até o meio-dia, use “Good morning”."
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "choose",
+     "ref": "c8",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "c3"
+    },
+    {
+     "kind": "context",
+     "q": "São 22h e você está indo embora. O que você diz?",
+     "options": [
+      "Good night",
+      "Good evening",
+      "Good afternoon"
+     ],
+     "answer": "Good night",
+     "speak": "Good night",
+     "explain": "Na despedida à noite, use “Good night”. “Good evening” é para quando você chega."
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "I am, you are, we are",
+   "objective": "Usar o verbo to be com I, you e we.",
+   "intro": "Quando você terminar esta lição, vai perceber que o inglês usa um só verbo para “ser” e “estar” — e isso simplifica tudo.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "O verbo to be",
+     "body": "I am = eu sou / eu estou\nYou are = você é / você está\nWe are = nós somos / nós estamos\nEm inglês, o mesmo verbo serve para “ser” e para “estar”.",
+     "examples": [
+      "s4",
+      "s12",
+      "s10"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c13"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "fill",
+     "ref": "s4",
+     "blank": "am",
+     "options": [
+      "am",
+      "are",
+      "is"
+     ],
+     "explain": "Com “I”, use “am”: I am fine."
+    },
+    {
+     "kind": "fill",
+     "ref": "s12",
+     "blank": "are",
+     "options": [
+      "are",
+      "am",
+      "is"
+     ],
+     "explain": "Com “you”, use “are”: you are."
+    },
+    {
+     "kind": "fill",
+     "ref": "s10",
+     "blank": "are",
+     "options": [
+      "are",
+      "is",
+      "am"
+     ],
+     "explain": "Com “we”, use “are”: we are."
+    },
+    {
+     "kind": "bank",
+     "ref": "s3",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Encontro na praça",
+   "objective": "Entender uma conversa curta só pelo ouvido.",
+   "intro": "Quando você ouvir a conversa pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "s1"
+    },
+    {
+     "kind": "dictation",
+     "ref": "s9"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "O concerto de Helena",
+   "dialogue": "d1",
+   "objective": "Acompanhar a conversa dos dois casais e responder no momento certo.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "next",
+     "ref": "d1.5"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d1.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Pronunciar os cumprimentos com o TH, o H aspirado e as consoantes finais corretos.",
+   "intro": "Quando você ouvir a sua própria voz dizendo “Good morning, Ma'am”, vai perceber o quanto já avançou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica de pronúncia",
+     "body": "Antes de falar, ouça devagar (🐢) e repare: o TH de “thank” sai com a língua entre os dentes; o H de “hello” e “how” é um sopro; e “good” termina seco no D, sem “i” no final.",
+     "tip": "th_voiceless"
+    },
+    {
+     "kind": "speak",
+     "ref": "c1"
+    },
+    {
+     "kind": "speak",
+     "ref": "s1"
+    },
+    {
+     "kind": "speak",
+     "ref": "c9"
+    },
+    {
+     "kind": "speak",
+     "ref": "s4"
+    },
+    {
+     "kind": "speak",
+     "ref": "s6"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escreva sem medo",
+   "objective": "Traduzir do português para o inglês com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem nenhuma dica, vai saber que o inglês já é seu.",
+   "steps": [
+    {
+     "kind": "bank",
+     "ref": "s1",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "s5",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "write",
+     "ref": "s9",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "s3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "s7",
+     "hint": "none"
+    },
+    {
+     "kind": "write",
+     "ref": "s11",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar tudo o que você aprendeu, em ordem imprevisível.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "A Visita Pontual",
+   "objective": "Viver uma visita completa e escolher a atitude certa em cada ponto de parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como um verdadeiro anfitrião.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido e as palavras de pronúncia mais difícil.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá completado o primeiro nível do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c4"
+    },
+    {
+     "kind": "context",
+     "q": "São 15h. Você encontra um senhor. O que você diz?",
+     "options": [
+      "Good afternoon, Sir.",
+      "Good night, Sir.",
+      "Good morning, Ma'am."
+     ],
+     "answer": "Good afternoon, Sir.",
+     "speak": "Good afternoon, Sir.",
+     "explain": "À tarde, “Good afternoon”; para um homem, “Sir”."
+    },
+    {
+     "kind": "fill",
+     "ref": "s12",
+     "blank": "are",
+     "options": [
+      "are",
+      "am",
+      "is"
+     ],
+     "explain": "Com “you”, use “are”."
+    },
+    {
+     "kind": "dictation",
+     "ref": "s9"
+    },
+    {
+     "kind": "bank",
+     "ref": "s3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "s7",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "s6"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  }
+ ]
+}

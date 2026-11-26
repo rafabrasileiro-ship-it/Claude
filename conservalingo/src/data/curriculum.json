@@ -1,0 +1,1575 @@
+{
+ "version": 1,
+ "lessonsPerLevel": 10,
+ "eras": [
+  {
+   "era": 1,
+   "cefr": "A1",
+   "title": "Fundamentos do Lar, Cortesia e Rotina",
+   "from": 1,
+   "to": 26
+  },
+  {
+   "era": 2,
+   "cefr": "A2",
+   "title": "Caráter, Virtudes e Convivência",
+   "from": 27,
+   "to": 52
+  },
+  {
+   "era": 3,
+   "cefr": "B1",
+   "title": "Empreendedorismo, História e Cidadania",
+   "from": 53,
+   "to": 78
+  },
+  {
+   "era": 4,
+   "cefr": "B2",
+   "title": "Retórica, Tradição e Liderança",
+   "from": 79,
+   "to": 104
+  },
+  {
+   "era": 5,
+   "cefr": "C1",
+   "title": "Maestria Clássica, Oratória e Diplomacia",
+   "from": 105,
+   "to": 130
+  }
+ ],
+ "slots": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Fundamento & Vocabulário",
+   "icon": "📘",
+   "desc": "Novos blocos de expressão com áudio 1.0x e devagar."
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Construção & Gramática",
+   "icon": "🧱",
+   "desc": "Montagem de frases e regras práticas no contexto dos personagens."
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Escuta Ativa",
+   "icon": "🎧",
+   "desc": "Compreensão auditiva sem apoio de texto e identificação de detalhes."
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo Familiar",
+   "icon": "💬",
+   "desc": "Troca de turnos entre os membros dos núcleos familiares."
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fala & Precisão Fonética",
+   "icon": "🎙️",
+   "desc": "Prática oral avaliada palavra por palavra, com micro-dicas."
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Produção Escrita & Tradução",
+   "icon": "✍️",
+   "desc": "Tradução PT ⇄ EN com dicas cada vez menores."
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Intercalação",
+   "icon": "🔀",
+   "desc": "Mistura do tema atual com conteúdos de níveis anteriores."
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Crônica Interativa",
+   "icon": "📜",
+   "desc": "Cena dramatizada com 4 pontos de parada."
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão Cirúrgica",
+   "icon": "🎯",
+   "desc": "Itens mais perto do esquecimento e de pronúncia mais fraca."
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "icon": "🏅",
+   "desc": "Prova final: escuta, fala, gramática e tradução."
+  }
+ ],
+ "blocks": [
+  {
+   "from": 1,
+   "to": 5,
+   "theme": "Saudações, títulos Sir/Ma'am, verbo to be, apresentações, cortesia e pontualidade",
+   "grammar": "Verbo to be (presente), cumprimentos, pronomes pessoais",
+   "cast": [
+    "ayrton",
+    "helena",
+    "alice",
+    "lucas"
+   ],
+   "label": "01–05"
+  },
+  {
+   "from": 6,
+   "to": 10,
+   "theme": "O lar, cômodos, parentesco, refeições em família, gratidão à mesa e hospitalidade",
+   "grammar": "This is / these are, possessivos, there is / there are",
+   "cast": [
+    "maria",
+    "gabriel",
+    "davi",
+    "liz"
+   ],
+   "label": "06–10"
+  },
+  {
+   "from": 11,
+   "to": 15,
+   "theme": "Profissões, números, horas, rotina produtiva, Simple Present e ética do trabalho",
+   "grammar": "Simple Present, números e horas, advérbios de frequência",
+   "cast": [
+    "jose",
+    "beatriz",
+    "flavia",
+    "rafael"
+   ],
+   "label": "11–15"
+  },
+  {
+   "from": 16,
+   "to": 20,
+   "theme": "Direções, cidade, instituições, leis, símbolos nacionais, dever cívico e história básica",
+   "grammar": "Imperativo, preposições de lugar, can / must",
+   "cast": [
+    "lucas",
+    "ayrton",
+    "beto",
+    "clara"
+   ],
+   "label": "16–20"
+  },
+  {
+   "from": 21,
+   "to": 26,
+   "theme": "Cores, animais, natureza, infância respeitosa, obediência aos pais e rotina escolar",
+   "grammar": "Adjetivos, there is / there are, can, imperativo gentil",
+   "cast": [
+    "miguel",
+    "heloisa",
+    "gael",
+    "laura",
+    "arthur",
+    "cecilia",
+    "theo",
+    "maite",
+    "davi",
+    "liz",
+    "noah",
+    "antonella"
+   ],
+   "label": "21–26"
+  },
+  {
+   "from": 27,
+   "to": 32,
+   "theme": "Passado simples, memórias de família, domingos em casa e relatos de esforço",
+   "grammar": "Simple Past (regulares e irregulares), going to",
+   "cast": [
+    "beto",
+    "clara",
+    "gael",
+    "laura"
+   ],
+   "label": "27–32"
+  },
+  {
+   "from": 33,
+   "to": 38,
+   "theme": "Virtudes cardeais (prudence, justice, fortitude, temperance), paciência e autodomínio",
+   "grammar": "Simple Past contínuo, conjunções because / so / but",
+   "cast": [
+    "ayrton",
+    "helena",
+    "miguel",
+    "heloisa"
+   ],
+   "label": "33–38"
+  },
+  {
+   "from": 39,
+   "to": 44,
+   "theme": "Orçamento doméstico, poupança, compra consciente, planejamento e futuro",
+   "grammar": "Futuro com going to e will, quantificadores (much, many)",
+   "cast": [
+    "jose",
+    "beatriz",
+    "arthur",
+    "cecilia"
+   ],
+   "label": "39–44"
+  },
+  {
+   "from": 45,
+   "to": 52,
+   "theme": "Vizinhança, hospitalidade, viagens em família, comparativos e superlativos, preposições de tempo e lugar, regras de convivência",
+   "grammar": "Comparativos, superlativos, preposições de tempo e lugar",
+   "cast": [
+    "maria",
+    "gabriel",
+    "alice",
+    "lucas"
+   ],
+   "label": "45–52"
+  },
+  {
+   "from": 53,
+   "to": 59,
+   "theme": "Livre iniciativa, contratos, propriedade privada, lucro honesto, negociação e liderança servidora",
+   "grammar": "Present Perfect, modais de negociação (could, would)",
+   "cast": [
+    "jose",
+    "beatriz",
+    "flavia"
+   ],
+   "label": "53–59"
+  },
+  {
+   "from": 60,
+   "to": 66,
+   "theme": "Marcos da civilização ocidental, biografias, causas e consequências",
+   "grammar": "Present Perfect vs. Simple Past, conectivos de causa e consequência",
+   "cast": [
+    "beto",
+    "clara"
+   ],
+   "label": "60–66"
+  },
+  {
+   "from": 67,
+   "to": 72,
+   "theme": "Cidadania ativa, responsabilidade legal, liberdade e ordem",
+   "grammar": "First & Second Conditionals, modais de dever (must, should, ought to)",
+   "cast": [
+    "alice",
+    "lucas"
+   ],
+   "label": "67–72"
+  },
+  {
+   "from": 73,
+   "to": 78,
+   "theme": "Gestão de recursos, agronegócio e tecnologia no campo, resiliência e planejamento de longo prazo",
+   "grammar": "Futuro contínuo, voz ativa em relatórios, conectivos de planejamento",
+   "cast": [
+    "flavia",
+    "rafael"
+   ],
+   "label": "73–78"
+  },
+  {
+   "from": 79,
+   "to": 85,
+   "theme": "Argumentação jurídica e cívica, defesa das liberdades individuais",
+   "grammar": "Voz passiva, Reported Speech",
+   "cast": [
+    "alice",
+    "lucas"
+   ],
+   "label": "79–85"
+  },
+  {
+   "from": 86,
+   "to": 92,
+   "theme": "Engenharia, padrões de excelência e gestão de projetos complexos",
+   "grammar": "Third Conditional, linguagem técnica de precisão",
+   "cast": [
+    "ayrton",
+    "helena"
+   ],
+   "label": "86–92"
+  },
+  {
+   "from": 93,
+   "to": 98,
+   "theme": "Estratégia empresarial, cadeias produtivas, inovação responsável e mediação de acordos",
+   "grammar": "Conectivos formais, modais de possibilidade e dedução",
+   "cast": [
+    "jose",
+    "beatriz",
+    "flavia",
+    "rafael"
+   ],
+   "label": "93–98"
+  },
+  {
+   "from": 99,
+   "to": 104,
+   "theme": "Leitura crítica de textos clássicos (O Peregrino, fábulas, Provérbios e Salmos), conectivos formais e tradição familiar",
+   "grammar": "Conectivos formais, linguagem literária e figurada",
+   "cast": [
+    "beto",
+    "clara",
+    "maria",
+    "gabriel"
+   ],
+   "label": "99–104"
+  },
+  {
+   "from": 105,
+   "to": 111,
+   "theme": "Leitura e análise de ideias clássicas (C. S. Lewis, G. K. Chesterton, Edmund Burke) e textos sapienciais",
+   "grammar": "Estruturas complexas de argumentação, nominalização",
+   "cast": [
+    "beto",
+    "clara"
+   ],
+   "label": "105–111"
+  },
+  {
+   "from": 112,
+   "to": 118,
+   "theme": "Oratória pública, retórica persuasiva, tom formal vs. diplomático",
+   "grammar": "Subjuntivo formal, inversões enfáticas",
+   "cast": [
+    "alice",
+    "ayrton",
+    "jose"
+   ],
+   "label": "112–118"
+  },
+  {
+   "from": 119,
+   "to": 125,
+   "theme": "Negociações internacionais de alto nível, governança, expressões idiomáticas cultas e análise de cenários",
+   "grammar": "Expressões idiomáticas cultas, hedging, condicionais mistas",
+   "cast": [
+    "jose",
+    "beatriz",
+    "flavia",
+    "rafael"
+   ],
+   "label": "119–125"
+  },
+  {
+   "from": 126,
+   "to": 130,
+   "theme": "Síntese geral do currículo, apresentações sem suporte, domínio fonético avançado e legado familiar",
+   "grammar": "Revisão integrada de todo o currículo",
+   "cast": [
+    "ayrton",
+    "helena",
+    "miguel",
+    "heloisa",
+    "beto",
+    "clara",
+    "gael",
+    "laura",
+    "jose",
+    "beatriz",
+    "arthur",
+    "cecilia",
+    "alice",
+    "lucas",
+    "theo",
+    "maite",
+    "maria",
+    "gabriel",
+    "davi",
+    "liz",
+    "flavia",
+    "rafael",
+    "noah",
+    "antonella",
+    "bento"
+   ],
+   "label": "126–130"
+  }
+ ],
+ "levels": [
+  {
+   "n": 1,
+   "id": "L001",
+   "era": 1,
+   "cefr": "A1",
+   "block": 0,
+   "title": "Saudações e Títulos de Respeito",
+   "status": "available"
+  },
+  {
+   "n": 2,
+   "id": "L002",
+   "era": 1,
+   "cefr": "A1",
+   "block": 0,
+   "title": "Apresentações, Verbo to be e Cortesia",
+   "status": "available"
+  },
+  {
+   "n": 3,
+   "id": "L003",
+   "era": 1,
+   "cefr": "A1",
+   "block": 0,
+   "title": "Ele, Ela, Eles: o Verbo to be",
+   "status": "planned"
+  },
+  {
+   "n": 4,
+   "id": "L004",
+   "era": 1,
+   "cefr": "A1",
+   "block": 0,
+   "title": "Por Favor, Obrigado e Com Licença",
+   "status": "planned"
+  },
+  {
+   "n": 5,
+   "id": "L005",
+   "era": 1,
+   "cefr": "A1",
+   "block": 0,
+   "title": "Pontualidade e Compromissos",
+   "status": "planned"
+  },
+  {
+   "n": 6,
+   "id": "L006",
+   "era": 1,
+   "cefr": "A1",
+   "block": 1,
+   "title": "O Lar e a Família",
+   "status": "available"
+  },
+  {
+   "n": 7,
+   "id": "L007",
+   "era": 1,
+   "cefr": "A1",
+   "block": 1,
+   "title": "Os Cômodos da Casa",
+   "status": "planned"
+  },
+  {
+   "n": 8,
+   "id": "L008",
+   "era": 1,
+   "cefr": "A1",
+   "block": 1,
+   "title": "Refeições em Família",
+   "status": "planned"
+  },
+  {
+   "n": 9,
+   "id": "L009",
+   "era": 1,
+   "cefr": "A1",
+   "block": 1,
+   "title": "Gratidão à Mesa",
+   "status": "planned"
+  },
+  {
+   "n": 10,
+   "id": "L010",
+   "era": 1,
+   "cefr": "A1",
+   "block": 1,
+   "title": "Hospitalidade: Recebendo Visitas",
+   "status": "planned"
+  },
+  {
+   "n": 11,
+   "id": "L011",
+   "era": 1,
+   "cefr": "A1",
+   "block": 2,
+   "title": "Profissões, Horas e Rotina",
+   "status": "available"
+  },
+  {
+   "n": 12,
+   "id": "L012",
+   "era": 1,
+   "cefr": "A1",
+   "block": 2,
+   "title": "Números e Quantidades",
+   "status": "planned"
+  },
+  {
+   "n": 13,
+   "id": "L013",
+   "era": 1,
+   "cefr": "A1",
+   "block": 2,
+   "title": "A Agenda da Semana",
+   "status": "planned"
+  },
+  {
+   "n": 14,
+   "id": "L014",
+   "era": 1,
+   "cefr": "A1",
+   "block": 2,
+   "title": "Rotina Produtiva (Simple Present)",
+   "status": "planned"
+  },
+  {
+   "n": 15,
+   "id": "L015",
+   "era": 1,
+   "cefr": "A1",
+   "block": 2,
+   "title": "Ética do Trabalho",
+   "status": "planned"
+  },
+  {
+   "n": 16,
+   "id": "L016",
+   "era": 1,
+   "cefr": "A1",
+   "block": 3,
+   "title": "Direções, Cidade e Dever Cívico",
+   "status": "available"
+  },
+  {
+   "n": 17,
+   "id": "L017",
+   "era": 1,
+   "cefr": "A1",
+   "block": 3,
+   "title": "Tradição, Fé e Sabedoria",
+   "status": "available"
+  },
+  {
+   "n": 18,
+   "id": "L018",
+   "era": 1,
+   "cefr": "A1",
+   "block": 3,
+   "title": "Leis e Ordem",
+   "status": "planned"
+  },
+  {
+   "n": 19,
+   "id": "L019",
+   "era": 1,
+   "cefr": "A1",
+   "block": 3,
+   "title": "Símbolos Nacionais",
+   "status": "planned"
+  },
+  {
+   "n": 20,
+   "id": "L020",
+   "era": 1,
+   "cefr": "A1",
+   "block": 3,
+   "title": "História Básica da Pátria",
+   "status": "planned"
+  },
+  {
+   "n": 21,
+   "id": "L021",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "Cores, Animais e Natureza",
+   "status": "available"
+  },
+  {
+   "n": 22,
+   "id": "L022",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "Os Animais da Fazenda",
+   "status": "planned"
+  },
+  {
+   "n": 23,
+   "id": "L023",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "A Natureza e as Estações",
+   "status": "planned"
+  },
+  {
+   "n": 24,
+   "id": "L024",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "Respeito aos Mais Velhos",
+   "status": "planned"
+  },
+  {
+   "n": 25,
+   "id": "L025",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "Obediência aos Pais",
+   "status": "planned"
+  },
+  {
+   "n": 26,
+   "id": "L026",
+   "era": 1,
+   "cefr": "A1",
+   "block": 4,
+   "title": "Rotina Escolar",
+   "status": "planned"
+  },
+  {
+   "n": 27,
+   "id": "L027",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Ontem e Amanhã em Família",
+   "status": "available"
+  },
+  {
+   "n": 28,
+   "id": "L028",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Memórias de Família",
+   "status": "planned"
+  },
+  {
+   "n": 29,
+   "id": "L029",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Domingos em Casa",
+   "status": "planned"
+  },
+  {
+   "n": 30,
+   "id": "L030",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Verbos Irregulares do Dia a Dia",
+   "status": "planned"
+  },
+  {
+   "n": 31,
+   "id": "L031",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Relatos de Esforço",
+   "status": "planned"
+  },
+  {
+   "n": 32,
+   "id": "L032",
+   "era": 2,
+   "cefr": "A2",
+   "block": 5,
+   "title": "Histórias que Ensinam",
+   "status": "planned"
+  },
+  {
+   "n": 33,
+   "id": "L033",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Prudência",
+   "status": "planned"
+  },
+  {
+   "n": 34,
+   "id": "L034",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Justiça",
+   "status": "planned"
+  },
+  {
+   "n": 35,
+   "id": "L035",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Fortaleza",
+   "status": "planned"
+  },
+  {
+   "n": 36,
+   "id": "L036",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Temperança",
+   "status": "planned"
+  },
+  {
+   "n": 37,
+   "id": "L037",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Paciência",
+   "status": "planned"
+  },
+  {
+   "n": 38,
+   "id": "L038",
+   "era": 2,
+   "cefr": "A2",
+   "block": 6,
+   "title": "Autodomínio",
+   "status": "planned"
+  },
+  {
+   "n": 39,
+   "id": "L039",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "Orçamento Doméstico",
+   "status": "planned"
+  },
+  {
+   "n": 40,
+   "id": "L040",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "Poupança",
+   "status": "planned"
+  },
+  {
+   "n": 41,
+   "id": "L041",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "Compra Consciente",
+   "status": "planned"
+  },
+  {
+   "n": 42,
+   "id": "L042",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "Planejamento com Going to",
+   "status": "planned"
+  },
+  {
+   "n": 43,
+   "id": "L043",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "O Futuro com Will",
+   "status": "planned"
+  },
+  {
+   "n": 44,
+   "id": "L044",
+   "era": 2,
+   "cefr": "A2",
+   "block": 7,
+   "title": "Metas da Família",
+   "status": "planned"
+  },
+  {
+   "n": 45,
+   "id": "L045",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "A Vizinhança",
+   "status": "planned"
+  },
+  {
+   "n": 46,
+   "id": "L046",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Hospitalidade",
+   "status": "planned"
+  },
+  {
+   "n": 47,
+   "id": "L047",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Viagem em Família",
+   "status": "planned"
+  },
+  {
+   "n": 48,
+   "id": "L048",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Comparativos",
+   "status": "planned"
+  },
+  {
+   "n": 49,
+   "id": "L049",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Superlativos",
+   "status": "planned"
+  },
+  {
+   "n": 50,
+   "id": "L050",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Preposições de Lugar",
+   "status": "planned"
+  },
+  {
+   "n": 51,
+   "id": "L051",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Preposições de Tempo",
+   "status": "planned"
+  },
+  {
+   "n": 52,
+   "id": "L052",
+   "era": 2,
+   "cefr": "A2",
+   "block": 8,
+   "title": "Regras de Convivência",
+   "status": "planned"
+  },
+  {
+   "n": 53,
+   "id": "L053",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Livre Iniciativa e Contratos",
+   "status": "available"
+  },
+  {
+   "n": 54,
+   "id": "L054",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Propriedade Privada",
+   "status": "planned"
+  },
+  {
+   "n": 55,
+   "id": "L055",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Lucro Honesto",
+   "status": "planned"
+  },
+  {
+   "n": 56,
+   "id": "L056",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Negociação",
+   "status": "planned"
+  },
+  {
+   "n": 57,
+   "id": "L057",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Liderança Servidora",
+   "status": "planned"
+  },
+  {
+   "n": 58,
+   "id": "L058",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Empresa Familiar",
+   "status": "planned"
+  },
+  {
+   "n": 59,
+   "id": "L059",
+   "era": 3,
+   "cefr": "B1",
+   "block": 9,
+   "title": "Mérito e Recompensa",
+   "status": "planned"
+  },
+  {
+   "n": 60,
+   "id": "L060",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Marcos da Civilização Ocidental",
+   "status": "planned"
+  },
+  {
+   "n": 61,
+   "id": "L061",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Grandes Biografias",
+   "status": "planned"
+  },
+  {
+   "n": 62,
+   "id": "L062",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Causas e Consequências",
+   "status": "planned"
+  },
+  {
+   "n": 63,
+   "id": "L063",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Present Perfect: Experiências",
+   "status": "planned"
+  },
+  {
+   "n": 64,
+   "id": "L064",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Present Perfect: Conquistas",
+   "status": "planned"
+  },
+  {
+   "n": 65,
+   "id": "L065",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Fé e Civilização",
+   "status": "planned"
+  },
+  {
+   "n": 66,
+   "id": "L066",
+   "era": 3,
+   "cefr": "B1",
+   "block": 10,
+   "title": "Lições da História",
+   "status": "planned"
+  },
+  {
+   "n": 67,
+   "id": "L067",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "Cidadania Ativa",
+   "status": "planned"
+  },
+  {
+   "n": 68,
+   "id": "L068",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "Responsabilidade Legal",
+   "status": "planned"
+  },
+  {
+   "n": 69,
+   "id": "L069",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "Liberdade e Ordem",
+   "status": "planned"
+  },
+  {
+   "n": 70,
+   "id": "L070",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "First Conditional",
+   "status": "planned"
+  },
+  {
+   "n": 71,
+   "id": "L071",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "Second Conditional",
+   "status": "planned"
+  },
+  {
+   "n": 72,
+   "id": "L072",
+   "era": 3,
+   "cefr": "B1",
+   "block": 11,
+   "title": "Must, Should e Ought to",
+   "status": "planned"
+  },
+  {
+   "n": 73,
+   "id": "L073",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Gestão de Recursos",
+   "status": "planned"
+  },
+  {
+   "n": 74,
+   "id": "L074",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Agronegócio",
+   "status": "planned"
+  },
+  {
+   "n": 75,
+   "id": "L075",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Tecnologia no Campo",
+   "status": "planned"
+  },
+  {
+   "n": 76,
+   "id": "L076",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Clima e Safra",
+   "status": "planned"
+  },
+  {
+   "n": 77,
+   "id": "L077",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Resiliência",
+   "status": "planned"
+  },
+  {
+   "n": 78,
+   "id": "L078",
+   "era": 3,
+   "cefr": "B1",
+   "block": 12,
+   "title": "Planejamento de Longo Prazo",
+   "status": "planned"
+  },
+  {
+   "n": 79,
+   "id": "L079",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Liberdades Individuais",
+   "status": "available"
+  },
+  {
+   "n": 80,
+   "id": "L080",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Argumentação Cívica",
+   "status": "planned"
+  },
+  {
+   "n": 81,
+   "id": "L081",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Voz Passiva",
+   "status": "planned"
+  },
+  {
+   "n": 82,
+   "id": "L082",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Reported Speech",
+   "status": "planned"
+  },
+  {
+   "n": 83,
+   "id": "L083",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "No Tribunal",
+   "status": "planned"
+  },
+  {
+   "n": 84,
+   "id": "L084",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Em Defesa da Verdade",
+   "status": "planned"
+  },
+  {
+   "n": 85,
+   "id": "L085",
+   "era": 4,
+   "cefr": "B2",
+   "block": 13,
+   "title": "Debate Respeitoso",
+   "status": "planned"
+  },
+  {
+   "n": 86,
+   "id": "L086",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Engenharia",
+   "status": "planned"
+  },
+  {
+   "n": 87,
+   "id": "L087",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Padrões de Excelência",
+   "status": "planned"
+  },
+  {
+   "n": 88,
+   "id": "L088",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Gestão de Projetos Complexos",
+   "status": "planned"
+  },
+  {
+   "n": 89,
+   "id": "L089",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Third Conditional",
+   "status": "planned"
+  },
+  {
+   "n": 90,
+   "id": "L090",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Riscos e Decisões",
+   "status": "planned"
+  },
+  {
+   "n": 91,
+   "id": "L091",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Música e Disciplina",
+   "status": "planned"
+  },
+  {
+   "n": 92,
+   "id": "L092",
+   "era": 4,
+   "cefr": "B2",
+   "block": 14,
+   "title": "Obras que Duram",
+   "status": "planned"
+  },
+  {
+   "n": 93,
+   "id": "L093",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Estratégia Empresarial",
+   "status": "planned"
+  },
+  {
+   "n": 94,
+   "id": "L094",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Cadeias Produtivas",
+   "status": "planned"
+  },
+  {
+   "n": 95,
+   "id": "L095",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Inovação Responsável",
+   "status": "planned"
+  },
+  {
+   "n": 96,
+   "id": "L096",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Mediação de Acordos",
+   "status": "planned"
+  },
+  {
+   "n": 97,
+   "id": "L097",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Parcerias de Confiança",
+   "status": "planned"
+  },
+  {
+   "n": 98,
+   "id": "L098",
+   "era": 4,
+   "cefr": "B2",
+   "block": 15,
+   "title": "Crescimento Sólido",
+   "status": "planned"
+  },
+  {
+   "n": 99,
+   "id": "L099",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "O Peregrino",
+   "status": "planned"
+  },
+  {
+   "n": 100,
+   "id": "L100",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "Fábulas Clássicas",
+   "status": "planned"
+  },
+  {
+   "n": 101,
+   "id": "L101",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "O Livro de Provérbios",
+   "status": "planned"
+  },
+  {
+   "n": 102,
+   "id": "L102",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "Os Salmos",
+   "status": "planned"
+  },
+  {
+   "n": 103,
+   "id": "L103",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "Conectivos Formais",
+   "status": "planned"
+  },
+  {
+   "n": 104,
+   "id": "L104",
+   "era": 4,
+   "cefr": "B2",
+   "block": 16,
+   "title": "Tradição Familiar",
+   "status": "planned"
+  },
+  {
+   "n": 105,
+   "id": "L105",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "C. S. Lewis",
+   "status": "planned"
+  },
+  {
+   "n": 106,
+   "id": "L106",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "G. K. Chesterton",
+   "status": "planned"
+  },
+  {
+   "n": 107,
+   "id": "L107",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "Edmund Burke",
+   "status": "planned"
+  },
+  {
+   "n": 108,
+   "id": "L108",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "Textos Sapienciais",
+   "status": "planned"
+  },
+  {
+   "n": 109,
+   "id": "L109",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "Ideias que Formaram o Ocidente",
+   "status": "planned"
+  },
+  {
+   "n": 110,
+   "id": "L110",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "O Ensaio e o Argumento",
+   "status": "planned"
+  },
+  {
+   "n": 111,
+   "id": "L111",
+   "era": 5,
+   "cefr": "C1",
+   "block": 17,
+   "title": "Leitura Crítica",
+   "status": "planned"
+  },
+  {
+   "n": 112,
+   "id": "L112",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Oratória: Inversões e Subjuntivo",
+   "status": "available"
+  },
+  {
+   "n": 113,
+   "id": "L113",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Oratória Pública",
+   "status": "planned"
+  },
+  {
+   "n": 114,
+   "id": "L114",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Retórica Persuasiva",
+   "status": "planned"
+  },
+  {
+   "n": 115,
+   "id": "L115",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Tom Formal e Diplomático",
+   "status": "planned"
+  },
+  {
+   "n": 116,
+   "id": "L116",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Subjuntivo Formal",
+   "status": "planned"
+  },
+  {
+   "n": 117,
+   "id": "L117",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "Discursos Históricos",
+   "status": "planned"
+  },
+  {
+   "n": 118,
+   "id": "L118",
+   "era": 5,
+   "cefr": "C1",
+   "block": 18,
+   "title": "A Palavra que Convence",
+   "status": "planned"
+  },
+  {
+   "n": 119,
+   "id": "L119",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Negociações Internacionais",
+   "status": "planned"
+  },
+  {
+   "n": 120,
+   "id": "L120",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Governança",
+   "status": "planned"
+  },
+  {
+   "n": 121,
+   "id": "L121",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Expressões Idiomáticas Cultas",
+   "status": "planned"
+  },
+  {
+   "n": 122,
+   "id": "L122",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Análise de Cenários",
+   "status": "planned"
+  },
+  {
+   "n": 123,
+   "id": "L123",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Diplomacia Comercial",
+   "status": "planned"
+  },
+  {
+   "n": 124,
+   "id": "L124",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Contratos Internacionais",
+   "status": "planned"
+  },
+  {
+   "n": 125,
+   "id": "L125",
+   "era": 5,
+   "cefr": "C1",
+   "block": 19,
+   "title": "Decisões de Alto Nível",
+   "status": "planned"
+  },
+  {
+   "n": 126,
+   "id": "L126",
+   "era": 5,
+   "cefr": "C1",
+   "block": 20,
+   "title": "Síntese do Currículo",
+   "status": "planned"
+  },
+  {
+   "n": 127,
+   "id": "L127",
+   "era": 5,
+   "cefr": "C1",
+   "block": 20,
+   "title": "Apresentações sem Apoio",
+   "status": "planned"
+  },
+  {
+   "n": 128,
+   "id": "L128",
+   "era": 5,
+   "cefr": "C1",
+   "block": 20,
+   "title": "Domínio Fonético Avançado",
+   "status": "planned"
+  },
+  {
+   "n": 129,
+   "id": "L129",
+   "era": 5,
+   "cefr": "C1",
+   "block": 20,
+   "title": "O Legado da Família",
+   "status": "planned"
+  },
+  {
+   "n": 130,
+   "id": "L130",
+   "era": 5,
+   "cefr": "C1",
+   "block": 20,
+   "title": "Formatura de Honra",
+   "status": "planned"
+  }
+ ]
+}

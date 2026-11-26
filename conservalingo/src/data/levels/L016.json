@@ -1,0 +1,824 @@
+{
+ "id": "L016",
+ "number": 16,
+ "origin": "adaptado",
+ "title": "Direções, Cidade e Dever Cívico",
+ "grammar": "Direções, lugares da cidade, instituições, símbolos nacionais, deveres cívicos.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "left",
+   "pt": "esquerda"
+  },
+  {
+   "id": "c2",
+   "en": "right",
+   "pt": "direita"
+  },
+  {
+   "id": "c3",
+   "en": "straight ahead",
+   "pt": "em frente"
+  },
+  {
+   "id": "c4",
+   "en": "near",
+   "pt": "perto"
+  },
+  {
+   "id": "c5",
+   "en": "far",
+   "pt": "longe"
+  },
+  {
+   "id": "c6",
+   "en": "corner",
+   "pt": "esquina"
+  },
+  {
+   "id": "c7",
+   "en": "church",
+   "pt": "igreja"
+  },
+  {
+   "id": "c8",
+   "en": "school",
+   "pt": "escola"
+  },
+  {
+   "id": "c9",
+   "en": "bank",
+   "pt": "banco"
+  },
+  {
+   "id": "c10",
+   "en": "courthouse",
+   "pt": "fórum"
+  },
+  {
+   "id": "c11",
+   "en": "hospital",
+   "pt": "hospital"
+  },
+  {
+   "id": "c12",
+   "en": "park",
+   "pt": "parque"
+  },
+  {
+   "id": "c13",
+   "en": "flag",
+   "pt": "bandeira"
+  },
+  {
+   "id": "c14",
+   "en": "country",
+   "pt": "país"
+  },
+  {
+   "id": "c15",
+   "en": "anthem",
+   "pt": "hino"
+  },
+  {
+   "id": "c16",
+   "en": "homeland",
+   "pt": "pátria"
+  },
+  {
+   "id": "c17",
+   "en": "citizen",
+   "pt": "cidadão"
+  },
+  {
+   "id": "c18",
+   "en": "soldier",
+   "pt": "soldado"
+  },
+  {
+   "id": "c19",
+   "en": "duty",
+   "pt": "dever"
+  },
+  {
+   "id": "c20",
+   "en": "law",
+   "pt": "lei"
+  },
+  {
+   "id": "c21",
+   "en": "order",
+   "pt": "ordem"
+  },
+  {
+   "id": "c22",
+   "en": "freedom",
+   "pt": "liberdade"
+  },
+  {
+   "id": "c23",
+   "en": "vote",
+   "pt": "votar"
+  },
+  {
+   "id": "c24",
+   "en": "serve",
+   "pt": "servir"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Directions",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "ayrton",
+     "en": "Excuse me, Captain. Where is the city hall?",
+     "pt": "Com licença, capitão. Onde fica a prefeitura?"
+    },
+    {
+     "who": "lucas",
+     "en": "Go straight ahead. Turn left at the corner.",
+     "pt": "Siga em frente. Vire à esquerda na esquina."
+    },
+    {
+     "who": "ayrton",
+     "en": "Is it far from here?",
+     "pt": "Fica longe daqui?"
+    },
+    {
+     "who": "lucas",
+     "en": "No, it is near. It is on your right.",
+     "pt": "Não, é perto. Fica à sua direita."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Places in the city",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "lucas",
+     "en": "This is a peaceful city. The church is near the school.",
+     "pt": "Esta é uma cidade pacífica. A igreja fica perto da escola."
+    },
+    {
+     "who": "ayrton",
+     "en": "I am building a new hospital next to the park.",
+     "pt": "Estou construindo um novo hospital ao lado do parque."
+    },
+    {
+     "who": "lucas",
+     "en": "The bank and the courthouse are on the same street.",
+     "pt": "O banco e o fórum ficam na mesma rua."
+    },
+    {
+     "who": "ayrton",
+     "en": "A good city needs order.",
+     "pt": "Uma boa cidade precisa de ordem."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "Our country",
+   "vocab": [
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18"
+   ],
+   "lines": [
+    {
+     "who": "lucas",
+     "en": "I am a soldier. I serve my country.",
+     "pt": "Sou soldado. Sirvo meu país."
+    },
+    {
+     "who": "ayrton",
+     "en": "I am a citizen. I respect our flag.",
+     "pt": "Sou cidadão. Respeito nossa bandeira."
+    },
+    {
+     "who": "lucas",
+     "en": "We stand for the anthem with respect.",
+     "pt": "Ficamos de pé com respeito durante o hino."
+    },
+    {
+     "who": "ayrton",
+     "en": "We love our homeland.",
+     "pt": "Amamos nossa pátria."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Civic duty",
+   "vocab": [
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ],
+   "lines": [
+    {
+     "who": "lucas",
+     "en": "Duty comes before comfort.",
+     "pt": "O dever vem antes do conforto."
+    },
+    {
+     "who": "ayrton",
+     "en": "We obey the law, and we vote with responsibility.",
+     "pt": "Obedecemos à lei e votamos com responsabilidade."
+    },
+    {
+     "who": "lucas",
+     "en": "Order protects our freedom.",
+     "pt": "A ordem protege nossa liberdade."
+    },
+    {
+     "who": "ayrton",
+     "en": "Free men serve their country with honor.",
+     "pt": "Homens livres servem seu país com honra."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "A Praça",
+  "lines": [
+   {
+    "who": "lucas",
+    "en": "Excuse me, Sir. Where is the city hall?",
+    "pt": "Com licença, senhor. Onde fica a prefeitura?"
+   },
+   {
+    "who": "ayrton",
+    "en": "Go straight and turn left at the flag.",
+    "pt": "Siga em frente e vire à esquerda na bandeira."
+   },
+   {
+    "who": "lucas",
+    "en": "Thank you. Is the library near?",
+    "pt": "Obrigado. A biblioteca é perto?"
+   },
+   {
+    "who": "ayrton",
+    "en": "Yes, it is next to the church.",
+    "pt": "Sim, fica ao lado da igreja."
+   },
+   {
+    "who": "lucas",
+    "en": "I serve my country, and I respect the law.",
+    "pt": "Eu sirvo ao meu país e respeito a lei."
+   },
+   {
+    "who": "ayrton",
+    "en": "That is an honorable duty, Sir.",
+    "pt": "Esse é um dever honroso, senhor."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Onde virar à esquerda?",
+    "options": [
+     "At the flag",
+     "At the bank",
+     "At the school"
+    ],
+    "answer": "At the flag",
+    "lang": "en"
+   },
+   {
+    "q": "Onde fica a biblioteca?",
+    "options": [
+     "Next to the church",
+     "Behind the bank",
+     "Near the river"
+    ],
+    "answer": "Next to the church",
+    "lang": "en"
+   },
+   {
+    "q": "O que Lucas faz?",
+    "options": [
+     "He serves his country",
+     "He sells cars",
+     "He teaches piano"
+    ],
+    "answer": "He serves his country",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "A Lição de História do Professor Beto",
+  "icon": "🏛️",
+  "intro": "Beto leva Gael e Laura a um museu e narra o heroísmo de quem defendeu a pátria.",
+  "cast": [
+   "beto",
+   "gael",
+   "laura"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "Gael, Laura, welcome to the museum. Look at this old flag.",
+      "pt": "Gael, Laura, bem-vindos ao museu. Olhem esta bandeira antiga."
+     },
+     {
+      "who": "gael",
+      "en": "Dad, who carried this flag?",
+      "pt": "Pai, quem carregou esta bandeira?"
+     },
+     {
+      "who": "beto",
+      "en": "A brave soldier. He defended his country.",
+      "pt": "Um soldado corajoso. Ele defendeu o seu país."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "O que Beto vai contar?",
+     "options": [
+      "A story of a soldier who defended his country",
+      "A story about a cartoon",
+      "A story about shopping"
+     ],
+     "answer": "A story of a soldier who defended his country",
+     "why": "Beto já disse que o soldado defendeu o país: é essa a história.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "The soldier was hurt, but he did not leave his post.",
+      "pt": "O soldado estava ferido, mas não abandonou o seu posto."
+     },
+     {
+      "who": "laura",
+      "en": "Daddy, was he afraid?",
+      "pt": "Papai, ele teve medo?"
+     },
+     {
+      "who": "beto",
+      "en": "Yes, but courage is acting rightly even when we are afraid.",
+      "pt": "Sim, mas coragem é agir corretamente mesmo quando temos medo."
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "O que é coragem, segundo Beto?",
+     "options": [
+      "Acting rightly even when afraid",
+      "Never feeling fear",
+      "Showing off to others"
+     ],
+     "answer": "Acting rightly even when afraid",
+     "why": "Coragem não é ausência de medo, é fazer o certo apesar dele.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "gael",
+      "en": "What did the soldier do after the war?",
+      "pt": "O que o soldado fez depois da guerra?"
+     },
+     {
+      "who": "beto",
+      "en": "He went home, worked hard, and raised his family.",
+      "pt": "Voltou para casa, trabalhou duro e criou a sua família."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Como foi a vida do soldado depois da guerra?",
+     "options": [
+      "He returned home and worked honestly",
+      "He became rich by deceit",
+      "He left his family"
+     ],
+     "answer": "He returned home and worked honestly",
+     "why": "O herói também é o homem que volta e sustenta a família com trabalho honesto.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "laura",
+      "en": "I want to be brave like him.",
+      "pt": "Eu quero ser corajosa como ele."
+     },
+     {
+      "who": "beto",
+      "en": "Brave and kind, my little one. History teaches us who we are.",
+      "pt": "Corajosa e bondosa, minha pequena. A história nos ensina quem somos."
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete: “History teaches us who we ____.”",
+     "options": [
+      "are",
+      "is",
+      "was"
+     ],
+     "answer": "are",
+     "why": "“Who we are”: o verbo concorda com “we”.",
+     "lang": "en"
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "lucas",
+  "ask": "Where is the library?",
+  "askPt": "Onde fica a biblioteca?",
+  "model": "The library is next to the church.",
+  "modelPt": "A biblioteca fica ao lado da igreja.",
+  "accept": [
+   "The library is next to the church.",
+   "It is next to the church."
+  ]
+ },
+ "wisdom": "w08",
+ "tips": [
+  "r_sound",
+  "final_consonant",
+  "short_i"
+ ],
+ "pnl": {
+  "identity": "Quem estuda todos os dias, como você, constrói com as próprias mãos o futuro da sua família.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Direções, Cidade e Dever Cívico” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Direções, Cidade e Dever Cívico” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Directions",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Direções, lugares da cidade, instituições, símbolos nacionais, deveres cívicos.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: A Praça",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.2"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.5"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Our country",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c13",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: O R americano",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "r_sound"
+    },
+    {
+     "kind": "speak",
+     "ref": "c20"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.0"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c19"
+    },
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.2",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.3",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "A Lição de História do Professor Beto",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c21"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.1",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.1",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.2"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

@@ -4,6 +4,7 @@ import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, H1, P } from '../components/ui';
 import { useStore } from '../store';
 import { ANCHORS } from '../engine/pnl';
+import Bento from '../components/Bento';
 
 export default function Onboarding() {
   const { profile, updateProfile } = useStore();
@@ -12,7 +13,7 @@ export default function Onboarding() {
   const value = (custom.trim() || sel || '').trim();
   return (
     <ScrollView contentContainerStyle={s.pad} keyboardShouldPersistTaps="handled">
-      <Text style={{ fontSize: fs(56), textAlign: 'center' }}>🦅</Text>
+      <View style={{ alignItems: 'center' }}><Bento mood="saudacao" size={120} /></View>
       <H1 style={{ textAlign: 'center' }}>Bem-vindo, {profile.name}!</H1>
       <P style={{ textAlign: 'center' }}>Sou o Tio Bento. Antes de começar, escolha a sua Frase-Âncora: o motivo que vai sustentar a sua jornada. Eu a lembrarei a cada conquista.</P>
       <Text style={s.q}>Por que você quer aprender inglês?</Text>

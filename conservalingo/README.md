@@ -1,71 +1,76 @@
 # CONSERVALINGO
 
 App móvel gamificado de ensino de inglês para falantes de português (React Native + Expo),
-com identidade **Heritage & Classic UI** e valores conservadores, patrióticos e judaico-cristãos,
-conforme o documento de handoff.
+com estilo próprio *Vector Heritage Flat* e valores conservadores, patrióticos e judaico-cristãos,
+conforme os documentos de handoff (versão atual: **v4 — 130 níveis / 1.300 lições**).
 
 ## Rodar
 
 ```bash
 cd conservalingo
 npm install
-npm start          # Expo: escaneie o QR no Expo Go, ou use `npm run web`
-npm test           # valida o conteúdo contra o handoff + testa o motor (264 exercícios)
+npm start          # Expo (dev build para microfone) ou `npm run web`
+npm test           # valida o conteúdo contra o handoff v4 + testa o motor pedagógico
 npm run typecheck
 ```
 
+## Arquitetura do currículo (handoff v4)
+
+- **5 Eras × 26 níveis = 130 níveis**, cada um com **10 lições na cadência oficial**:
+  1 Fundamento & Vocabulário · 2 Construção & Gramática · 3 Escuta Ativa · 4 Diálogo Familiar ·
+  5 Fala & Precisão Fonética · 6 Produção Escrita & Tradução · 7 Intercalação · 8 Crônica Interativa ·
+  9 Revisão Cirúrgica (FSRS) · 10 Checkpoint de Honra.
+- `src/data/curriculum.json` — configuração estrutural dos 130 níveis (Eras, CEFR, blocos de níveis com tema,
+  gramática e elenco do handoff, títulos, status `available` / `planned`).
+- `src/data/levels/LXXX.json` — conteúdo de cada nível no formato-molde (blocos lexicais, frases, diálogos,
+  escuta, crônica com 4 paradas, roleplay, dicas fonéticas, Sabedoria do Dia, microcopy de PNL e os passos das 10 lições).
+  Formato documentado em `docs/level.schema.json`; guia de geração em lote em `docs/GERACAO_EM_LOTE.md`.
+- **Nível 01** ("Saudações e Títulos de Respeito", Ayrton, Helena, Alice e Lucas) é **autoral e completo**: é o molde.
+- Níveis **02, 06, 11, 16, 17, 21, 27, 53, 79 e 112** têm conteúdo **adaptado** das versões anteriores, encaixado no
+  bloco certo e com o elenco do handoff. Os demais **119 níveis** aparecem no mapa como "Em preparação" e não bloqueiam a trilha.
+- Motor: `src/engine/levels.ts` (níveis, desbloqueio, itens), `src/engine/exercises.ts` (passos → exercícios,
+  intercalação, revisão cirúrgica, treinos), `src/engine/srs.ts` (FSRS v4.5), `src/engine/progress.ts` (recompensas).
+
 ## O que está implementado
 
-| Handoff | Onde |
+| Handoff v4 | Onde |
 |---|---|
-| Paleta e tipografia (Merriweather + Inter) | `src/theme.ts` |
-| 6 protagonistas, cônjuges, 12 filhos, mascote Tio Bento | `src/data/characters.json` |
-| Módulo 1: 6 unidades × 4 lições + desafio de revisão, com diálogos entre o elenco especificado | `src/data/units.json` |
-| Sabedoria do Dia (18 provérbios/citações, com áudio) | `src/data/wisdom.json` |
-| Leitura Clássica (Salmo 23, fábula da formiga, O Peregrino) com tradução palavra a palavra, áudio lento/normal | `src/data/reading.json`, `src/screens/Reading.tsx` |
-| Bússola de Constância, Talentos de Ouro, Escudos de Atenção (máx. 5, +1/30 min), Patentes | `src/engine/game.ts` |
-| Repetição espaçada (SM-2) e Treino de Virtude (restaura 1 escudo) | `src/engine/srs.ts` |
-| Exercícios: escolha, tradução PT↔EN com banco de palavras, listening, speaking | `src/engine/exercises.ts`, `src/components/ExerciseView.tsx` |
-| Diálogos em quadrinhos (balões com avatar do personagem, voz grave p/ homens e suave p/ mulheres) | `src/screens/Lesson.tsx` |
-| Modo Família com PIN dos pais, perfis infantis e painel de desempenho | `src/screens/Family.tsx` |
-| Loja de Talentos (trajes, leituras extras) | `src/screens/Characters.tsx`, `Reading.tsx` |
-| Schema PostgreSQL/Supabase com RLS + seed gerado dos JSON | `db/schema.sql`, `npm run seed:sql` → `db/seed.sql` |
+| Mapa Vertical da Trilha (130 níveis por Era, nós de 64dp, trilha dourada) | `src/screens/Home.tsx`, `src/components/Trail.tsx` |
+| Tela do nível: 10 lições + Arcas de Talentos a cada 3 lições | `src/screens/Level.tsx` |
+| Player de Crônicas Interativas (4 pontos de parada) | `src/screens/Chronicle.tsx` |
+| Escuta Ativa (áudio sem texto, 1.0x / devagar), ditado, roleplay falado | `src/screens/Lesson.tsx`, `ExerciseView.tsx` |
+| Fala com correção por cores (verde/dourado/carmesim) + micro-dicas PT-BR → EN + gravação do aluno | `ExerciseView.tsx`, `WordFeedback.tsx`, `src/engine/pron.ts` |
+| Caderno de Campo: Blocos de Expressão, Registro de Fonemas, Provérbios Memorizados | `src/screens/Caderno.tsx` |
+| Painel Familiar: PIN, perfis, metas diárias, microfone por perfil, ambiente blindado | `src/screens/Family.tsx` |
+| Combos (Foco Firme, 2× Talentos), selo de cera, Mural de Honra, Ligas (6 patentes), 3 missões + Cofre Diário | `src/engine/game.ts`, `Honra.tsx` |
+| Talentos de Ouro (Checkpoints) e Escudos de Guarda (protegem a ofensiva) | `progress.ts`, `game.ts`, `Honra.tsx` |
+| Escudos de Atenção (5) + Treino de Revisão & Pronúncia (restaura 1) | `game.ts`, `exercises.ts` |
+| PNL: Frase-Âncora, acorde + vibração no acerto, identidade, pressuposições, Ajuste de Rota, Future Pacing | `pnl.ts`, `fx.ts`, `Lesson.tsx` |
+| Tio Bento com 6 estados animados | `src/components/Bento.tsx` |
+| Leitura Clássica (áudio normal/lento, tradução palavra por palavra) | `src/screens/Reading.tsx` |
+| Schema PostgreSQL/Supabase com RLS + seed (5 Eras, 130 níveis, 1.300 lições) | `db/schema.sql`, `npm run seed:sql` |
 
-Os exercícios são gerados a partir do vocabulário e dos diálogos (fonte única: os JSON).
-`npm run validate` falha se nomes, profissões, cônjuges, idades dos filhos, elenco por unidade
-ou estrutura do Módulo 1 divergirem do handoff.
+`npm test` falha se nomes, profissões, cônjuges, filhos, faixas e elenco dos blocos de níveis, cadência das 10 lições,
+referências dos passos, inglês americano ou a cobertura de áudio divergirem do handoff.
 
-## Limitações conhecidas (próximos passos)
+## Áudio
 
-- **Reconhecimento de fala**: o exercício *Speaking* usa autoavaliação. Trocar por
-  `expo-speech-recognition` (módulo nativo, exige dev build) — ponto marcado em `ExerciseView.tsx`.
-- **Áudio**: usa TTS do dispositivo (`expo-speech`). Para vozes nativas gravadas, trocar `src/engine/audio.ts`.
-- **Ilustrações**: avatares são emojis provisórios; prompts de arte em `docs/ILLUSTRATION_PROMPTS.md`.
-- **Persistência**: local (AsyncStorage). O schema em `db/` está pronto para sincronizar com Supabase,
-  e o PIN dos pais deve ser guardado com hash no servidor (hoje fica no dispositivo).
-- **Ligas semanais**: patentes são por XP total; o XP semanal já é registrado (`weekXp`) para ligas com ranking online.
-- **Citações**: revisar atribuições e traduções com um editor antes do lançamento.
+Vozes neurais en-US pré-gravadas (Piper: `en_US-ryan-high` masculina, `en_US-amy-medium` feminina), normal e devagar,
+com o tempo de cada palavra para as histórias palavra a palavra. `npx tsx scripts/audio-jobs.ts` lista todo texto que o
+app pode falar; `python scripts/generate-audio.py <modelos>` grava os clipes que faltam. Português usa a voz pt-BR do aparelho.
 
 ## Dialeto do inglês
 
-O Módulo 1 usa **inglês padrão dos Estados Unidos** (grafia americana, vozes `en_US` e fallback `en-US`).
-`npm run validate` falha se aparecer grafia/vocabulário britânico ou inglês arcaico. O inglês britânico terá um
-capítulo próprio (curso `en-GB`; o schema já prevê `courses.dialect`) com vozes e textos separados.
-Os versículos usam inglês americano atual (ex.: "Honor your father and your mother").
+Inglês padrão dos Estados Unidos (grafia americana, vozes `en_US`). O validador barra grafia britânica e inglês arcaico
+(exceto O Peregrino, texto histórico). O inglês britânico terá curso próprio (`courses.dialect = 'en-GB'`).
 
-## Histórias palavra a palavra
+## Limitações conhecidas
 
-Nas lições do tipo história, ▶ "Ouvir a história" toca o diálogo falando fala por fala: cada palavra do inglês aparece (e é realçada em dourado) no instante em que é pronunciada; as falas seguintes ficam esmaecidas até a vez delas. 🐢 "Devagar" usa os clipes lentos. Tocar em um balão repete só aquela fala.
-
-Os tempos vêm de `marks` em `src/audio/manifest.ts`, gerado por `scripts/generate-audio.py` (duração real de cada frase do Piper repartida por fonemas e pausas de pontuação). Sem clipe, o app usa a voz en-US do aparelho com tempos estimados.
-
-## Handoff v3 — o que foi aplicado
-
-- **5 níveis CEFR (A1–C1)**: Nível 1 completo (6 unidades) e unidades de amostra para A2, B1, B2 e C1 (`src/data/units.json`, `levels`).
-- **4 Crônicas Interativas** com 4 pontos de parada cada (deduzir, escolher a atitude correta, completar a fala) — `chronicles.json`, tela `Chronicle.tsx`. Desbloqueiam a cada 2 unidades.
-- **Estações de Escuta** por unidade: áudio sem texto + 3 perguntas + roleplay falado (`listening.json`). **Ditado** em toda lição.
-- **Fala (ASR)**: `expo-speech-recognition` (en-US). Cada palavra fica verde/dourada/carmesim; tocar abre a micro-dica PT-BR→EN (`pronunciation.json`) com a palavra correta e a gravação do aluno. O Android informa só a confiança da frase inteira, então "dourado" = palavra parecida ou frase com baixa confiança. Sem reconhecedor no aparelho, o app volta para a autoavaliação.
-- **Gamificação**: combos (3 = Foco Firme, 5 = 2× Talentos), selo de cera dourado em 100%, Mural de Honra (7/30/90/365), 3 Missões Diárias, 6 patentes em Ligas Semanais (**competidores simulados localmente**), Arcas de Talentos.
-- **PNL**: Frase-Âncora no onboarding, acorde ascendente + dupla vibração no acerto, microcopy de identidade, pressuposições, elogio por arquétipo, Ensaio Mental de 10 s ao fim da unidade, "Ajuste de Rota" nos erros.
-- **Paleta oficial** v3 (`#1B365D`, `#244B82`, `#D4A017`, `#236B3B`, `#FAF9F5`, `#A62639`).
-- **Banco de dados**: novas tabelas (levels, chronicles, listening_stations, pronunciation_tips/history, daily_missions, league_weeks, chests_opened) validadas em PostgreSQL 16.
+- **Conteúdo**: 11 de 130 níveis estão prontos (Nível 01 autoral + 10 adaptados). Os outros 119 seguem o molde do Nível 01
+  e precisam de geração em lote com revisão editorial (`docs/GERACAO_EM_LOTE.md`).
+- **Reconhecimento de fala**: o Android avalia a frase inteira; a cor por palavra vem do alinhamento do texto reconhecido
+  (não há nota por fonema). Sem reconhecedor no aparelho, o app volta para autoavaliação.
+- **Ligas**: competidores simulados localmente (não há servidor de ranking).
+- **Tio Bento**: animações nativas (sem Lottie) sobre a arte do ícone; colete e gravata ainda não desenhados.
+- **Persistência**: local (AsyncStorage); o schema está pronto para sincronizar com o Supabase.
+- **Citações bíblicas e clássicas**: revisar atribuições e traduções com um editor antes do lançamento.

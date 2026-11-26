@@ -1,0 +1,842 @@
+{
+ "id": "L021",
+ "number": 21,
+ "origin": "adaptado",
+ "title": "Cores, Animais e Natureza",
+ "grammar": "Cores, animais, natureza, atividades ao ar livre, obediência aos pais, rotina escolar saudável.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "blue",
+   "pt": "azul"
+  },
+  {
+   "id": "c2",
+   "en": "green",
+   "pt": "verde"
+  },
+  {
+   "id": "c3",
+   "en": "yellow",
+   "pt": "amarelo"
+  },
+  {
+   "id": "c4",
+   "en": "red",
+   "pt": "vermelho"
+  },
+  {
+   "id": "c5",
+   "en": "white",
+   "pt": "branco"
+  },
+  {
+   "id": "c6",
+   "en": "black",
+   "pt": "preto"
+  },
+  {
+   "id": "c7",
+   "en": "dog",
+   "pt": "cachorro"
+  },
+  {
+   "id": "c8",
+   "en": "cat",
+   "pt": "gato"
+  },
+  {
+   "id": "c9",
+   "en": "horse",
+   "pt": "cavalo"
+  },
+  {
+   "id": "c10",
+   "en": "cow",
+   "pt": "vaca"
+  },
+  {
+   "id": "c11",
+   "en": "bird",
+   "pt": "pássaro"
+  },
+  {
+   "id": "c12",
+   "en": "eagle",
+   "pt": "águia"
+  },
+  {
+   "id": "c13",
+   "en": "tree",
+   "pt": "árvore"
+  },
+  {
+   "id": "c14",
+   "en": "river",
+   "pt": "rio"
+  },
+  {
+   "id": "c15",
+   "en": "mountain",
+   "pt": "montanha"
+  },
+  {
+   "id": "c16",
+   "en": "sun",
+   "pt": "sol"
+  },
+  {
+   "id": "c17",
+   "en": "rain",
+   "pt": "chuva"
+  },
+  {
+   "id": "c18",
+   "en": "play outside",
+   "pt": "brincar ao ar livre"
+  },
+  {
+   "id": "c19",
+   "en": "obey",
+   "pt": "obedecer"
+  },
+  {
+   "id": "c20",
+   "en": "listen",
+   "pt": "ouvir"
+  },
+  {
+   "id": "c21",
+   "en": "homework",
+   "pt": "lição de casa"
+  },
+  {
+   "id": "c22",
+   "en": "school",
+   "pt": "escola"
+  },
+  {
+   "id": "c23",
+   "en": "teacher",
+   "pt": "professora"
+  },
+  {
+   "id": "c24",
+   "en": "Yes, Mom",
+   "pt": "Sim, mamãe"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Colors",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "miguel",
+     "en": "The flag is green and yellow, and it has a blue circle.",
+     "pt": "A bandeira é verde e amarela, e tem um círculo azul."
+    },
+    {
+     "who": "heloisa",
+     "en": "My dress is white.",
+     "pt": "Meu vestido é branco."
+    },
+    {
+     "who": "arthur",
+     "en": "My shoes are black. My ball is red.",
+     "pt": "Meus sapatos são pretos. Minha bola é vermelha."
+    },
+    {
+     "who": "cecilia",
+     "en": "I like all the colors.",
+     "pt": "Eu gosto de todas as cores."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Animals",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "noah",
+     "en": "There is a horse and a cow on the farm.",
+     "pt": "Há um cavalo e uma vaca na fazenda."
+    },
+    {
+     "who": "antonella",
+     "en": "I see a little bird.",
+     "pt": "Eu vejo um passarinho."
+    },
+    {
+     "who": "theo",
+     "en": "Look! The eagle is flying high.",
+     "pt": "Olhem! A águia está voando alto."
+    },
+    {
+     "who": "maite",
+     "en": "Doggy! My dog is nice.",
+     "pt": "Cachorrinho! Meu cachorro é legal."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "Nature and outdoor play",
+   "vocab": [
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18"
+   ],
+   "lines": [
+    {
+     "who": "davi",
+     "en": "The sun is bright. Let us play outside.",
+     "pt": "O sol está forte. Vamos brincar lá fora."
+    },
+    {
+     "who": "liz",
+     "en": "I see a big tree near the river.",
+     "pt": "Eu vejo uma árvore grande perto do rio."
+    },
+    {
+     "who": "miguel",
+     "en": "We can climb the mountain with Dad.",
+     "pt": "Podemos subir a montanha com o papai."
+    },
+    {
+     "who": "heloisa",
+     "en": "Look at the rain. God makes the flowers grow.",
+     "pt": "Olhe a chuva. Deus faz as flores crescerem."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Obedience and school",
+   "vocab": [
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ],
+   "lines": [
+    {
+     "who": "arthur",
+     "en": "Dad says: obey your parents and listen to your teacher.",
+     "pt": "O papai diz: obedeça seus pais e ouça sua professora."
+    },
+    {
+     "who": "noah",
+     "en": "Mom, may I play now?",
+     "pt": "Mamãe, posso brincar agora?"
+    },
+    {
+     "who": "flavia",
+     "en": "First, finish your homework, Noah.",
+     "pt": "Primeiro, termine sua lição de casa, Noah."
+    },
+    {
+     "who": "noah",
+     "en": "Yes, Mom. I will obey.",
+     "pt": "Sim, mamãe. Eu vou obedecer."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "A Brincadeira",
+  "lines": [
+   {
+    "who": "theo",
+    "en": "Miguel, the dog is brown and the cat is white.",
+    "pt": "Miguel, o cachorro é marrom e o gato é branco."
+   },
+   {
+    "who": "miguel",
+    "en": "Yes. We must be kind to animals.",
+    "pt": "Sim. Devemos ser gentis com os animais."
+   },
+   {
+    "who": "cecilia",
+    "en": "Look at the green trees! Nature is beautiful.",
+    "pt": "Olhem as árvores verdes! A natureza é linda."
+   },
+   {
+    "who": "noah",
+    "en": "Mom said we should obey and come home at six.",
+    "pt": "A mamãe disse que devemos obedecer e voltar para casa às seis."
+   },
+   {
+    "who": "antonella",
+    "en": "Okay, Noah. I obey Mom and Dad.",
+    "pt": "Está bem, Noah. Eu obedeço à mamãe e ao papai."
+   },
+   {
+    "who": "arthur",
+    "en": "Obedience makes a family happy.",
+    "pt": "A obediência faz uma família feliz."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Qual é a cor do cachorro?",
+    "options": [
+     "Brown",
+     "White",
+     "Green"
+    ],
+    "answer": "Brown",
+    "lang": "en"
+   },
+   {
+    "q": "A que horas devem voltar?",
+    "options": [
+     "At six",
+     "At nine",
+     "At noon"
+    ],
+    "answer": "At six",
+    "lang": "en"
+   },
+   {
+    "q": "O que faz uma família feliz?",
+    "options": [
+     "Obedience",
+     "Money",
+     "Television"
+    ],
+    "answer": "Obedience",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Cores, Animais e Natureza",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "miguel",
+   "heloisa",
+   "arthur",
+   "cecilia",
+   "noah",
+   "antonella",
+   "theo",
+   "maite",
+   "davi",
+   "liz",
+   "flavia"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "miguel",
+      "en": "The flag is green and yellow, and it has a blue circle.",
+      "pt": "A bandeira é verde e amarela, e tem um círculo azul."
+     },
+     {
+      "who": "heloisa",
+      "en": "My dress is white.",
+      "pt": "Meu vestido é branco."
+     },
+     {
+      "who": "arthur",
+      "en": "My shoes are black. My ball is red.",
+      "pt": "Meus sapatos são pretos. Minha bola é vermelha."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Cecília?",
+     "options": [
+      "I like all the colors.",
+      "Doggy! My dog is nice.",
+      "Look at the rain. God makes the flowers grow."
+     ],
+     "answer": "I like all the colors.",
+     "lang": "en",
+     "why": "Cecília diz: “I like all the colors.” — Eu gosto de todas as cores."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "noah",
+      "en": "There is a horse and a cow on the farm.",
+      "pt": "Há um cavalo e uma vaca na fazenda."
+     },
+     {
+      "who": "antonella",
+      "en": "I see a little bird.",
+      "pt": "Eu vejo um passarinho."
+     },
+     {
+      "who": "theo",
+      "en": "Look! The eagle is flying high.",
+      "pt": "Olhem! A águia está voando alto."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Maitê?",
+     "options": [
+      "I like all the colors.",
+      "Look at the rain. God makes the flowers grow.",
+      "Doggy! My dog is nice."
+     ],
+     "answer": "Doggy! My dog is nice.",
+     "lang": "en",
+     "why": "Maitê diz: “Doggy! My dog is nice.” — Cachorrinho! Meu cachorro é legal."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "davi",
+      "en": "The sun is bright. Let us play outside.",
+      "pt": "O sol está forte. Vamos brincar lá fora."
+     },
+     {
+      "who": "liz",
+      "en": "I see a big tree near the river.",
+      "pt": "Eu vejo uma árvore grande perto do rio."
+     },
+     {
+      "who": "miguel",
+      "en": "We can climb the mountain with Dad.",
+      "pt": "Podemos subir a montanha com o papai."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Heloísa?",
+     "options": [
+      "Doggy! My dog is nice.",
+      "Look at the rain. God makes the flowers grow.",
+      "I like all the colors."
+     ],
+     "answer": "Look at the rain. God makes the flowers grow.",
+     "lang": "en",
+     "why": "Heloísa diz: “Look at the rain. God makes the flowers grow.” — Olhe a chuva. Deus faz as flores crescerem."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "arthur",
+      "en": "Dad says: obey your parents and listen to your teacher.",
+      "pt": "O papai diz: obedeça seus pais e ouça sua professora."
+     },
+     {
+      "who": "noah",
+      "en": "Mom, may I play now?",
+      "pt": "Mamãe, posso brincar agora?"
+     },
+     {
+      "who": "flavia",
+      "en": "First, finish your homework, Noah.",
+      "pt": "Primeiro, termine sua lição de casa, Noah."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Noah?",
+     "options": [
+      "Yes, Mom. I will obey.",
+      "I like all the colors.",
+      "Doggy! My dog is nice."
+     ],
+     "answer": "Yes, Mom. I will obey.",
+     "lang": "en",
+     "why": "Noah diz: “Yes, Mom. I will obey.” — Sim, mamãe. Eu vou obedecer."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "theo",
+  "ask": "What color is the dog?",
+  "askPt": "De que cor é o cachorro?",
+  "model": "The dog is brown.",
+  "modelPt": "O cachorro é marrom.",
+  "accept": [
+   "The dog is brown.",
+   "It is brown."
+  ]
+ },
+ "wisdom": "w06",
+ "tips": [
+  "final_consonant",
+  "final_nasal",
+  "short_i"
+ ],
+ "pnl": {
+  "identity": "Quem estuda todos os dias, como você, constrói com as próprias mãos o futuro da sua família.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Cores, Animais e Natureza” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Cores, Animais e Natureza” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Colors",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Cores, animais, natureza, atividades ao ar livre, obediência aos pais, rotina escolar saudável.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: A Brincadeira",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.5"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Nature and outdoor play",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c13",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c16"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.1"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c19"
+    },
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.2",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.3",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Cores, Animais e Natureza",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c21"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.4"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.2",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.1"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

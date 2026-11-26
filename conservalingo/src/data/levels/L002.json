@@ -1,0 +1,828 @@
+{
+ "id": "L002",
+ "number": 2,
+ "origin": "adaptado",
+ "title": "Apresentações, Verbo to be e Cortesia",
+ "grammar": "Cumprimentos formais, apresentações respeitosas, títulos de tratamento, verbo to be no presente.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "Good morning",
+   "pt": "Bom dia"
+  },
+  {
+   "id": "c2",
+   "en": "Good afternoon",
+   "pt": "Boa tarde"
+  },
+  {
+   "id": "c3",
+   "en": "Good evening",
+   "pt": "Boa noite"
+  },
+  {
+   "id": "c4",
+   "en": "Sir",
+   "pt": "Senhor"
+  },
+  {
+   "id": "c5",
+   "en": "Ma'am",
+   "pt": "Senhora"
+  },
+  {
+   "id": "c6",
+   "en": "Goodbye",
+   "pt": "Adeus"
+  },
+  {
+   "id": "c7",
+   "en": "My name is",
+   "pt": "Meu nome é"
+  },
+  {
+   "id": "c8",
+   "en": "Nice to meet you",
+   "pt": "Prazer em conhecê-lo"
+  },
+  {
+   "id": "c9",
+   "en": "Mister",
+   "pt": "Senhor (título)"
+  },
+  {
+   "id": "c10",
+   "en": "Miss",
+   "pt": "Senhorita"
+  },
+  {
+   "id": "c11",
+   "en": "Doctor",
+   "pt": "Doutor"
+  },
+  {
+   "id": "c12",
+   "en": "Welcome",
+   "pt": "Bem-vindo"
+  },
+  {
+   "id": "c13",
+   "en": "I am",
+   "pt": "Eu sou / estou"
+  },
+  {
+   "id": "c14",
+   "en": "You are",
+   "pt": "Você é / está"
+  },
+  {
+   "id": "c15",
+   "en": "He is",
+   "pt": "Ele é / está"
+  },
+  {
+   "id": "c16",
+   "en": "She is",
+   "pt": "Ela é / está"
+  },
+  {
+   "id": "c17",
+   "en": "We are",
+   "pt": "Nós somos / estamos"
+  },
+  {
+   "id": "c18",
+   "en": "They are",
+   "pt": "Eles são / estão"
+  },
+  {
+   "id": "c19",
+   "en": "Please",
+   "pt": "Por favor"
+  },
+  {
+   "id": "c20",
+   "en": "Thank you",
+   "pt": "Obrigado"
+  },
+  {
+   "id": "c21",
+   "en": "You are welcome",
+   "pt": "De nada"
+  },
+  {
+   "id": "c22",
+   "en": "Excuse me",
+   "pt": "Com licença"
+  },
+  {
+   "id": "c23",
+   "en": "I am sorry",
+   "pt": "Sinto muito"
+  },
+  {
+   "id": "c24",
+   "en": "With pleasure",
+   "pt": "Com prazer"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Good morning, Sir",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "alice",
+     "en": "Good morning, Sir.",
+     "pt": "Bom dia, senhor."
+    },
+    {
+     "who": "ayrton",
+     "en": "Good morning, Ma'am. You are on time.",
+     "pt": "Bom dia, senhora. A senhora está pontual."
+    },
+    {
+     "who": "alice",
+     "en": "Punctuality is a form of respect.",
+     "pt": "A pontualidade é uma forma de respeito."
+    },
+    {
+     "who": "ayrton",
+     "en": "Indeed. Good afternoon, and goodbye.",
+     "pt": "De fato. Boa tarde e adeus."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Nice to meet you",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "ayrton",
+     "en": "My name is Ayrton. I am an engineer.",
+     "pt": "Meu nome é Ayrton. Sou engenheiro."
+    },
+    {
+     "who": "alice",
+     "en": "Nice to meet you, Mister Ayrton. I am Alice.",
+     "pt": "Prazer em conhecê-lo, senhor Ayrton. Sou Alice."
+    },
+    {
+     "who": "ayrton",
+     "en": "Welcome to our meeting, Doctor Alice.",
+     "pt": "Bem-vinda à nossa reunião, doutora Alice."
+    },
+    {
+     "who": "alice",
+     "en": "Thank you. The pleasure is mine.",
+     "pt": "Obrigada. O prazer é meu."
+    }
+   ]
+  },
+  {
+   "id": "d3",
+   "title": "I am, you are",
+   "vocab": [
+    "c13",
+    "c14",
+    "c15",
+    "c16",
+    "c17",
+    "c18"
+   ],
+   "lines": [
+    {
+     "who": "alice",
+     "en": "I am a lawyer. You are an engineer.",
+     "pt": "Sou advogada. Você é engenheiro."
+    },
+    {
+     "who": "ayrton",
+     "en": "Yes. He is a soldier, and she is a teacher.",
+     "pt": "Sim. Ele é soldado e ela é professora."
+    },
+    {
+     "who": "alice",
+     "en": "We are neighbors and they are our friends.",
+     "pt": "Somos vizinhos e eles são nossos amigos."
+    },
+    {
+     "who": "ayrton",
+     "en": "We are ready to begin.",
+     "pt": "Estamos prontos para começar."
+    }
+   ]
+  },
+  {
+   "id": "d4",
+   "title": "Courtesy and manners",
+   "vocab": [
+    "c19",
+    "c20",
+    "c21",
+    "c22",
+    "c23",
+    "c24"
+   ],
+   "lines": [
+    {
+     "who": "ayrton",
+     "en": "Excuse me, Ma'am. Please sit here.",
+     "pt": "Com licença, senhora. Por favor, sente-se aqui."
+    },
+    {
+     "who": "alice",
+     "en": "Thank you very much, Sir.",
+     "pt": "Muito obrigada, senhor."
+    },
+    {
+     "who": "ayrton",
+     "en": "You are welcome. I am sorry for the delay.",
+     "pt": "De nada. Sinto muito pelo atraso."
+    },
+    {
+     "who": "alice",
+     "en": "No problem. I will help you with pleasure.",
+     "pt": "Sem problema. Eu o ajudarei com prazer."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "A Reunião",
+  "lines": [
+   {
+    "who": "ayrton",
+    "en": "Good morning, Doctor Alice. Welcome to our meeting.",
+    "pt": "Bom dia, doutora Alice. Bem-vinda à nossa reunião."
+   },
+   {
+    "who": "alice",
+    "en": "Good morning, Mister Ayrton. Thank you, Sir.",
+    "pt": "Bom dia, senhor Ayrton. Obrigada, senhor."
+   },
+   {
+    "who": "ayrton",
+    "en": "Our meeting starts at nine o'clock. You are on time.",
+    "pt": "Nossa reunião começa às nove horas. A senhora está pontual."
+   },
+   {
+    "who": "alice",
+    "en": "Punctuality is respect, Sir. I always arrive early.",
+    "pt": "Pontualidade é respeito, senhor. Eu sempre chego cedo."
+   },
+   {
+    "who": "ayrton",
+    "en": "Excellent. Please, sit down.",
+    "pt": "Excelente. Por favor, sente-se."
+   },
+   {
+    "who": "alice",
+    "en": "Thank you. The pleasure is mine.",
+    "pt": "Obrigada. O prazer é meu."
+   }
+  ],
+  "questions": [
+   {
+    "q": "A que horas começa a reunião?",
+    "options": [
+     "At eight",
+     "At nine",
+     "At ten"
+    ],
+    "answer": "At nine",
+    "lang": "en"
+   },
+   {
+    "q": "Como Alice descreve a pontualidade?",
+    "options": [
+     "As respect",
+     "As luck",
+     "As luxury"
+    ],
+    "answer": "As respect",
+    "lang": "en"
+   },
+   {
+    "q": "Quando Alice costuma chegar?",
+    "options": [
+     "Early",
+     "Late",
+     "Never"
+    ],
+    "answer": "Early",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "O Relógio de Bolso de Ayrton",
+  "icon": "⌚",
+  "intro": "Ayrton ensina ao filho Miguel o valor da pontualidade e da palavra empenhada.",
+  "cast": [
+   "ayrton",
+   "miguel"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "Miguel, look at my pocket watch. It was my father's.",
+      "pt": "Miguel, olhe o meu relógio de bolso. Era do meu pai."
+     },
+     {
+      "who": "miguel",
+      "en": "It is beautiful, Dad. Why do you carry it?",
+      "pt": "É lindo, pai. Por que o senhor o leva consigo?"
+     },
+     {
+      "who": "ayrton",
+      "en": "Because time is a gift. We must not waste it.",
+      "pt": "Porque o tempo é um presente. Não devemos desperdiçá-lo."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "O que Ayrton quer ensinar com o relógio?",
+     "options": [
+      "Time is a gift",
+      "Gold is everything",
+      "Watches are old"
+     ],
+     "answer": "Time is a gift",
+     "why": "O relógio lembra que o tempo é um dom a ser bem usado.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "We have a visit at three o'clock. It is an important visit.",
+      "pt": "Temos uma visita às três horas. É uma visita importante."
+     },
+     {
+      "who": "miguel",
+      "en": "But Dad, my friends want me to play now.",
+      "pt": "Mas, pai, meus amigos querem que eu brinque agora."
+     },
+     {
+      "who": "ayrton",
+      "en": "I gave my word to Mister Silva. A man keeps his word.",
+      "pt": "Dei a minha palavra ao senhor Silva. Um homem cumpre a sua palavra."
+     }
+    ],
+    "stop": {
+     "kind": "moral",
+     "q": "O que Miguel deve fazer?",
+     "options": [
+      "Go with Dad and keep the promise",
+      "Stay and play with friends",
+      "Tell a lie to avoid the visit"
+     ],
+     "answer": "Go with Dad and keep the promise",
+     "why": "Cumprir a palavra empenhada vale mais do que a diversão do momento.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "It is two thirty. We must leave now.",
+      "pt": "São duas e meia. Precisamos sair agora."
+     },
+     {
+      "who": "miguel",
+      "en": "Dad, the car is not starting!",
+      "pt": "Pai, o carro não está pegando!"
+     },
+     {
+      "who": "ayrton",
+      "en": "Stay calm. We will walk fast, and I will call Mister Silva.",
+      "pt": "Calma. Vamos andar depressa, e eu ligarei para o senhor Silva."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "O que Ayrton fará para honrar o compromisso?",
+     "options": [
+      "Walk fast and warn Mister Silva",
+      "Cancel the visit",
+      "Wait for the car all day"
+     ],
+     "answer": "Walk fast and warn Mister Silva",
+     "why": "Quem leva o compromisso a sério busca uma solução e avisa a outra parte.",
+     "lang": "en"
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "ayrton",
+      "en": "Mister Silva, we are here. Thank you for waiting.",
+      "pt": "Senhor Silva, chegamos. Obrigado por esperar."
+     },
+     {
+      "who": "miguel",
+      "en": "Dad, now I understand. Punctuality is respect.",
+      "pt": "Pai, agora eu entendo. Pontualidade é respeito."
+     }
+    ],
+    "stop": {
+     "kind": "complete",
+     "q": "Complete a fala de Miguel: “Punctuality is ____.”",
+     "options": [
+      "respect",
+      "luck",
+      "hurry"
+     ],
+     "answer": "respect",
+     "why": "Pontualidade é uma forma de respeito pelo tempo dos outros.",
+     "lang": "en"
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "ayrton",
+  "ask": "What time does our meeting start?",
+  "askPt": "A que horas começa a nossa reunião?",
+  "model": "Our meeting starts at nine o'clock.",
+  "modelPt": "Nossa reunião começa às nove horas.",
+  "accept": [
+   "Our meeting starts at nine o'clock.",
+   "The meeting starts at nine o'clock."
+  ]
+ },
+ "wisdom": "w02",
+ "tips": [
+  "r_sound",
+  "final_consonant",
+  "schwa"
+ ],
+ "pnl": {
+  "identity": "Você é alguém que termina o que começa. É assim que se forma o caráter.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Apresentações, Verbo to be e Cortesia” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Apresentações, Verbo to be e Cortesia” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Good morning, Sir",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Cumprimentos formais, apresentações respeitosas, títulos de tratamento, verbo to be no presente.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: A Reunião",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.4"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.5"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: I am, you are",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d3.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d3.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d3.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c13",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c14",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d3"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: O R americano",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "r_sound"
+    },
+    {
+     "kind": "speak",
+     "ref": "c13"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d3.3"
+    },
+    {
+     "kind": "speak",
+     "ref": "d4.1"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c19"
+    },
+    {
+     "kind": "learn",
+     "ref": "c20"
+    },
+    {
+     "kind": "learn",
+     "ref": "c21"
+    },
+    {
+     "kind": "learn",
+     "ref": "c22"
+    },
+    {
+     "kind": "learn",
+     "ref": "c23"
+    },
+    {
+     "kind": "learn",
+     "ref": "c24"
+    },
+    {
+     "kind": "bank",
+     "ref": "d4.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d1.2",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.3",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.3",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "O Relógio de Bolso de Ayrton",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c21"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.1",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d4.2",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.0"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,674 @@
+{
+ "id": "L027",
+ "number": 27,
+ "origin": "adaptado",
+ "title": "Ontem e Amanhã em Família",
+ "grammar": "Passado simples, futuro com will / going to, comparativos; virtudes: honestidade e poupança.",
+ "chunks": [
+  {
+   "id": "c1",
+   "en": "yesterday",
+   "pt": "ontem"
+  },
+  {
+   "id": "c2",
+   "en": "I found",
+   "pt": "Eu achei"
+  },
+  {
+   "id": "c3",
+   "en": "I gave",
+   "pt": "Eu entreguei"
+  },
+  {
+   "id": "c4",
+   "en": "honest",
+   "pt": "honesto"
+  },
+  {
+   "id": "c5",
+   "en": "proud",
+   "pt": "orgulhoso"
+  },
+  {
+   "id": "c6",
+   "en": "It was not mine",
+   "pt": "Não era meu"
+  },
+  {
+   "id": "c7",
+   "en": "save",
+   "pt": "poupar"
+  },
+  {
+   "id": "c8",
+   "en": "spend",
+   "pt": "gastar"
+  },
+  {
+   "id": "c9",
+   "en": "I will buy",
+   "pt": "Eu vou comprar"
+  },
+  {
+   "id": "c10",
+   "en": "I am going to",
+   "pt": "Eu vou (planejo)"
+  },
+  {
+   "id": "c11",
+   "en": "better than",
+   "pt": "melhor que"
+  },
+  {
+   "id": "c12",
+   "en": "reward",
+   "pt": "recompensa"
+  }
+ ],
+ "sentences": [],
+ "dialogues": [
+  {
+   "id": "d1",
+   "title": "Yesterday I kept my word",
+   "vocab": [
+    "c1",
+    "c2",
+    "c3",
+    "c4",
+    "c5",
+    "c6"
+   ],
+   "lines": [
+    {
+     "who": "gael",
+     "en": "Dad, yesterday I found a wallet at school.",
+     "pt": "Pai, ontem eu achei uma carteira na escola."
+    },
+    {
+     "who": "beto",
+     "en": "What did you do with it?",
+     "pt": "O que você fez com ela?"
+    },
+    {
+     "who": "gael",
+     "en": "I gave it to the teacher. It was not mine.",
+     "pt": "Eu a entreguei à professora. Não era minha."
+    },
+    {
+     "who": "beto",
+     "en": "Honesty is the best path, my son. I am proud of you.",
+     "pt": "A honestidade é o melhor caminho, meu filho. Tenho orgulho de você."
+    }
+   ]
+  },
+  {
+   "id": "d2",
+   "title": "Tomorrow we will save",
+   "vocab": [
+    "c7",
+    "c8",
+    "c9",
+    "c10",
+    "c11",
+    "c12"
+   ],
+   "lines": [
+    {
+     "who": "gael",
+     "en": "Dad, I am going to save my money.",
+     "pt": "Pai, eu vou poupar o meu dinheiro."
+    },
+    {
+     "who": "beto",
+     "en": "Good. What will you buy?",
+     "pt": "Bom. O que você vai comprar?"
+    },
+    {
+     "who": "gael",
+     "en": "I will buy a gift for Mom. Saving is better than spending.",
+     "pt": "Vou comprar um presente para a mamãe. Poupar é melhor que gastar."
+    },
+    {
+     "who": "beto",
+     "en": "Smart choice. Small savings will become a big reward.",
+     "pt": "Escolha inteligente. Pequenas economias se tornarão uma grande recompensa."
+    }
+   ]
+  }
+ ],
+ "listening": {
+  "title": "Ontem em Família",
+  "lines": [
+   {
+    "who": "beto",
+    "en": "Yesterday, Gael returned a lost wallet.",
+    "pt": "Ontem, o Gael devolveu uma carteira perdida."
+   },
+   {
+    "who": "clara",
+    "en": "Honest boy! I am proud of him.",
+    "pt": "Menino honesto! Tenho orgulho dele."
+   },
+   {
+    "who": "gael",
+    "en": "It was not mine, Mom. I gave it to the teacher.",
+    "pt": "Não era minha, mãe. Eu a entreguei à professora."
+   },
+   {
+    "who": "laura",
+    "en": "Daddy, I saved two coins last week!",
+    "pt": "Papai, eu guardei duas moedas na semana passada!"
+   },
+   {
+    "who": "beto",
+    "en": "Good girl. Small savings will become a big reward.",
+    "pt": "Muito bem, filha. Pequenas economias se tornarão uma grande recompensa."
+   },
+   {
+    "who": "clara",
+    "en": "Last Sunday was a happy day for our family.",
+    "pt": "O último domingo foi um dia feliz para a nossa família."
+   }
+  ],
+  "questions": [
+   {
+    "q": "O que Gael devolveu?",
+    "options": [
+     "A wallet",
+     "A book",
+     "A watch"
+    ],
+    "answer": "A wallet",
+    "lang": "en"
+   },
+   {
+    "q": "Quantas moedas Laura guardou?",
+    "options": [
+     "Two coins",
+     "Ten coins",
+     "No coins"
+    ],
+    "answer": "Two coins",
+    "lang": "en"
+   },
+   {
+    "q": "Como foi o último domingo?",
+    "options": [
+     "A happy day",
+     "A sad day",
+     "A long day"
+    ],
+    "answer": "A happy day",
+    "lang": "en"
+   }
+  ]
+ },
+ "chronicle": {
+  "title": "Situação Real: Ontem e Amanhã em Família",
+  "icon": "🎭",
+  "intro": "Acompanhe cada cena e escolha a fala certa em cada ponto de parada.",
+  "cast": [
+   "gael",
+   "beto",
+   "clara",
+   "laura"
+  ],
+  "segments": [
+   {
+    "lines": [
+     {
+      "who": "gael",
+      "en": "Dad, yesterday I found a wallet at school.",
+      "pt": "Pai, ontem eu achei uma carteira na escola."
+     },
+     {
+      "who": "beto",
+      "en": "What did you do with it?",
+      "pt": "O que você fez com ela?"
+     },
+     {
+      "who": "gael",
+      "en": "I gave it to the teacher. It was not mine.",
+      "pt": "Eu a entreguei à professora. Não era minha."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beto?",
+     "options": [
+      "Honesty is the best path, my son. I am proud of you.",
+      "Smart choice. Small savings will become a big reward.",
+      "It was not mine, Mom. I gave it to the teacher."
+     ],
+     "answer": "Honesty is the best path, my son. I am proud of you.",
+     "lang": "en",
+     "why": "Beto diz: “Honesty is the best path, my son. I am proud of you.” — A honestidade é o melhor caminho, meu filho. Tenho orgulho de você."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "gael",
+      "en": "Dad, I am going to save my money.",
+      "pt": "Pai, eu vou poupar o meu dinheiro."
+     },
+     {
+      "who": "beto",
+      "en": "Good. What will you buy?",
+      "pt": "Bom. O que você vai comprar?"
+     },
+     {
+      "who": "gael",
+      "en": "I will buy a gift for Mom. Saving is better than spending.",
+      "pt": "Vou comprar um presente para a mamãe. Poupar é melhor que gastar."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Beto?",
+     "options": [
+      "Honesty is the best path, my son. I am proud of you.",
+      "It was not mine, Mom. I gave it to the teacher.",
+      "Smart choice. Small savings will become a big reward."
+     ],
+     "answer": "Smart choice. Small savings will become a big reward.",
+     "lang": "en",
+     "why": "Beto diz: “Smart choice. Small savings will become a big reward.” — Escolha inteligente. Pequenas economias se tornarão uma grande recompensa."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "beto",
+      "en": "Yesterday, Gael returned a lost wallet.",
+      "pt": "Ontem, o Gael devolveu uma carteira perdida."
+     },
+     {
+      "who": "clara",
+      "en": "Honest boy! I am proud of him.",
+      "pt": "Menino honesto! Tenho orgulho dele."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Gael?",
+     "options": [
+      "Smart choice. Small savings will become a big reward.",
+      "It was not mine, Mom. I gave it to the teacher.",
+      "Honesty is the best path, my son. I am proud of you."
+     ],
+     "answer": "It was not mine, Mom. I gave it to the teacher.",
+     "lang": "en",
+     "why": "Gael diz: “It was not mine, Mom. I gave it to the teacher.” — Não era minha, mãe. Eu a entreguei à professora."
+    }
+   },
+   {
+    "lines": [
+     {
+      "who": "laura",
+      "en": "Daddy, I saved two coins last week!",
+      "pt": "Papai, eu guardei duas moedas na semana passada!"
+     },
+     {
+      "who": "beto",
+      "en": "Good girl. Small savings will become a big reward.",
+      "pt": "Muito bem, filha. Pequenas economias se tornarão uma grande recompensa."
+     }
+    ],
+    "stop": {
+     "kind": "deduce",
+     "q": "Qual é a próxima fala de Clara?",
+     "options": [
+      "Last Sunday was a happy day for our family.",
+      "Honesty is the best path, my son. I am proud of you.",
+      "Smart choice. Small savings will become a big reward."
+     ],
+     "answer": "Last Sunday was a happy day for our family.",
+     "lang": "en",
+     "why": "Clara diz: “Last Sunday was a happy day for our family.” — O último domingo foi um dia feliz para a nossa família."
+    }
+   }
+  ]
+ },
+ "roleplay": {
+  "who": "beto",
+  "ask": "What did you do yesterday?",
+  "askPt": "O que você fez ontem?",
+  "model": "Yesterday I found a wallet and returned it.",
+  "modelPt": "Ontem achei uma carteira e a devolvi.",
+  "accept": [
+   "Yesterday I found a wallet and returned it.",
+   "Yesterday I returned a wallet."
+  ]
+ },
+ "wisdom": "w01",
+ "tips": [
+  "final_consonant",
+  "short_i",
+  "w_sound"
+ ],
+ "pnl": {
+  "identity": "Você é alguém que termina o que começa. É assim que se forma o caráter.",
+  "presupposition": "Quando você concluir o Checkpoint de Honra deste nível, “Ontem e Amanhã em Família” vai fazer parte do seu inglês de todos os dias.",
+  "futurePacing": [
+   "Feche os olhos por um instante e respire fundo.",
+   "Imagine-se usando o que aprendeu em “Ontem e Amanhã em Família” numa conversa real, com calma e segurança.",
+   "Ouça a sua própria voz, firme e clara, e veja o respeito no olhar de quem escuta.",
+   "Sinta a satisfação de quem constrói o próprio legado, um nível de cada vez."
+  ]
+ },
+ "lessons": [
+  {
+   "slot": 1,
+   "type": "fundamento",
+   "title": "Vocabulário: Yesterday I kept my word",
+   "objective": "Conhecer os novos blocos de expressão do nível, com áudio normal e devagar.",
+   "intro": "Quando você concluir estes 3 minutos, estes novos blocos de expressão já vão soar familiares.",
+   "steps": [
+    {
+     "kind": "learn",
+     "ref": "c1"
+    },
+    {
+     "kind": "learn",
+     "ref": "c2"
+    },
+    {
+     "kind": "learn",
+     "ref": "c3"
+    },
+    {
+     "kind": "learn",
+     "ref": "c4"
+    },
+    {
+     "kind": "learn",
+     "ref": "c5"
+    },
+    {
+     "kind": "learn",
+     "ref": "c6"
+    },
+    {
+     "kind": "choose",
+     "ref": "c1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "listen",
+     "ref": "c2"
+    },
+    {
+     "kind": "choose",
+     "ref": "c3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "choose",
+     "ref": "c4",
+     "dir": "en-pt"
+    }
+   ]
+  },
+  {
+   "slot": 2,
+   "type": "construcao",
+   "title": "Gramática em ação",
+   "objective": "Montar frases do nível e aplicar a gramática em contexto.",
+   "intro": "Quando você montar a última frase, vai perceber como a gramática fica simples na prática.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Gramática do nível",
+     "body": "Passado simples, futuro com will / going to, comparativos; virtudes: honestidade e poupança.\nObserve como as frases abaixo aplicam isso:",
+     "examples": [
+      "d1.0",
+      "d2.0"
+     ]
+    },
+    {
+     "kind": "learn",
+     "ref": "c7"
+    },
+    {
+     "kind": "learn",
+     "ref": "c8"
+    },
+    {
+     "kind": "learn",
+     "ref": "c9"
+    },
+    {
+     "kind": "learn",
+     "ref": "c10"
+    },
+    {
+     "kind": "learn",
+     "ref": "c11"
+    },
+    {
+     "kind": "learn",
+     "ref": "c12"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.0",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.0",
+     "dir": "pt-en"
+    }
+   ]
+  },
+  {
+   "slot": 3,
+   "type": "escuta",
+   "title": "Estação de Escuta: Ontem em Família",
+   "objective": "Entender a conversa só pelo ouvido e captar os detalhes.",
+   "intro": "Quando você ouvir o diálogo pela segunda vez, vai entender muito mais do que imagina.",
+   "steps": [
+    {
+     "kind": "questions"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.0"
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.1"
+    }
+   ]
+  },
+  {
+   "slot": 4,
+   "type": "dialogo",
+   "title": "Diálogo: Tomorrow we will save",
+   "objective": "Acompanhar a conversa da família e prever a próxima fala.",
+   "intro": "Quando você acompanhar a conversa palavra por palavra, vai sentir o ritmo natural do inglês.",
+   "steps": [
+    {
+     "kind": "next",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "next",
+     "ref": "d2.3"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "listen",
+     "ref": "d2.0"
+    },
+    {
+     "kind": "choose",
+     "ref": "c7",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "choose",
+     "ref": "c8",
+     "dir": "pt-en"
+    }
+   ],
+   "dialogue": "d2"
+  },
+  {
+   "slot": 5,
+   "type": "fala",
+   "title": "Fale com clareza",
+   "objective": "Falar com precisão, palavra por palavra.",
+   "intro": "Quando você ouvir a sua própria voz, vai perceber o quanto a sua pronúncia já melhorou.",
+   "steps": [
+    {
+     "kind": "note",
+     "title": "Micro-dica: Consoante final seca",
+     "body": "Ouça cada frase devagar (🐢) antes de falar. Toque nas palavras douradas ou vermelhas do resultado para ver a dica certa para você.",
+     "tip": "final_consonant"
+    },
+    {
+     "kind": "speak",
+     "ref": "c7"
+    },
+    {
+     "kind": "speak",
+     "ref": "d1.2"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "speak",
+     "ref": "l.3"
+    },
+    {
+     "kind": "roleplay"
+    }
+   ]
+  },
+  {
+   "slot": 6,
+   "type": "escrita",
+   "title": "Escrita e tradução",
+   "objective": "Traduzir com cada vez menos dicas.",
+   "intro": "Quando você escrever a última frase sem dicas, vai saber que este conteúdo já é seu.",
+   "steps": [
+    {
+     "kind": "bank",
+     "ref": "d1.2",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "bank",
+     "ref": "d2.1",
+     "dir": "en-pt"
+    },
+    {
+     "kind": "write",
+     "ref": "l.4",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.5",
+     "hint": "first"
+    },
+    {
+     "kind": "write",
+     "ref": "l.2",
+     "hint": "none"
+    }
+   ]
+  },
+  {
+   "slot": 7,
+   "type": "intercalacao",
+   "title": "Tudo junto",
+   "objective": "Misturar o tema atual com conteúdos de níveis anteriores.",
+   "intro": "Quando as perguntas vierem misturadas, seu cérebro vai aprender a reconhecer cada situação num piscar de olhos.",
+   "steps": [
+    {
+     "kind": "interleave",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 8,
+   "type": "cronica",
+   "title": "Situação Real: Ontem e Amanhã em Família",
+   "objective": "Viver a cena e escolher a fala ou a atitude certa em cada parada.",
+   "intro": "Quando chegar cada ponto de parada, você vai escolher como alguém que pensa antes de agir.",
+   "steps": []
+  },
+  {
+   "slot": 9,
+   "type": "revisao",
+   "title": "Revisão cirúrgica",
+   "objective": "Reforçar o que está mais perto de ser esquecido.",
+   "intro": "Quando você revisar agora o que estava fraco, essas palavras vão ficar firmes por muito mais tempo.",
+   "steps": [
+    {
+     "kind": "review",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "slot": 10,
+   "type": "checkpoint",
+   "title": "Checkpoint de Honra",
+   "objective": "Provar o domínio do nível: escuta, fala, gramática e tradução.",
+   "intro": "Quando você concluir este checkpoint, terá dado mais um passo firme na construção do seu legado.",
+   "steps": [
+    {
+     "kind": "listen",
+     "ref": "c3"
+    },
+    {
+     "kind": "question",
+     "index": 1
+    },
+    {
+     "kind": "dictation",
+     "ref": "l.0"
+    },
+    {
+     "kind": "bank",
+     "ref": "d1.3",
+     "dir": "pt-en"
+    },
+    {
+     "kind": "write",
+     "ref": "d2.1",
+     "hint": "none"
+    },
+    {
+     "kind": "speak",
+     "ref": "d2.1"
+    },
+    {
+     "kind": "roleplay"
+    },
+    {
+     "kind": "choose",
+     "ref": "c11",
+     "dir": "en-pt"
+    }
+   ]
+  }
+ ]
+}

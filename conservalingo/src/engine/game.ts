@@ -42,18 +42,34 @@ export function regenShields(p: Profile, now = Date.now()): Profile {
   return { ...p, shields: { count, updatedAt: count >= MAX_SHIELDS ? now : p.shields.updatedAt + gained * SHIELD_REGEN_MS } };
 }
 
-/** Atualiza a Bússola de Constância ao estudar hoje. */
+const DAY = 24 * 60 * 60 * 1000;
+/** Dias entre duas chaves de dia (YYYY-MM-DD), no fuso do aparelho. */
+export const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T12:00:00`) - Date.parse(`${a}T12:00:00`)) / DAY);
+
+/**
+ * Atualiza a Bússola de Constância ao estudar hoje.
+ * Escudos de Guarda protegem a ofensiva: cada escudo cobre um dia sem estudo.
+ */
 export function touchStreak(p: Profile, today = dayKey()): Profile {
   if (p.streak.last === today) return p;
-  const y = new Date(); y.setDate(y.getDate() - 1);
-  const count = p.streak.last === dayKey(y) ? p.streak.count + 1 : 1;
-  return { ...p, streak: { count, last: today }, bestStreak: Math.max(p.bestStreak ?? 0, count) };
+  let count = 1; let guards = p.guards ?? 0;
+  if (p.streak.last) {
+    const gap = daysBetween(p.streak.last, today);
+    if (gap === 1) count = p.streak.count + 1;
+    else if (gap > 1 && gap - 1 <= guards) { count = p.streak.count + 1; guards -= gap - 1; }
+  }
+  return { ...p, guards, streak: { count, last: today }, bestStreak: Math.max(p.bestStreak ?? 0, count) };
 }
 
 export function activeStreak(p: Profile, today = dayKey()): number {
-  const y = new Date(); y.setDate(y.getDate() - 1);
-  return p.streak.last === today || p.streak.last === dayKey(y) ? p.streak.count : 0;
+  if (!p.streak.last) return 0;
+  const gap = daysBetween(p.streak.last, today);
+  if (gap <= 1) return p.streak.count;
+  return gap - 1 <= (p.guards ?? 0) ? p.streak.count : 0;
 }
+
+export const MAX_GUARDS = 2;
+export const GUARD_COST_GOLD = 1;
 
 export function newProfile(id: string, name: string, isChild: boolean, sex: 'M' | 'F', age?: number): Profile {
   return {
@@ -64,19 +80,38 @@ export function newProfile(id: string, name: string, isChild: boolean, sex: 'M' 
     completed: {}, srs: {}, unlocked: [],
     bestStreak: 0, league: { tier: 0, week: weekKey() },
     daily: { day: '', picked: [], c: {}, claimed: [] }, chests: [],
+    gold: 0, guards: 0, phon: {}, proverbs: {}, vault: '', goal: 2, asr: true,
   };
 }
 
 /** Completa campos novos em perfis salvos por versões anteriores. */
 export function migrateProfile(p: Profile): Profile {
+  // Cartões das versões anteriores (SM-2, chaves por unidade) não existem mais no currículo v4.
+  const srs = Object.fromEntries(Object.entries(p.srs ?? {}).filter(([k, c]) => /^L\d{3}[:@]/.test(k) && typeof (c as { s?: number }).s === 'number'));
   return {
     ...p,
+    srs,
     bestStreak: Math.max(p.bestStreak ?? 0, p.streak?.count ?? 0),
     league: p.league ?? { tier: 0, week: weekKey() },
     daily: p.daily ?? { day: '', picked: [], c: {}, claimed: [] },
-    chests: p.chests ?? [],
+    chests: (p.chests ?? []).filter((c) => /^L\d{3}-a\d$/.test(c)),
+    gold: p.gold ?? 0, guards: p.guards ?? 0, phon: p.phon ?? {}, proverbs: p.proverbs ?? {},
+    vault: p.vault ?? '', goal: p.goal ?? 2, asr: p.asr ?? true,
   };
 }
+
+// ───────────────────────── Cofre Diário do Tio Bento ─────────────────────────
+export const VAULT_TALENTS = 40;
+/** As 3 missões do dia concluídas liberam o Cofre Diário. */
+export function missionsAllDone(p: Profile, today = dayKey()) {
+  return p.daily.day === today && p.daily.picked.length === 3 && p.daily.picked.every((id) => (p.daily.c[missionById(id).counter] ?? 0) >= missionById(id).goal);
+}
+export const vaultAvailable = (p: Profile, today = dayKey()) => missionsAllDone(p, today) && p.vault !== today;
+export function claimVault(p: Profile, today = dayKey()): Profile {
+  if (!vaultAvailable(p, today)) return p;
+  return { ...p, vault: today, talents: p.talents + VAULT_TALENTS, shields: { count: MAX_SHIELDS, updatedAt: Date.now() } };
+}
+export const lessonsToday = (p: Profile, today = dayKey()) => (p.daily.day === today ? p.daily.c.lessons ?? 0 : 0);
 
 export const stars = (errors: number) => (errors === 0 ? 3 : errors <= 2 ? 2 : 1);
 
@@ -88,7 +123,7 @@ export const MISSIONS: MissionDef[] = [
   { id: 'early', title: 'Estude antes das 8h da manhã', counter: 'early', goal: 1, reward: 20 },
   { id: 'lessons', title: 'Conclua 2 lições', counter: 'lessons', goal: 2, reward: 20 },
   { id: 'perfect', title: 'Faça uma lição sem nenhum erro', counter: 'perfect', goal: 1, reward: 25 },
-  { id: 'practice', title: 'Faça o Treino de Virtude', counter: 'practice', goal: 1, reward: 20 },
+  { id: 'practice', title: 'Faça o Treino de Revisão & Pronúncia', counter: 'practice', goal: 1, reward: 20 },
   { id: 'listen', title: 'Conclua uma Estação de Escuta', counter: 'listening', goal: 1, reward: 25 },
 ];
 export const missionById = (id: string) => MISSIONS.find((m) => m.id === id)!;
