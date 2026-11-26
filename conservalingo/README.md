@@ -1,4 +1,4 @@
-# CONSERVALINGO
+# True Lingo
 
 App móvel gamificado de ensino de inglês para falantes de português (React Native + Expo),
 com estilo próprio *Vector Heritage Flat* e valores conservadores, patrióticos e judaico-cristãos,

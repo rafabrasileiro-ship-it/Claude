@@ -80,7 +80,7 @@ function Shell() {
   return (
     <SafeAreaView style={s.root}>
       <View style={s.header}>
-        <Text style={s.brand}>CONSERVALINGO</Text>
+        <Text style={s.brand}>TRUE LINGO</Text>
         <Text style={s.who}>{profile.name}</Text>
       </View>
       <View style={{ flex: 1 }}>

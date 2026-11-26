@@ -1,4 +1,4 @@
-name: Conservalingo APK
+name: True Lingo APK
 
 on:
   workflow_dispatch:

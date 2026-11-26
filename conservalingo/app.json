@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Conservalingo",
+    "name": "True Lingo",
     "slug": "conservalingo",
     "version": "0.1.0",
     "orientation": "portrait",
@@ -45,8 +45,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "O Conservalingo usa o microfone para ouvir você repetir as frases em inglês e corrigir a pronúncia.",
-          "speechRecognitionPermission": "O Conservalingo usa o reconhecimento de fala para avaliar a sua pronúncia, palavra por palavra."
+          "microphonePermission": "O True Lingo usa o microfone para ouvir você repetir as frases em inglês e corrigir a pronúncia.",
+          "speechRecognitionPermission": "O True Lingo usa o reconhecimento de fala para avaliar a sua pronúncia, palavra por palavra."
         }
       ],
       "expo-splash-screen",
