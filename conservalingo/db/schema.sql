@@ -21,6 +21,9 @@ create table profiles (
   xp integer not null default 0,
   streak_count integer not null default 0,
   streak_last_day date,
+  best_streak integer not null default 0,
+  anchor_phrase text,                     -- Frase-Âncora de PNL escolhida no onboarding
+  league_tier smallint not null default 0 check (league_tier between 0 and 5),
   created_at timestamptz not null default now()
 );
 
@@ -42,8 +45,12 @@ create table characters (
 -- Currículo ------------------------------------------------------------------
 -- dialect: 'en-US' (Módulo 1, inglês padrão americano). Inglês britânico = capítulo/curso próprio ('en-GB').
 create table courses (id text primary key, title text not null, module smallint not null, dialect text not null default 'en-US' check (dialect in ('en-US','en-GB')));
+create table levels (                    -- 5 níveis CEFR (A1–C1)
+  level smallint primary key check (level between 1 and 5),
+  cefr text not null unique, title text not null, tag text not null
+);
 create table units (
-  id text primary key, course_id text not null references courses(id),
+  id text primary key, course_id text not null references courses(id), level smallint not null references levels(level),
   position smallint not null, title text not null, icon text, topics text,
   unique (course_id, position)
 );
@@ -65,6 +72,33 @@ create table dialogue_lines (
   id text primary key,                    -- chave SRS: '<lesson>:d:<n>'
   lesson_id text not null references lessons(id), position smallint not null,
   character_id text not null references characters(id), en text not null, pt text not null
+);
+
+-- Crônicas Interativas (4 pontos de parada) ---------------------------------
+create table chronicles (
+  id text primary key, title text not null, icon text, intro text,
+  unlock_after_unit text not null references units(id)
+);
+create table chronicle_cast (chronicle_id text references chronicles(id) on delete cascade, character_id text references characters(id), primary key (chronicle_id, character_id));
+create table chronicle_segments (
+  id text primary key,                    -- '<crônica>:<n>'
+  chronicle_id text not null references chronicles(id) on delete cascade, position smallint not null,
+  lines jsonb not null,                   -- [{who,en,pt}]
+  stop_kind text not null check (stop_kind in ('deduce','moral','complete')),
+  stop_question text not null, stop_options jsonb not null, stop_answer text not null, stop_why text not null,
+  unique (chronicle_id, position)
+);
+
+-- Estações de Escuta + roleplay falado --------------------------------------
+create table listening_stations (
+  unit_id text primary key references units(id), title text not null,
+  lines jsonb not null, questions jsonb not null,   -- 3 perguntas de interpretação
+  roleplay jsonb not null                            -- {who,ask,askPt,model,modelPt,accept[]}
+);
+
+-- Micro-dicas de pronúncia PT-BR -> EN e histórico por palavra/fonema -------
+create table pronunciation_tips (
+  id text primary key, title text not null, words jsonb not null, pattern text not null, tip_pt text not null
 );
 
 -- Sabedoria do Dia e Leitura Clássica ---------------------------------------
@@ -102,6 +136,26 @@ create table inventory (
   item_id text not null, acquired_at timestamptz not null default now(),
   primary key (profile_id, item_id)
 );
+create table pronunciation_history (      -- histórico de pronúncia por palavra/fonema (SRS)
+  id bigserial primary key, profile_id uuid not null references profiles(id) on delete cascade,
+  word text not null, tip_id text references pronunciation_tips(id),
+  status text not null check (status in ('good','near','bad')), heard text,
+  accuracy real, created_at timestamptz not null default now()
+);
+create index pron_hist_idx on pronunciation_history (profile_id, word, created_at desc);
+create table daily_missions (
+  profile_id uuid references profiles(id) on delete cascade,
+  day date not null, mission_id text not null, progress smallint not null default 0,
+  goal smallint not null, reward integer not null, claimed boolean not null default false,
+  primary key (profile_id, day, mission_id)
+);
+create table league_weeks (               -- ligas semanais de mérito (top 10 sobe, últimos 5 descem)
+  iso_week text not null, tier smallint not null check (tier between 0 and 5),
+  profile_id uuid references profiles(id) on delete cascade, xp integer not null default 0,
+  result text check (result in ('promoted','stayed','demoted')),
+  primary key (iso_week, tier, profile_id)
+);
+create table chests_opened (profile_id uuid references profiles(id) on delete cascade, unit_id text references units(id), reward integer not null, opened_at timestamptz not null default now(), primary key (profile_id, unit_id));
 create table weekly_xp (
   profile_id uuid references profiles(id) on delete cascade,
   iso_week text not null, xp integer not null default 0,
@@ -116,6 +170,10 @@ alter table srs_cards enable row level security;
 alter table talent_ledger enable row level security;
 alter table inventory enable row level security;
 alter table weekly_xp enable row level security;
+alter table pronunciation_history enable row level security;
+alter table daily_missions enable row level security;
+alter table league_weeks enable row level security;
+alter table chests_opened enable row level security;
 create policy fam_own on family_accounts using (owner_user_id = auth.uid());
 create policy prof_own on profiles using (family_id in (select id from family_accounts where owner_user_id = auth.uid()));
 create policy prog_own on lesson_progress using (profile_id in (select id from profiles));
@@ -123,3 +181,7 @@ create policy srs_own on srs_cards using (profile_id in (select id from profiles
 create policy ledger_own on talent_ledger using (profile_id in (select id from profiles));
 create policy inv_own on inventory using (profile_id in (select id from profiles));
 create policy wxp_own on weekly_xp using (profile_id in (select id from profiles));
+create policy pron_own on pronunciation_history using (profile_id in (select id from profiles));
+create policy mis_own on daily_missions using (profile_id in (select id from profiles));
+create policy lg_own on league_weeks using (profile_id in (select id from profiles));
+create policy chest_own on chests_opened using (profile_id in (select id from profiles));

@@ -1,0 +1,762 @@
+[
+ {
+  "unitId": "u1",
+  "title": "A Reunião",
+  "lines": [
+   {
+    "who": "ayrton",
+    "en": "Good morning, Doctor Alice. Welcome to our meeting.",
+    "pt": "Bom dia, doutora Alice. Bem-vinda à nossa reunião."
+   },
+   {
+    "who": "alice",
+    "en": "Good morning, Mister Ayrton. Thank you, Sir.",
+    "pt": "Bom dia, senhor Ayrton. Obrigada, senhor."
+   },
+   {
+    "who": "ayrton",
+    "en": "Our meeting starts at nine o'clock. You are on time.",
+    "pt": "Nossa reunião começa às nove horas. A senhora está pontual."
+   },
+   {
+    "who": "alice",
+    "en": "Punctuality is respect, Sir. I always arrive early.",
+    "pt": "Pontualidade é respeito, senhor. Eu sempre chego cedo."
+   },
+   {
+    "who": "ayrton",
+    "en": "Excellent. Please, sit down.",
+    "pt": "Excelente. Por favor, sente-se."
+   },
+   {
+    "who": "alice",
+    "en": "Thank you. The pleasure is mine.",
+    "pt": "Obrigada. O prazer é meu."
+   }
+  ],
+  "questions": [
+   {
+    "q": "A que horas começa a reunião?",
+    "options": [
+     "At eight",
+     "At nine",
+     "At ten"
+    ],
+    "answer": "At nine"
+   },
+   {
+    "q": "Como Alice descreve a pontualidade?",
+    "options": [
+     "As respect",
+     "As luck",
+     "As luxury"
+    ],
+    "answer": "As respect"
+   },
+   {
+    "q": "Quando Alice costuma chegar?",
+    "options": [
+     "Early",
+     "Late",
+     "Never"
+    ],
+    "answer": "Early"
+   }
+  ],
+  "roleplay": {
+   "who": "ayrton",
+   "ask": "What time does our meeting start?",
+   "askPt": "A que horas começa a nossa reunião?",
+   "model": "Our meeting starts at nine o'clock.",
+   "modelPt": "Nossa reunião começa às nove horas.",
+   "accept": [
+    "Our meeting starts at nine o'clock.",
+    "The meeting starts at nine o'clock."
+   ]
+  }
+ },
+ {
+  "unitId": "u2",
+  "title": "O Jantar",
+  "lines": [
+   {
+    "who": "maria",
+    "en": "Welcome to our home, neighbors. Dinner is ready.",
+    "pt": "Bem-vindos à nossa casa, vizinhos. O jantar está pronto."
+   },
+   {
+    "who": "gabriel",
+    "en": "Please sit at the table. We have soup and fresh bread.",
+    "pt": "Por favor, sentem-se à mesa. Temos sopa e pão fresco."
+   },
+   {
+    "who": "davi",
+    "en": "Mom, I set the table. I put five plates.",
+    "pt": "Mãe, eu arrumei a mesa. Coloquei cinco pratos."
+   },
+   {
+    "who": "maria",
+    "en": "Thank you, Davi. Liz, please bring the water.",
+    "pt": "Obrigada, Davi. Liz, por favor, traga a água."
+   },
+   {
+    "who": "liz",
+    "en": "Yes, Mom. Here is the water.",
+    "pt": "Sim, mãe. Aqui está a água."
+   },
+   {
+    "who": "gabriel",
+    "en": "Let us give thanks before we eat.",
+    "pt": "Vamos agradecer antes de comer."
+   }
+  ],
+  "questions": [
+   {
+    "q": "O que há para o jantar?",
+    "options": [
+     "Soup and bread",
+     "Pizza and juice",
+     "Fish and rice"
+    ],
+    "answer": "Soup and bread"
+   },
+   {
+    "q": "Quantos pratos Davi colocou?",
+    "options": [
+     "Four",
+     "Five",
+     "Six"
+    ],
+    "answer": "Five"
+   },
+   {
+    "q": "O que fazem antes de comer?",
+    "options": [
+     "Give thanks",
+     "Watch TV",
+     "Wash the car"
+    ],
+    "answer": "Give thanks"
+   }
+  ],
+  "roleplay": {
+   "who": "maria",
+   "ask": "Would you like some soup?",
+   "askPt": "O senhor aceita um pouco de sopa?",
+   "model": "Yes, please. Thank you very much.",
+   "modelPt": "Sim, por favor. Muito obrigado.",
+   "accept": [
+    "Yes, please. Thank you very much.",
+    "Yes, please. Thank you."
+   ]
+  }
+ },
+ {
+  "unitId": "u3",
+  "title": "A Fábrica",
+  "lines": [
+   {
+    "who": "jose",
+    "en": "Flavia, we open at seven o'clock every day.",
+    "pt": "Flavia, abrimos às sete horas todos os dias."
+   },
+   {
+    "who": "flavia",
+    "en": "I know. My team arrives at six thirty.",
+    "pt": "Eu sei. Minha equipe chega às seis e meia."
+   },
+   {
+    "who": "jose",
+    "en": "Good. Hard work builds a good company.",
+    "pt": "Bom. Trabalho duro constrói uma boa empresa."
+   },
+   {
+    "who": "flavia",
+    "en": "We have twelve workers and three trucks.",
+    "pt": "Temos doze funcionários e três caminhões."
+   },
+   {
+    "who": "jose",
+    "en": "Honest work deserves a fair salary.",
+    "pt": "Trabalho honesto merece um salário justo."
+   },
+   {
+    "who": "flavia",
+    "en": "I agree. Payday is on Friday.",
+    "pt": "Concordo. O pagamento é na sexta-feira."
+   }
+  ],
+  "questions": [
+   {
+    "q": "A que horas a fábrica abre?",
+    "options": [
+     "At seven",
+     "At six",
+     "At nine"
+    ],
+    "answer": "At seven"
+   },
+   {
+    "q": "Quantos funcionários há?",
+    "options": [
+     "Ten",
+     "Twelve",
+     "Three"
+    ],
+    "answer": "Twelve"
+   },
+   {
+    "q": "Qual é o dia do pagamento?",
+    "options": [
+     "Monday",
+     "Friday",
+     "Sunday"
+    ],
+    "answer": "Friday"
+   }
+  ],
+  "roleplay": {
+   "who": "jose",
+   "ask": "What time do you start work?",
+   "askPt": "A que horas você começa a trabalhar?",
+   "model": "I start work at seven o'clock.",
+   "modelPt": "Eu começo a trabalhar às sete horas.",
+   "accept": [
+    "I start work at seven o'clock.",
+    "I start work at seven."
+   ]
+  }
+ },
+ {
+  "unitId": "u4",
+  "title": "A Praça",
+  "lines": [
+   {
+    "who": "lucas",
+    "en": "Excuse me, Sir. Where is the city hall?",
+    "pt": "Com licença, senhor. Onde fica a prefeitura?"
+   },
+   {
+    "who": "ayrton",
+    "en": "Go straight and turn left at the flag.",
+    "pt": "Siga em frente e vire à esquerda na bandeira."
+   },
+   {
+    "who": "lucas",
+    "en": "Thank you. Is the library near?",
+    "pt": "Obrigado. A biblioteca é perto?"
+   },
+   {
+    "who": "ayrton",
+    "en": "Yes, it is next to the church.",
+    "pt": "Sim, fica ao lado da igreja."
+   },
+   {
+    "who": "lucas",
+    "en": "I serve my country, and I respect the law.",
+    "pt": "Eu sirvo ao meu país e respeito a lei."
+   },
+   {
+    "who": "ayrton",
+    "en": "That is an honorable duty, Sir.",
+    "pt": "Esse é um dever honroso, senhor."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Onde virar à esquerda?",
+    "options": [
+     "At the flag",
+     "At the bank",
+     "At the school"
+    ],
+    "answer": "At the flag"
+   },
+   {
+    "q": "Onde fica a biblioteca?",
+    "options": [
+     "Next to the church",
+     "Behind the bank",
+     "Near the river"
+    ],
+    "answer": "Next to the church"
+   },
+   {
+    "q": "O que Lucas faz?",
+    "options": [
+     "He serves his country",
+     "He sells cars",
+     "He teaches piano"
+    ],
+    "answer": "He serves his country"
+   }
+  ],
+  "roleplay": {
+   "who": "lucas",
+   "ask": "Where is the library?",
+   "askPt": "Onde fica a biblioteca?",
+   "model": "The library is next to the church.",
+   "modelPt": "A biblioteca fica ao lado da igreja.",
+   "accept": [
+    "The library is next to the church.",
+    "It is next to the church."
+   ]
+  }
+ },
+ {
+  "unitId": "u5",
+  "title": "O Domingo",
+  "lines": [
+   {
+    "who": "beto",
+    "en": "Today is Sunday. We go to church as a family.",
+    "pt": "Hoje é domingo. Vamos à igreja em família."
+   },
+   {
+    "who": "clara",
+    "en": "Gael, put on your good shoes.",
+    "pt": "Gael, calce os seus sapatos bons."
+   },
+   {
+    "who": "gael",
+    "en": "Yes, Mom. Dad, will you tell a story after lunch?",
+    "pt": "Sim, mãe. Pai, você vai contar uma história depois do almoço?"
+   },
+   {
+    "who": "beto",
+    "en": "Yes. A story about an honest king.",
+    "pt": "Sim. Uma história sobre um rei honesto."
+   },
+   {
+    "who": "laura",
+    "en": "I like stories, Daddy.",
+    "pt": "Eu gosto de histórias, papai."
+   },
+   {
+    "who": "clara",
+    "en": "After the story, we will thank God for our family.",
+    "pt": "Depois da história, agradeceremos a Deus pela nossa família."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Que dia é hoje?",
+    "options": [
+     "Sunday",
+     "Monday",
+     "Friday"
+    ],
+    "answer": "Sunday"
+   },
+   {
+    "q": "Sobre o que será a história?",
+    "options": [
+     "An honest king",
+     "A funny dog",
+     "A long trip"
+    ],
+    "answer": "An honest king"
+   },
+   {
+    "q": "O que farão depois da história?",
+    "options": [
+     "Thank God",
+     "Play soccer",
+     "Go shopping"
+    ],
+    "answer": "Thank God"
+   }
+  ],
+  "roleplay": {
+   "who": "beto",
+   "ask": "What do you do on Sunday?",
+   "askPt": "O que você faz no domingo?",
+   "model": "On Sunday, we go to church with our family.",
+   "modelPt": "No domingo, vamos à igreja com a nossa família.",
+   "accept": [
+    "On Sunday, we go to church with our family.",
+    "On Sunday I go to church with my family."
+   ]
+  }
+ },
+ {
+  "unitId": "u6",
+  "title": "A Brincadeira",
+  "lines": [
+   {
+    "who": "theo",
+    "en": "Miguel, the dog is brown and the cat is white.",
+    "pt": "Miguel, o cachorro é marrom e o gato é branco."
+   },
+   {
+    "who": "miguel",
+    "en": "Yes. We must be kind to animals.",
+    "pt": "Sim. Devemos ser gentis com os animais."
+   },
+   {
+    "who": "cecilia",
+    "en": "Look at the green trees! Nature is beautiful.",
+    "pt": "Olhem as árvores verdes! A natureza é linda."
+   },
+   {
+    "who": "noah",
+    "en": "Mom said we should obey and come home at six.",
+    "pt": "A mamãe disse que devemos obedecer e voltar para casa às seis."
+   },
+   {
+    "who": "antonella",
+    "en": "Okay, Noah. I obey Mom and Dad.",
+    "pt": "Está bem, Noah. Eu obedeço à mamãe e ao papai."
+   },
+   {
+    "who": "arthur",
+    "en": "Obedience makes a family happy.",
+    "pt": "A obediência faz uma família feliz."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Qual é a cor do cachorro?",
+    "options": [
+     "Brown",
+     "White",
+     "Green"
+    ],
+    "answer": "Brown"
+   },
+   {
+    "q": "A que horas devem voltar?",
+    "options": [
+     "At six",
+     "At nine",
+     "At noon"
+    ],
+    "answer": "At six"
+   },
+   {
+    "q": "O que faz uma família feliz?",
+    "options": [
+     "Obedience",
+     "Money",
+     "Television"
+    ],
+    "answer": "Obedience"
+   }
+  ],
+  "roleplay": {
+   "who": "theo",
+   "ask": "What color is the dog?",
+   "askPt": "De que cor é o cachorro?",
+   "model": "The dog is brown.",
+   "modelPt": "O cachorro é marrom.",
+   "accept": [
+    "The dog is brown.",
+    "It is brown."
+   ]
+  }
+ },
+ {
+  "unitId": "u7",
+  "title": "Ontem e Amanhã",
+  "lines": [
+   {
+    "who": "ayrton",
+    "en": "Yesterday, Miguel returned a lost wallet.",
+    "pt": "Ontem, Miguel devolveu uma carteira perdida."
+   },
+   {
+    "who": "jose",
+    "en": "Honest boy! Arthur saved ten dollars last month.",
+    "pt": "Menino honesto! Arthur poupou dez dólares no mês passado."
+   },
+   {
+    "who": "arthur",
+    "en": "Yes. I will buy a gift for Mom tomorrow.",
+    "pt": "Sim. Vou comprar um presente para a mamãe amanhã."
+   },
+   {
+    "who": "miguel",
+    "en": "Saving is better than spending, Dad.",
+    "pt": "Poupar é melhor que gastar, pai."
+   },
+   {
+    "who": "ayrton",
+    "en": "True. Small savings will become a big reward.",
+    "pt": "Verdade. Pequenas economias se tornarão uma grande recompensa."
+   },
+   {
+    "who": "jose",
+    "en": "Boys, I am proud of both of you.",
+    "pt": "Meninos, tenho orgulho de vocês dois."
+   }
+  ],
+  "questions": [
+   {
+    "q": "O que Miguel devolveu?",
+    "options": [
+     "A wallet",
+     "A book",
+     "A watch"
+    ],
+    "answer": "A wallet"
+   },
+   {
+    "q": "Quanto Arthur poupou?",
+    "options": [
+     "Ten dollars",
+     "Two dollars",
+     "A hundred dollars"
+    ],
+    "answer": "Ten dollars"
+   },
+   {
+    "q": "Para quem será o presente?",
+    "options": [
+     "For Mom",
+     "For Dad",
+     "For the teacher"
+    ],
+    "answer": "For Mom"
+   }
+  ],
+  "roleplay": {
+   "who": "ayrton",
+   "ask": "What did you do yesterday?",
+   "askPt": "O que você fez ontem?",
+   "model": "Yesterday I found a wallet and returned it.",
+   "modelPt": "Ontem achei uma carteira e a devolvi.",
+   "accept": [
+    "Yesterday I found a wallet and returned it.",
+    "Yesterday I returned a wallet."
+   ]
+  }
+ },
+ {
+  "unitId": "u8",
+  "title": "Contrato e História",
+  "lines": [
+   {
+    "who": "flavia",
+    "en": "We have signed the contract with our new customer.",
+    "pt": "Assinamos o contrato com o nosso novo cliente."
+   },
+   {
+    "who": "jose",
+    "en": "Excellent. If we deliver on time, they will order again.",
+    "pt": "Excelente. Se entregarmos no prazo, eles pedirão de novo."
+   },
+   {
+    "who": "beto",
+    "en": "Gael, have you finished your reading?",
+    "pt": "Gael, você terminou a sua leitura?"
+   },
+   {
+    "who": "gael",
+    "en": "Yes, Dad. I have read two chapters.",
+    "pt": "Sim, pai. Li dois capítulos."
+   },
+   {
+    "who": "beto",
+    "en": "Good. You should read a little every day.",
+    "pt": "Bom. Você deveria ler um pouco todos os dias."
+   },
+   {
+    "who": "jose",
+    "en": "The same is true for business. Small steps, every day.",
+    "pt": "O mesmo vale para os negócios. Pequenos passos, todos os dias."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Com quem assinaram o contrato?",
+    "options": [
+     "A new customer",
+     "A bank",
+     "A school"
+    ],
+    "answer": "A new customer"
+   },
+   {
+    "q": "Quantos capítulos Gael leu?",
+    "options": [
+     "Two",
+     "Ten",
+     "One"
+    ],
+    "answer": "Two"
+   },
+   {
+    "q": "Qual é o conselho de Beto?",
+    "options": [
+     "Read a little every day",
+     "Play every day",
+     "Sleep late"
+    ],
+    "answer": "Read a little every day"
+   }
+  ],
+  "roleplay": {
+   "who": "beto",
+   "ask": "Have you finished your reading?",
+   "askPt": "Você terminou a sua leitura?",
+   "model": "Yes, I have finished my reading.",
+   "modelPt": "Sim, terminei a minha leitura.",
+   "accept": [
+    "Yes, I have finished my reading.",
+    "Yes, I have finished it."
+   ]
+  }
+ },
+ {
+  "unitId": "u9",
+  "title": "Liberdade e Safra",
+  "lines": [
+   {
+    "who": "alice",
+    "en": "Our liberties were won by courageous citizens.",
+    "pt": "Nossas liberdades foram conquistadas por cidadãos corajosos."
+   },
+   {
+    "who": "lucas",
+    "en": "And they must be defended by every generation.",
+    "pt": "E devem ser defendidas por cada geração."
+   },
+   {
+    "who": "flavia",
+    "en": "Rafael said the harvest would be larger this year.",
+    "pt": "Rafael disse que a safra seria maior este ano."
+   },
+   {
+    "who": "rafael",
+    "en": "It will be, because the rain came on time.",
+    "pt": "Será, porque a chuva veio na hora certa."
+   },
+   {
+    "who": "flavia",
+    "en": "If we had planted earlier, we would have earned more.",
+    "pt": "Se tivéssemos plantado mais cedo, teríamos ganhado mais."
+   },
+   {
+    "who": "alice",
+    "en": "Wisdom is learning from experience, not from regret.",
+    "pt": "Sabedoria é aprender com a experiência, não com o arrependimento."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Quem conquistou as liberdades?",
+    "options": [
+     "Courageous citizens",
+     "Foreign kings",
+     "Nobody"
+    ],
+    "answer": "Courageous citizens"
+   },
+   {
+    "q": "Por que a safra será maior?",
+    "options": [
+     "The rain came on time",
+     "They bought a truck",
+     "It is Sunday"
+    ],
+    "answer": "The rain came on time"
+   },
+   {
+    "q": "O que Flavia diz sobre plantar mais cedo?",
+    "options": [
+     "They would have earned more",
+     "They would have lost",
+     "Nothing would change"
+    ],
+    "answer": "They would have earned more"
+   }
+  ],
+  "roleplay": {
+   "who": "alice",
+   "ask": "What must every generation do?",
+   "askPt": "O que cada geração deve fazer?",
+   "model": "Every generation must defend freedom.",
+   "modelPt": "Cada geração deve defender a liberdade.",
+   "accept": [
+    "Every generation must defend freedom.",
+    "Every generation must defend our freedom."
+   ]
+  }
+ },
+ {
+  "unitId": "u10",
+  "title": "Oratória",
+  "lines": [
+   {
+    "who": "beto",
+    "en": "Rarely does a nation produce such courage.",
+    "pt": "Raramente uma nação produz tanta coragem."
+   },
+   {
+    "who": "alice",
+    "en": "Not only did they fight bravely, but they also governed wisely.",
+    "pt": "Eles não apenas lutaram com bravura, mas também governaram com sabedoria."
+   },
+   {
+    "who": "jose",
+    "en": "I propose that the next meeting be held on Monday.",
+    "pt": "Proponho que a próxima reunião seja realizada na segunda-feira."
+   },
+   {
+    "who": "ayrton",
+    "en": "It is essential that every party be heard.",
+    "pt": "É essencial que cada parte seja ouvida."
+   },
+   {
+    "who": "beto",
+    "en": "Let us not put the cart before the horse.",
+    "pt": "Não coloquemos a carroça na frente dos bois."
+   },
+   {
+    "who": "alice",
+    "en": "Wisely said. First the facts, then the decision.",
+    "pt": "Bem dito. Primeiro os fatos, depois a decisão."
+   }
+  ],
+  "questions": [
+   {
+    "q": "Quando será a próxima reunião?",
+    "options": [
+     "On Monday",
+     "On Friday",
+     "On Sunday"
+    ],
+    "answer": "On Monday"
+   },
+   {
+    "q": "O que é essencial, segundo Ayrton?",
+    "options": [
+     "Every party be heard",
+     "Everyone agree",
+     "Nobody speak"
+    ],
+    "answer": "Every party be heard"
+   },
+   {
+    "q": "Qual expressão Beto usa?",
+    "options": [
+     "Put the cart before the horse",
+     "Break the ice",
+     "Hit the road"
+    ],
+    "answer": "Put the cart before the horse"
+   }
+  ],
+  "roleplay": {
+   "who": "jose",
+   "ask": "When shall we hold the meeting?",
+   "askPt": "Quando devemos realizar a reunião?",
+   "model": "I suggest that we hold it on Monday.",
+   "modelPt": "Sugiro que a realizemos na segunda-feira.",
+   "accept": [
+    "I suggest that we hold it on Monday.",
+    "I propose that we hold it on Monday."
+   ]
+  }
+ }
+]

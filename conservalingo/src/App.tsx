@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,11 +16,18 @@ import LessonScreen from './screens/Lesson';
 import Reading from './screens/Reading';
 import Characters from './screens/Characters';
 import Family from './screens/Family';
+import Honra from './screens/Honra';
+import Chronicle from './screens/Chronicle';
+import Onboarding from './screens/Onboarding';
+import { ensureDaily, settleLeague, dayKey } from './engine/game';
+import { chronicles } from './engine/content';
+import { dueKeys } from './engine/srs';
 
-type Tab = 'trilha' | 'leitura' | 'personagens' | 'familia';
+type Tab = 'trilha' | 'leitura' | 'honra' | 'personagens' | 'familia';
 const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'trilha', icon: '🧭', label: 'Trilha' },
   { id: 'leitura', icon: '📖', label: 'Leitura' },
+  { id: 'honra', icon: '🎖️', label: 'Honra' },
   { id: 'personagens', icon: '🦅', label: 'Elenco' },
   { id: 'familia', icon: '🏡', label: 'Família' },
 ];
@@ -28,8 +35,27 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
 function Shell() {
   const [tab, setTab] = useState<Tab>('trilha');
   const [lesson, setLesson] = useState<LessonRef | null>(null);
-  const { profile } = useStore();
+  const { profile, state, setState } = useStore();
 
+  // Ao abrir o app (ou virar o dia): fecha a liga da semana anterior e sorteia as 3 missões do dia.
+  useEffect(() => {
+    setState((st) => ({
+      ...st,
+      profiles: st.profiles.map((p0) => {
+        const p = settleLeague(p0);
+        const chronicleAvailable = chronicles.some((c) => (p.completed[`${c.unlockAfterUnit}rev`] ?? 0) > 0 && !(p.completed[c.id] ?? 0));
+        return ensureDaily(p, { chronicleAvailable, hasDue: dueKeys(p.srs).length > 0, hour: new Date().getHours() });
+      }),
+    }));
+  }, [dayKey(), state.activeProfileId]);
+
+  if (profile.anchor === undefined) {
+    return <SafeAreaView style={s.root}><Onboarding /></SafeAreaView>;
+  }
+
+  if (lesson && lesson.kind === 'chronicle') {
+    return <SafeAreaView style={s.root}><Chronicle key={lesson.id} id={lesson.id} onExit={() => setLesson(null)} /></SafeAreaView>;
+  }
   if (lesson) {
     return (
       <SafeAreaView style={s.root}>
@@ -46,6 +72,7 @@ function Shell() {
       <View style={{ flex: 1 }}>
         {tab === 'trilha' && <Home onStart={setLesson} />}
         {tab === 'leitura' && <Reading />}
+        {tab === 'honra' && <Honra />}
         {tab === 'personagens' && <Characters />}
         {tab === 'familia' && <Family />}
       </View>

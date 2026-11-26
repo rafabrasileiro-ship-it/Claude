@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppState } from '../types';
-import { newProfile } from './game';
+import { newProfile, migrateProfile } from './game';
 
 const KEY = 'conservalingo:state:v1';
 
@@ -13,7 +13,7 @@ export async function loadState(): Promise<AppState> {
     const raw = await AsyncStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as AppState;
-      if (s.version === 1 && s.profiles?.length) return s;
+      if (s.version === 1 && s.profiles?.length) return { ...s, profiles: s.profiles.map(migrateProfile) };
     }
   } catch { /* estado corrompido: recomeça */ }
   return initialState();

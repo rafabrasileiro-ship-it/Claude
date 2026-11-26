@@ -1,0 +1,285 @@
+[
+ {
+  "id": "th_voiceless",
+  "title": "Som de TH (sem voz)",
+  "words": [
+   "think",
+   "three",
+   "truth",
+   "thank",
+   "thanks",
+   "thing",
+   "both",
+   "path",
+   "month",
+   "faith"
+  ],
+  "rx": "^th|th$",
+  "tip": "Para o TH de “truth”, coloque a ponta da língua levemente entre os dentes e sopre, sem som de F ou T."
+ },
+ {
+  "id": "th_voiced",
+  "title": "Som de TH (com voz)",
+  "words": [
+   "the",
+   "this",
+   "that",
+   "these",
+   "they",
+   "them",
+   "mother",
+   "father",
+   "with",
+   "brother",
+   "other"
+  ],
+  "rx": "th",
+  "tip": "Língua entre os dentes, como no TH anterior, mas faça a garganta vibrar. Não troque por D nem Z."
+ },
+ {
+  "id": "final_consonant",
+  "title": "Consoante final seca",
+  "words": [
+   "work",
+   "walk",
+   "book",
+   "word",
+   "good",
+   "help",
+   "night",
+   "great",
+   "start",
+   "meet",
+   "at"
+  ],
+  "rx": "[kdtpb]$",
+  "tip": "Não adicione um “i” no final de “work”. Corte o som no K, no D ou no T, sem soltar vogal."
+ },
+ {
+  "id": "s_cluster",
+  "title": "S + consoante no início",
+  "words": [
+   "school",
+   "street",
+   "student",
+   "state",
+   "speak",
+   "special",
+   "story",
+   "study",
+   "sport"
+  ],
+  "rx": "^s[ptkcm]|^str|^spl|^scr",
+  "tip": "Não coloque um “e” antes do S: diga “skool”, não “iskool”. Comece direto no S."
+ },
+ {
+  "id": "h_aspirated",
+  "title": "Som de H aspirado",
+  "words": [
+   "house",
+   "home",
+   "have",
+   "his",
+   "her",
+   "hello",
+   "how",
+   "help",
+   "husband",
+   "happy",
+   "history"
+  ],
+  "rx": "^h",
+  "tip": "O H em inglês é um sopro suave, como se você embaçasse um vidro. Não é o “rr” do português."
+ },
+ {
+  "id": "r_sound",
+  "title": "O R americano",
+  "words": [
+   "right",
+   "work",
+   "red",
+   "free",
+   "great",
+   "correct",
+   "are",
+   "for",
+   "very",
+   "morning",
+   "truth",
+   "grow"
+  ],
+  "rx": "r",
+  "tip": "Enrole a língua para trás sem encostar no céu da boca e sem vibrar. Não use o “rr” nem o “h” do português."
+ },
+ {
+  "id": "ed_ending",
+  "title": "Final -ed",
+  "words": [
+   "worked",
+   "asked",
+   "needed",
+   "wanted",
+   "stopped",
+   "helped",
+   "planted",
+   "earned",
+   "returned"
+  ],
+  "rx": "ed$",
+  "tip": "O -ed tem três sons: /t/ depois de som surdo (worked), /d/ depois de som sonoro (earned) e /id/ depois de T ou D (wanted)."
+ },
+ {
+  "id": "short_i",
+  "title": "I curto e I longo",
+  "words": [
+   "ship",
+   "sheep",
+   "live",
+   "leave",
+   "fill",
+   "feel",
+   "it",
+   "this",
+   "in",
+   "is"
+  ],
+  "rx": "^i|^sh",
+  "tip": "“Ship” tem som curto e relaxado; “sheep” é longo e tenso. Não alongue o I curto como se fosse “i” do português."
+ },
+ {
+  "id": "schwa",
+  "title": "Vogal fraca (schwa)",
+  "words": [
+   "about",
+   "family",
+   "again",
+   "today",
+   "banana",
+   "the",
+   "a",
+   "of",
+   "to"
+  ],
+  "rx": "^a|^o",
+  "tip": "Vogais sem acento viram um “ã” bem curto e relaxado: “a-BOUT”, “FAM-ly”. Acente só a sílaba forte."
+ },
+ {
+  "id": "w_sound",
+  "title": "Som de W",
+  "words": [
+   "we",
+   "work",
+   "would",
+   "water",
+   "well",
+   "will",
+   "welcome",
+   "what",
+   "with",
+   "one",
+   "away"
+  ],
+  "rx": "^w",
+  "tip": "Arredonde os lábios como para assoprar uma vela, depois abra. É um “u” curto, sem o V do português."
+ },
+ {
+  "id": "j_dg",
+  "title": "Som de J e DG",
+  "words": [
+   "job",
+   "judge",
+   "just",
+   "jump",
+   "large",
+   "age",
+   "knowledge",
+   "engineer"
+  ],
+  "rx": "^j|dg|ge$",
+  "tip": "Comece com língua no céu da boca, como “dj”: “djob”, não “jóbi”. Lábios levemente projetados."
+ },
+ {
+  "id": "tion",
+  "title": "Final -tion",
+  "words": [
+   "nation",
+   "information",
+   "education",
+   "question",
+   "tradition",
+   "station"
+  ],
+  "rx": "tion$",
+  "tip": "Pronuncie “shun”: na-SHUN, não “ta-ção”. A sílaba forte vem antes do -tion."
+ },
+ {
+  "id": "silent",
+  "title": "Letras mudas",
+  "words": [
+   "Wednesday",
+   "listen",
+   "honest",
+   "hour",
+   "honor",
+   "half",
+   "know",
+   "knowledge",
+   "building"
+  ],
+  "rx": "^kn|^wr|^hon|^hour",
+  "tip": "Algumas letras não soam: “honest” começa com O, “listen” não tem T, “know” não tem K."
+ },
+ {
+  "id": "final_l",
+  "title": "L final",
+  "words": [
+   "all",
+   "well",
+   "tell",
+   "real",
+   "family",
+   "will",
+   "people",
+   "little",
+   "help"
+  ],
+  "rx": "l$",
+  "tip": "Encoste a ponta da língua atrás dos dentes de cima e segure. Não transforme em “u” como no português (“Brasiu”)."
+ },
+ {
+  "id": "final_nasal",
+  "title": "M e N finais",
+  "words": [
+   "from",
+   "time",
+   "them",
+   "come",
+   "name",
+   "men",
+   "in",
+   "on",
+   "an",
+   "can"
+  ],
+  "rx": "[mn]$",
+  "tip": "Feche bem os lábios no M final e encoste a língua no N final. Não nasalize a vogal anterior como em “tão”."
+ },
+ {
+  "id": "z_between",
+  "title": "S entre vogais",
+  "words": [
+   "is",
+   "easy",
+   "has",
+   "as",
+   "was",
+   "these",
+   "please",
+   "busy",
+   "those",
+   "music"
+  ],
+  "rx": "s$|^e?asy",
+  "tip": "O S de “is”, “easy” e “has” soa como Z. No fim de palavras como “is” e “was”, vibre a garganta."
+ }
+]

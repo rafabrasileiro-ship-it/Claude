@@ -33,6 +33,13 @@
         {
           "microphonePermission": false
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Conservalingo usa o microfone para ouvir você repetir as frases em inglês e corrigir a pronúncia.",
+          "speechRecognitionPermission": "O Conservalingo usa o reconhecimento de fala para avaliar a sua pronúncia, palavra por palavra."
+        }
       ]
     ]
   }

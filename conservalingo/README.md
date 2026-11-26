@@ -58,3 +58,14 @@ Os versículos usam inglês americano atual (ex.: "Honor your father and your mo
 Nas lições do tipo história, ▶ "Ouvir a história" toca o diálogo falando fala por fala: cada palavra do inglês aparece (e é realçada em dourado) no instante em que é pronunciada; as falas seguintes ficam esmaecidas até a vez delas. 🐢 "Devagar" usa os clipes lentos. Tocar em um balão repete só aquela fala.
 
 Os tempos vêm de `marks` em `src/audio/manifest.ts`, gerado por `scripts/generate-audio.py` (duração real de cada frase do Piper repartida por fonemas e pausas de pontuação). Sem clipe, o app usa a voz en-US do aparelho com tempos estimados.
+
+## Handoff v3 — o que foi aplicado
+
+- **5 níveis CEFR (A1–C1)**: Nível 1 completo (6 unidades) e unidades de amostra para A2, B1, B2 e C1 (`src/data/units.json`, `levels`).
+- **4 Crônicas Interativas** com 4 pontos de parada cada (deduzir, escolher a atitude correta, completar a fala) — `chronicles.json`, tela `Chronicle.tsx`. Desbloqueiam a cada 2 unidades.
+- **Estações de Escuta** por unidade: áudio sem texto + 3 perguntas + roleplay falado (`listening.json`). **Ditado** em toda lição.
+- **Fala (ASR)**: `expo-speech-recognition` (en-US). Cada palavra fica verde/dourada/carmesim; tocar abre a micro-dica PT-BR→EN (`pronunciation.json`) com a palavra correta e a gravação do aluno. O Android informa só a confiança da frase inteira, então "dourado" = palavra parecida ou frase com baixa confiança. Sem reconhecedor no aparelho, o app volta para a autoavaliação.
+- **Gamificação**: combos (3 = Foco Firme, 5 = 2× Talentos), selo de cera dourado em 100%, Mural de Honra (7/30/90/365), 3 Missões Diárias, 6 patentes em Ligas Semanais (**competidores simulados localmente**), Arcas de Talentos.
+- **PNL**: Frase-Âncora no onboarding, acorde ascendente + dupla vibração no acerto, microcopy de identidade, pressuposições, elogio por arquétipo, Ensaio Mental de 10 s ao fim da unidade, "Ajuste de Rota" nos erros.
+- **Paleta oficial** v3 (`#1B365D`, `#244B82`, `#D4A017`, `#236B3B`, `#FAF9F5`, `#A62639`).
+- **Banco de dados**: novas tabelas (levels, chronicles, listening_stations, pronunciation_tips/history, daily_missions, league_weeks, chests_opened) validadas em PostgreSQL 16.

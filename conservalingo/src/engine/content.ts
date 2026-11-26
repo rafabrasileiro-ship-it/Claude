@@ -2,11 +2,29 @@ import characters from '../data/characters.json';
 import unitsData from '../data/units.json';
 import wisdomData from '../data/wisdom.json';
 import readingData from '../data/reading.json';
-import type { Unit } from '../types';
+import listeningData from '../data/listening.json';
+import chroniclesData from '../data/chronicles.json';
+import pronData from '../data/pronunciation.json';
+import type { Unit, DialogueLine } from '../types';
 
 export const units = unitsData.units as Unit[];
 export const wisdom = wisdomData as { id: string; en: string; pt: string; source: string; kind: string }[];
 export const readings = readingData as { id: string; title: string; author: string; level: number; cost: number; words: [string, string][]; sourceNote: string }[];
+export const levels = (unitsData as { levels: { level: number; cefr: string; title: string; tag: string }[] }).levels;
+export interface Station {
+  unitId: string; title: string; lines: DialogueLine[];
+  questions: { q: string; options: string[]; answer: string }[];
+  roleplay: { who: string; ask: string; askPt: string; model: string; modelPt: string; accept: string[] };
+}
+export const stations = listeningData as Station[];
+export const stationOf = (unitId: string) => stations.find((x) => x.unitId === unitId);
+export interface Chronicle {
+  id: string; title: string; icon: string; cast: string[]; unlockAfterUnit: string; intro: string;
+  segments: { lines: DialogueLine[]; stop: { kind: 'deduce' | 'moral' | 'complete'; q: string; options: string[]; answer: string; why: string } }[];
+}
+export const chronicles = chroniclesData as Chronicle[];
+export interface PronTip { id: string; title: string; words: string[]; rx: string; tip: string }
+export const pronTips = pronData as PronTip[];
 export const mascot = characters.mascot;
 export const families = characters.families;
 
@@ -32,3 +50,7 @@ export function findLesson(id: string) {
 export function dailyWisdom(seed: number) {
   return wisdom[Math.abs(seed) % wisdom.length];
 }
+
+/** Protagonista da família de qualquer personagem (para o elogio de cada arquétipo). */
+export const headOf: Record<string, string> = {};
+for (const f of families) { headOf[f.id] = f.id; headOf[f.spouse.id] = f.id; f.children.forEach((c) => (headOf[c.id] = f.id)); }

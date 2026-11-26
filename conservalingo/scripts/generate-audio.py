@@ -30,11 +30,27 @@ def add(text, voice="M"):
     jobs[(voice, "n", text)] = 1
     jobs[(voice, "s", text)] = 1  # toda fala tem versão lenta (botão 🐢)
 
+def add_n(text, voice="M"):
+    jobs[(voice, "n", text)] = 1  # só velocidade normal (palavras isoladas)
+
+def clean(w): return re.sub(r"[.,!?;:\"“”()]", "", w)
+
 for u in json.loads((DATA / "units.json").read_text())["units"]:
     for l in u["lessons"]:
         for v in l["vocab"]: add(v["en"], "M")
         for d in l["dialogue"]: add(d["en"], sex.get(d["who"], "M"))
-        # frases do diálogo também na outra voz não são necessárias
+        # palavras da frase de fala (cartão de dica de pronúncia: "ouça a palavra correta")
+        last = l["dialogue"][-1]
+        for tok in last["en"].split(): add_n(clean(tok), "M")
+for st in json.loads((DATA / "listening.json").read_text()):
+    for d in st["lines"]: add(d["en"], sex.get(d["who"], "M"))
+    r = st["roleplay"]
+    add(r["ask"], sex.get(r["who"], "M"))
+    for a in r["accept"]:
+        for tok in a.split(): add_n(clean(tok), "M")
+for c in json.loads((DATA / "chronicles.json").read_text()):
+    for sg in c["segments"]:
+        for d in sg["lines"]: add(d["en"], sex.get(d["who"], "M"))
 for w in json.loads((DATA / "wisdom.json").read_text()): add(w["en"], "M")
 for r in json.loads((DATA / "reading.json").read_text()):
     add(" ".join(x[0] for x in r["words"]), "M")
@@ -43,6 +59,8 @@ for r in json.loads((DATA / "reading.json").read_text()):
 OUT.mkdir(parents=True, exist_ok=True)
 loaded = {v: PiperVoice.load(models / f) for v, f in VOICES.items()}
 manifest = {}
+CACHE = ROOT / "src/audio/marks.cache.json"
+cache = json.loads(CACHE.read_text()) if CACHE.exists() else {}
 marks = {}  # chave -> início (ms) de cada palavra do texto (para mostrar/realçar palavra a palavra)
 SKIP = set("ˈˌːˑ,.;:!?—-\"'()")
 PAUSE = {",": 2.0, ";": 2.0, ":": 2.0, ".": 4.0, "!": 4.0, "?": 4.0}
@@ -76,6 +94,8 @@ for (voice, speed, text) in sorted(jobs):
     name = hashlib.sha1(key.encode()).hexdigest()[:12] + ".m4a"
     manifest[key] = name
     dest = OUT / name
+    if dest.exists() and key in cache:
+        marks[key] = cache[key]; continue
     cfg = SynthesisConfig(length_scale=SLOW if speed == "s" else 1.0, noise_scale=0.6, noise_w_scale=0.7)
     chunks = []; audio = []; sr = 22050
     for i, ch in enumerate(loaded[voice].synthesize(text, cfg)):
@@ -87,7 +107,7 @@ for (voice, speed, text) in sorted(jobs):
     lead = int(loud[0]) if len(loud) else 0
     st = [max(0, int(round((x - lead) / sr * 1000))) for x in word_marks(text, chunks, sr)]
     marks[key] = st
-    if dest.exists(): continue
+    if len(marks) % 100 == 0: CACHE.write_text(json.dumps({**cache, **marks}))
     with tempfile.NamedTemporaryFile(suffix=".wav") as tmp:
         with wave.open(tmp.name, "wb") as wf:
             wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(sr)
@@ -95,6 +115,8 @@ for (voice, speed, text) in sorted(jobs):
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp.name, "-ac", "1", "-ar", "24000",
                         "-af", "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse,apad=pad_dur=0.08",
                         "-c:a", "aac", "-b:a", "40k", str(dest)], check=True)
+
+CACHE.write_text(json.dumps(marks))
 
 # remove clipes órfãos
 for f in OUT.glob("*.m4a"):

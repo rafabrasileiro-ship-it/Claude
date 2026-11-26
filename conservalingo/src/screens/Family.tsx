@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View, Pressable } from 'react-
 import { colors, fonts, radius, space, fs } from '../theme';
 import { Btn, Card, H1, P } from '../components/ui';
 import { useStore } from '../store';
-import { activeStreak, newProfile, rankFor } from '../engine/game';
+import { activeStreak, newProfile, tierName } from '../engine/game';
 
 export default function Family() {
   const { state, setState } = useStore();
@@ -45,7 +45,7 @@ export default function Family() {
     <ScrollView contentContainerStyle={s.pad}>
       <H1>Perfis da Família</H1>
       {state.profiles.map((p) => {
-        const r = rankFor(p.xp, p.sex);
+        const r = { name: tierName(p.league?.tier ?? 0, p.sex) };
         const active = p.id === state.activeProfileId;
         return (
           <Card key={p.id} style={[{ gap: 6 }, active && { borderColor: colors.gold, borderWidth: 2 }]}>

@@ -121,3 +121,12 @@ export function sayTimed(text: string, voice: Voice, slow: boolean, onWord: (i: 
   } catch { finish(false); }
   return () => handle.stop();
 }
+
+/** Toca a gravação do próprio aluno (arquivo local gerado pelo reconhecimento de fala). */
+export function playUri(uri: string) {
+  try {
+    stopAll();
+    if (!modeSet) { modeSet = true; setAudioModeAsync({ playsInSilentMode: true }).catch(() => {}); }
+    const p = createAudioPlayer({ uri }); p.play();
+  } catch { /* sem áudio */ }
+}

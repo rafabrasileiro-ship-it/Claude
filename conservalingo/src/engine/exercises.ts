@@ -1,6 +1,7 @@
 import type { Exercise, Lesson, Unit } from '../types';
 import { shuffle, pick } from './rng';
-import { units, people } from './content';
+import { units, people, stationOf } from './content';
+import { dictationOk } from './pron';
 
 const norm = (s: string) => s.toLowerCase().replace(/[.,!?;:"“”]/g, '').replace(/\s+/g, ' ').trim();
 export const normalize = norm;
@@ -20,12 +21,14 @@ export function buildLessonExercises(unit: Unit, lesson: Lesson, rnd: () => numb
     ex.push({
       id: `${lesson.id}:v:${v.en}`, kind: 'choose', prompt: 'Qual é a tradução?', question: v.en, speak: v.en,
       options: shuffle([v.pt, ...distractors(allPt, v.pt, 3, rnd)], rnd), answer: v.pt,
+      explain: `“${v.en}” significa “${v.pt}”.`,
     });
   });
   lesson.vocab.slice(4).concat(lesson.vocab.slice(0, 1)).slice(0, 2).forEach((v) => {
     ex.push({
       id: `${lesson.id}:l:${v.en}`, kind: 'listen', prompt: 'Ouça e escolha o que você ouviu', question: '🔊', speak: v.en,
       options: shuffle([v.en, ...distractors(allEn, v.en, 3, rnd)], rnd), answer: v.en,
+      explain: `Você ouviu “${v.en}”, que significa “${v.pt}”. Ouça de novo, devagar, no botão 🐢.`,
     });
   });
   lesson.dialogue.forEach((d, i) => {
@@ -39,8 +42,15 @@ export function buildLessonExercises(unit: Unit, lesson: Lesson, rnd: () => numb
       prompt: toEn ? 'Traduza para o inglês' : 'Traduza para o português',
       question: toEn ? d.pt : d.en, speak: d.en, voice: people[d.who]?.sex ?? 'M',
       bank: shuffle([...words, ...extra], rnd), answer: target,
+      explain: `Frase certa: “${target}”. Foco desta unidade: ${unit.topics}`,
     });
   });
+  // Ditado (escuta pura): a frase mais curta com 3+ palavras, sem texto na tela.
+  const dictIdx = lesson.dialogue.map((d, i) => ({ i, n: tokens(d.en).length })).filter((x) => x.n >= 3 && x.i < lesson.dialogue.length - 1).sort((a, b) => a.n - b.n)[0]?.i;
+  if (dictIdx !== undefined) {
+    const d = lesson.dialogue[dictIdx];
+    ex.push({ id: `${lesson.id}:t:${dictIdx}`, kind: 'dictation', prompt: 'Ditado: escreva em inglês o que você ouviu', question: '🔊', speak: d.en, voice: people[d.who]?.sex ?? 'M', answer: d.en, explain: `Frase certa: “${d.en}” — ${d.pt}` });
+  }
   const last = lesson.dialogue[lesson.dialogue.length - 1];
   ex.push({ id: `${lesson.id}:s`, kind: 'speak', prompt: 'Leia em voz alta com boa dicção', question: last.en, speak: last.en, voice: people[last.who]?.sex ?? 'M', answer: last.en });
   return ex;
@@ -49,7 +59,27 @@ export function buildLessonExercises(unit: Unit, lesson: Lesson, rnd: () => numb
 /** Desafio de revisão da unidade: amostra de todas as lições. */
 export function buildReviewExercises(unit: Unit, rnd: () => number): Exercise[] {
   const all = unit.lessons.flatMap((l) => buildLessonExercises(unit, l, rnd).filter((e) => e.kind !== 'speak'));
-  return pick(all, 10, rnd);
+  const rp = buildRoleplay(unit.id);
+  return rp ? [...pick(all, 9, rnd), rp] : pick(all, 10, rnd);
+}
+
+/** Conversação guiada: o personagem pergunta em áudio e o aluno responde falando. */
+export function buildRoleplay(unitId: string): Exercise | null {
+  const st = stationOf(unitId); if (!st) return null;
+  const r = st.roleplay;
+  return { id: `${unitId}:r`, kind: 'roleplay', prompt: `${people[r.who]?.name ?? 'O personagem'} pergunta. Responda em inglês, falando.`, question: r.askPt, speak: r.ask,
+    voice: people[r.who]?.sex ?? 'M', answer: r.model, accept: r.accept, hint: r.modelPt, explain: `Resposta modelo: “${r.model}” — ${r.modelPt}` };
+}
+
+/** Estação de Escuta: 3 perguntas de interpretação sobre o áudio. */
+export function buildStationExercises(unitId: string, rnd: () => number): Exercise[] {
+  const st = stationOf(unitId); if (!st) return [];
+  const ex: Exercise[] = st.questions.map((q, i) => ({
+    id: `${unitId}lis:q:${i}`, kind: 'choose', prompt: 'Pergunta sobre o áudio', question: q.q, options: shuffle([...q.options], rnd), answer: q.answer,
+    explain: `Ouça de novo o diálogo para confirmar. Resposta: “${q.answer}”.`,
+  }));
+  const rp = buildRoleplay(unitId); if (rp) ex.push(rp);
+  return ex;
 }
 
 /** Treino de Virtude: reconstrói exercícios a partir das chaves SRS vencidas. */
@@ -72,5 +102,6 @@ export function buildPracticeFromKeys(keys: string[], rnd: () => number): Exerci
 }
 
 export function checkAnswer(ex: Exercise, given: string): boolean {
+  if (ex.kind === 'dictation') return dictationOk(ex.answer, given);
   return norm(given) === norm(ex.answer);
 }

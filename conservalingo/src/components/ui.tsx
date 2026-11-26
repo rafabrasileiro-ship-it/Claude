@@ -4,10 +4,10 @@ import { colors, fonts, radius, space, fs } from '../theme';
 
 type Kind = 'primary' | 'gold' | 'ghost' | 'danger' | 'success';
 const SHADES: Record<Kind, { bg: string; edge: string; fg: string }> = {
-  primary: { bg: colors.navy, edge: '#0F2142', fg: '#fff' },
-  gold: { bg: colors.gold, edge: '#8F6C12', fg: '#fff' },
-  danger: { bg: colors.crimson, edge: '#5E1823', fg: '#fff' },
-  success: { bg: colors.olive, edge: '#1B3A21', fg: '#fff' },
+  primary: { bg: colors.cobalt, edge: '#142C52', fg: '#fff' },
+  gold: { bg: colors.gold, edge: '#8A6508', fg: '#fff' },
+  danger: { bg: colors.crimson, edge: '#6B1523', fg: '#fff' },
+  success: { bg: colors.olive, edge: '#134226', fg: '#fff' },
   ghost: { bg: '#fff', edge: colors.line, fg: colors.navy },
 };
 
