@@ -1,6 +1,6 @@
 import * as Speech from 'expo-speech';
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
-import { clips } from '../audio/manifest';
+import { clips, marks } from '../audio/manifest';
 
 /**
  * Inglês: vozes neurais pré-gravadas (masculina/feminina, normal/lenta) — pronúncia nativa dos EUA.
@@ -24,7 +24,10 @@ async function bestVoice(prefix: string): Promise<string | undefined> {
   } catch { return undefined; }
 }
 
+let active: { stop: () => void } | null = null;
+
 function stopAll() {
+  const a = active; active = null; a?.stop();
   try { Speech.stop(); } catch { /* noop */ }
   try { player?.pause(); } catch { /* noop */ }
 }
@@ -63,3 +66,58 @@ export function sayPt(text: string, slow = false) {
 }
 
 export function stopSpeaking() { stopAll(); }
+
+/**
+ * Fala em inglês e avisa, palavra por palavra, qual está sendo pronunciada AGORA.
+ * onWord(i): índice da palavra (texto.split(/\s+/)); onEnd(completed): true se terminou, false se foi interrompida.
+ * Retorna uma função para cancelar.
+ */
+export function sayTimed(text: string, voice: Voice, slow: boolean, onWord: (i: number) => void, onEnd: (completed: boolean) => void): () => void {
+  stopAll();
+  const key = `${voice}|${slow ? 's' : 'n'}|${text}`;
+  const k2 = clips[key] !== undefined ? key : clips[`M|${slow ? 's' : 'n'}|${text}`] !== undefined ? `M|${slow ? 's' : 'n'}|${text}` : '';
+  let done = false; let timer: ReturnType<typeof setInterval> | null = null; let last = -1;
+  const handle = { stop: () => { try { Speech.stop(); player?.pause(); } catch { /* noop */ } finish(false); } };
+  const finish = (ok: boolean) => {
+    if (done) return; done = true;
+    if (timer) clearInterval(timer);
+    if (active === handle) active = null;
+    onEnd(ok);
+  };
+  active = handle;
+  const advance = (ms: number, ts: number[]) => {
+    let i = -1;
+    for (let j = 0; j < ts.length; j++) { if (ts[j] <= ms) i = j; else break; }
+    if (i !== last) { last = i; if (i >= 0) onWord(i); }
+  };
+  try {
+    if (k2) {
+      const ts = marks[k2] ?? [];
+      if (!modeSet) { modeSet = true; setAudioModeAsync({ playsInSilentMode: true }).catch(() => {}); }
+      if (!player) player = createAudioPlayer(clips[k2]); else player.replace(clips[k2]);
+      player.play();
+      const t0 = Date.now(); let started = false;
+      timer = setInterval(() => {
+        const p = player; if (!p) return;
+        if (p.playing) started = true;
+        advance((p.currentTime || 0) * 1000, ts);
+        const dur = p.duration || 0;
+        if ((started && !p.playing) || (dur > 0 && p.currentTime >= dur - 0.03) || Date.now() - t0 > 30000) finish(true);
+      }, 30);
+    } else {
+      // sem clipe: voz do aparelho, tempos estimados pelas letras
+      const words = text.split(/\s+/).filter(Boolean);
+      const unit = slow ? 105 : 70;
+      const ts: number[] = []; let acc = 0;
+      words.forEach((w) => { ts.push(acc * unit); acc += Math.max(2, w.replace(/\W/g, '').length + (/[,.;:!?]$/.test(w) ? 3 : 0)); });
+      const go = (id?: string) => {
+        if (done) return;
+        const t0 = Date.now();
+        timer = setInterval(() => advance(Date.now() - t0, ts), 40);
+        Speech.speak(text, { language: 'en-US', voice: id, rate: slow ? 0.7 : 0.95, onDone: () => finish(true), onStopped: () => finish(false), onError: () => finish(false) });
+      };
+      if (enVoice.id) go(enVoice.id); else bestVoice('en-US').then((id) => { enVoice.id = id; go(id); });
+    }
+  } catch { finish(false); }
+  return () => handle.stop();
+}

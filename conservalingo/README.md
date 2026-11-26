@@ -52,3 +52,9 @@ O Módulo 1 usa **inglês padrão dos Estados Unidos** (grafia americana, vozes 
 `npm run validate` falha se aparecer grafia/vocabulário britânico ou inglês arcaico. O inglês britânico terá um
 capítulo próprio (curso `en-GB`; o schema já prevê `courses.dialect`) com vozes e textos separados.
 Os versículos usam inglês americano atual (ex.: "Honor your father and your mother").
+
+## Histórias palavra a palavra
+
+Nas lições do tipo história, ▶ "Ouvir a história" toca o diálogo falando fala por fala: cada palavra do inglês aparece (e é realçada em dourado) no instante em que é pronunciada; as falas seguintes ficam esmaecidas até a vez delas. 🐢 "Devagar" usa os clipes lentos. Tocar em um balão repete só aquela fala.
+
+Os tempos vêm de `marks` em `src/audio/manifest.ts`, gerado por `scripts/generate-audio.py` (duração real de cada frase do Piper repartida por fonemas e pausas de pontuação). Sem clipe, o app usa a voz en-US do aparelho com tempos estimados.

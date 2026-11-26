@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { colors, fonts, radius, space, fs } from '../theme';
 import { Avatar, Btn, Card, H1, P, ProgressBar } from '../components/ui';
@@ -9,7 +9,7 @@ import { buildLessonExercises, buildPracticeFromKeys, buildReviewExercises } fro
 import { mulberry32 } from '../engine/rng';
 import { dueKeys, review } from '../engine/srs';
 import { rankFor, stars, touchStreak, weekKey } from '../engine/game';
-import { say, sayPt } from '../engine/audio';
+import { say, sayPt, sayTimed, stopSpeaking } from '../engine/audio';
 import type { LessonRef } from './Home';
 import type { Exercise } from '../types';
 
@@ -89,36 +89,7 @@ export default function LessonScreen({ target, onExit }: { target: LessonRef; on
   };
 
   if (phase === 'story' && meta.lesson) {
-    return (
-      <ScrollView contentContainerStyle={s.pad}>
-        <H1>{meta.lesson.title}</H1>
-        <P style={{ color: colors.muted }}>Leia o diálogo ilustrado. Toque em um balão para ouvir.</P>
-        {meta.lesson.dialogue.map((d, i) => {
-          const who = people[d.who];
-          const right = i % 2 === 1;
-          return (
-            <View key={i} style={[s.row, right && { flexDirection: 'row-reverse' }]}>
-              <View style={{ alignItems: 'center', width: 76 }}>
-                <Avatar emoji={who?.emoji ?? '🙂'} color={who?.color ?? colors.navy} />
-                <Text style={s.who}>{who?.name}</Text>
-              </View>
-              <View style={[s.bubble, right && { backgroundColor: colors.navySoft }]}>
-                <Pressable onPress={() => say(d.en, who?.sex ?? 'M')} accessibilityLabel="Ouvir em inglês"><Text style={s.en}>{d.en} 🔊</Text></Pressable>
-                <Pressable onPress={() => sayPt(d.pt)} accessibilityLabel="Ouvir em português"><Text style={s.pt}>{d.pt} 🇧🇷</Text></Pressable>
-              </View>
-            </View>
-          );
-        })}
-        <Card style={{ backgroundColor: colors.goldSoft }}>
-          <Text style={s.who}>Vocabulário</Text>
-          {meta.lesson.vocab.map((v) => (
-            <Pressable key={v.en} onPress={() => say(v.en, 'M')}><P>🔊 <Text style={{ fontFamily: fonts.sansBold }}>{v.en}</Text> — {v.pt}</P></Pressable>
-          ))}
-        </Card>
-        <Btn title="Começar exercícios" onPress={() => setPhase('quiz')} />
-        <Btn kind="ghost" title="Sair" onPress={onExit} />
-      </ScrollView>
-    );
+    return <Story lesson={meta.lesson} onStart={() => setPhase('quiz')} onExit={onExit} />;
   }
 
   if (phase === 'failed') {
@@ -178,7 +149,90 @@ function Empty({ onExit }: { onExit: () => void }) {
   );
 }
 
+type Play = { line: number; word: number; seq: boolean } | null;
+
+function Story({ lesson, onStart, onExit }: { lesson: NonNullable<ReturnType<typeof findLesson>>['lesson']; onStart: () => void; onExit: () => void }) {
+  const [play, setPlay] = useState<Play>(null);
+  const [slow, setSlow] = useState(false);
+  const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const ys = useRef<number[]>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dlg = lesson.dialogue;
+
+  const stop = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; stopSpeaking(); setPlay(null); };
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); stopSpeaking(); }, []);
+
+  const playLine = (i: number, seq: boolean) => {
+    if (timer.current) clearTimeout(timer.current);
+    const d = dlg[i]; const who = people[d.who];
+    setPlay({ line: i, word: -1, seq });
+    scroll.current?.scrollTo({ y: Math.max(0, (ys.current[i] ?? 0) - 120), animated: true });
+    sayTimed(d.en, who?.sex ?? 'M', slow, (w) => setPlay({ line: i, word: w, seq }), (ok) => {
+      if (!ok) return;
+      if (seq && i + 1 < dlg.length) { setPlay({ line: i, word: 999, seq }); timer.current = setTimeout(() => playLine(i + 1, true), 450); }
+      else setPlay(null);
+    });
+  };
+
+  return (
+    <ScrollView ref={scroll} contentContainerStyle={s.pad}>
+      <H1>{lesson.title}</H1>
+      <P style={{ color: colors.muted }}>Ouça a história: cada palavra aparece no instante em que é falada. Toque em um balão para ouvir só ele.</P>
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        <View style={{ flex: 1 }}>
+          {play ? <Btn kind="ghost" title="⏹ Parar" onPress={stop} /> : <Btn kind="gold" title="▶ Ouvir a história" onPress={() => playLine(0, true)} />}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Btn kind={slow ? 'success' : 'ghost'} title={slow ? '🐢 Devagar: ligado' : '🐢 Devagar'} onPress={() => setSlow((v) => !v)} />
+        </View>
+      </View>
+      {dlg.map((d, i) => {
+        const who = people[d.who];
+        const right = i % 2 === 1;
+        const words = d.en.split(/\s+/).filter(Boolean);
+        const cur = play && play.line === i ? play.word : null; // palavra atual (null = esta fala não está tocando)
+        const upcoming = !!play && play.seq && i > play.line;
+        const speaking = cur !== null && cur < 999;
+        return (
+          <View key={i} onLayout={(e) => { ys.current[i] = e.nativeEvent.layout.y; }} style={[s.row, right && { flexDirection: 'row-reverse' }, upcoming && { opacity: 0.22 }]}>
+            <View style={{ alignItems: 'center', width: 76 }}>
+              <Avatar emoji={who?.emoji ?? '🙂'} color={who?.color ?? colors.navy} />
+              <Text style={s.who}>{who?.name}</Text>
+            </View>
+            <View style={[s.bubble, right && { backgroundColor: colors.navySoft }, speaking && { borderColor: colors.gold, borderWidth: 2 }]}>
+              <Pressable onPress={() => playLine(i, false)} accessibilityLabel="Ouvir em inglês">
+                <Text style={s.en}>
+                  {words.map((w, k) => {
+                    const shown = cur === null || k <= cur;
+                    const now = cur !== null && k === cur;
+                    return (
+                      <Text key={k} style={[now && s.now, !shown && { color: 'transparent' }]}>{w}{k < words.length - 1 ? ' ' : ''}</Text>
+                    );
+                  })}
+                  {cur === null ? ' 🔊' : ''}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => sayPt(d.pt)} accessibilityLabel="Ouvir em português">
+                <Text style={[s.pt, speaking && { opacity: 0 }]}>{d.pt} 🇧🇷</Text>
+              </Pressable>
+            </View>
+          </View>
+        );
+      })}
+      <Card style={{ backgroundColor: colors.goldSoft }}>
+        <Text style={s.who}>Vocabulário</Text>
+        {lesson.vocab.map((v) => (
+          <Pressable key={v.en} onPress={() => say(v.en, 'M')}><P>🔊 <Text style={{ fontFamily: fonts.sansBold }}>{v.en}</Text> — {v.pt}</P></Pressable>
+        ))}
+      </Card>
+      <Btn title="Começar exercícios" onPress={() => { stop(); onStart(); }} />
+      <Btn kind="ghost" title="Sair" onPress={() => { stop(); onExit(); }} />
+    </ScrollView>
+  );
+}
+
 const s = StyleSheet.create({
+  now: { backgroundColor: colors.gold, color: '#fff' },
   pad: { padding: space.md, gap: space.md, paddingBottom: 60 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.lg, gap: space.md },
   row: { flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' },
